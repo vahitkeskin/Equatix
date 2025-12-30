@@ -1,0 +1,67 @@
+[versions]
+# --- CORE VERSIONS (STABLE) ---
+agp = "8.7.3"                # 8.11.2 henüz yok, en stabil sürüm bu.
+kotlin = "2.1.0"             # 2.3.0 henüz yok, en güncel stabil bu.
+composeMultiplatform = "1.7.1" # 1.9.3 henüz yok, en güncel stabil bu.
+
+# --- ANDROID CONFIG ---
+android-compileSdk = "35"    # 36 henüz Preview aşamasında, 35 stabil.
+android-minSdk = "24"
+android-targetSdk = "35"
+
+# --- ANDROID LIBRARIES ---
+androidx-activity = "1.9.3"  # 1.12.2 yok.
+androidx-appcompat = "1.7.0"
+androidx-core = "1.15.0"     # 1.17.0 yok.
+androidx-espresso = "3.6.1"
+androidx-testExt = "1.2.1"
+
+# --- KMP LIFECYCLE (CRITICAL) ---
+# JetBrains Lifecycle 2.8.0+ kullanıyoruz (KMP ViewModel desteği için).
+# Voyager 1.0.0 ile çakışır, bu yüzden Voyager'ı da güncellemeliyiz.
+androidx-lifecycle = "2.8.4"
+
+# --- VOYAGER (NAVIGATION) ---
+# 1.0.0 sürümü Lifecycle 2.8+ ile çalışmaz (Crash verir).
+# Bu sorunu çözen güncel BETA sürümü kullanıyoruz.
+voyager = "1.1.0-beta03"
+
+# --- UTILS ---
+junit = "4.13.2"
+kotlinx-coroutines = "1.10.1"
+
+[libraries]
+# Kotlin & Test
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
+junit = { module = "junit:junit", version.ref = "junit" }
+
+# AndroidX
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
+androidx-testExt-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-testExt" }
+androidx-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "androidx-espresso" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
+
+# Lifecycle (KMP Uyumlu - org.jetbrains)
+androidx-lifecycle-viewmodelCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
+androidx-lifecycle-runtimeCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
+
+# Coroutines
+kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
+
+# Voyager (KMP Navigation)
+voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyager" }
+voyager-screenmodel = { module = "cafe.adriel.voyager:voyager-screenmodel", version.ref = "voyager" }
+voyager-koin = { module = "cafe.adriel.voyager:voyager-koin", version.ref = "voyager" }
+voyager-transitions = { module = "cafe.adriel.voyager:voyager-transitions", version.ref = "voyager" }
+
+# Koin (Dependency Injection)
+koin-core = { module = "io.insert-koin:koin-core", version = "4.0.0" } # Koin 4.0 KMP için daha stabil
+
+[plugins]
+androidApplication = { id = "com.android.application", version.ref = "agp" }
+androidLibrary = { id = "com.android.library", version.ref = "agp" }
+composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
+composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
