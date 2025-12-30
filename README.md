@@ -1,5 +1,4 @@
-````markdown
-# Equatix  
+# Equatix
 ### Cross-Platform Math Matrix Puzzle — Built with Kotlin Multiplatform
 
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.1.0-purple?logo=kotlin)](https://kotlinlang.org/)
@@ -18,16 +17,16 @@ bir ürün mimarisinin nasıl kurulacağını göstermektir.
 
 ## İçindekiler
 
-1. Proje Amacı ve Kapsamı  
-2. Temel Özellikler  
-3. Teknik Vizyon  
-4. Kullanılan Teknolojiler  
-5. Mimari Yaklaşım  
-6. Kritik Mühendislik Kararları  
-7. Kurulum ve Çalıştırma  
-8. Proje Yapısı  
-9. Yol Haritası  
-10. Lisans ve Geliştirici  
+1. Proje Amacı ve Kapsamı
+2. Temel Özellikler
+3. Teknik Vizyon
+4. Kullanılan Teknolojiler
+5. Mimari Yaklaşım
+6. Kritik Mühendislik Kararları
+7. Kurulum ve Çalıştırma
+8. Proje Yapısı
+9. Yol Haritası
+10. Lisans ve Geliştirici
 
 ---
 
@@ -207,31 +206,16 @@ Platform kodları **minimumda tutulur**.
 
 ```bash
 ./gradlew :composeApp:installDebug
-````
 
----
-
-### Desktop
-
-```bash
+Desktop
 ./gradlew :composeApp:run
-```
-
----
-
-### iOS
-
-* `iosApp.xcodeproj` dosyasını Xcode ile aç
-* Simulator veya gerçek cihaz seç
-* Run
-
+iOS
+iosApp.xcodeproj dosyasını Xcode ile aç
+Simulator veya gerçek cihaz seç
+Run
 İlk derleme süresi uzun olabilir (Kotlin/Native).
 
----
-
-## Proje Yapısı
-
-```text
+Proje Yapısı
 Equatix/
 ├── composeApp/
 │   ├── src/
@@ -246,34 +230,21 @@ Equatix/
 ├── iosApp/
 ├── gradle/
 └── settings.gradle.kts
-```
+Kodun büyük kısmı commonMain altındadır.
 
-Kodun büyük kısmı `commonMain` altındadır.
-
----
-
-## Yol Haritası
-
-* Online leaderboard
-* Bulut senkronizasyonu
-* Çoklu dil desteği
-* Tema sistemi
-* Accessibility iyileştirmeleri
-
----
-
-## Lisans ve Geliştirici
-
+Yol Haritası
+Online leaderboard
+Bulut senkronizasyonu
+Çoklu dil desteği
+Tema sistemi
+Accessibility iyileştirmeleri
+Lisans ve Geliştirici
 MIT Lisansı altında sunulmaktadır.
 
-**Geliştirici:**
-**Vahit Keskin**
-Computer Engineer — Senior Android Developer
+Geliştirici: Vahit Keskin Computer Engineer — Senior Android Developer
 
-Bu proje, modern mobil ve multiplatform yazılım geliştirme
-yaklaşımlarını **gerçekçi bir örnek** üzerinden göstermek amacıyla geliştirilmiştir.
+Bu proje, modern mobil ve multiplatform yazılım geliştirme yaklaşımlarını gerçekçi bir örnek üzerinden göstermek amacıyla geliştirilmiştir.
 
-```
 
 ---
 
@@ -284,4 +255,3 @@ yaklaşımlarını **gerçekçi bir örnek** üzerinden göstermek amacıyla gel
 - README içindeki bazı iddiaları **benchmark / test** ile güçlendirmek  
 
 Sıradaki hamleni söyle.
-```
