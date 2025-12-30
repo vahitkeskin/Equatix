@@ -244,14 +244,3 @@ MIT Lisansı altında sunulmaktadır.
 Geliştirici: Vahit Keskin Computer Engineer — Senior Android Developer
 
 Bu proje, modern mobil ve multiplatform yazılım geliştirme yaklaşımlarını gerçekçi bir örnek üzerinden göstermek amacıyla geliştirilmiştir.
-
-
----
-
-İstersen bir sonraki adımda şunları da yaparız:
-- README’yi **GitHub recruiter odaklı** versiyona bölmek  
-- “Why KMP?” ayrı teknik doküman yazmak  
-- Bu projeyi **portfolio + CV** ile birebir eşleştirmek  
-- README içindeki bazı iddiaları **benchmark / test** ile güçlendirmek  
-
-Sıradaki hamleni söyle.
