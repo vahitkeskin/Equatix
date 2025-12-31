@@ -42,7 +42,8 @@ fun ResultPanel(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = if (isSurrendered) "SOLUTION SHOWN" else "PERFECT!",
+                // Değişiklik 1: Başlık metinleri
+                text = if (isSurrendered) "ÇÖZÜM GÖSTERİLDİ" else "MÜKEMMEL!",
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
                 fontSize = 24.sp,
@@ -51,8 +52,9 @@ fun ResultPanel(
 
             if (!isSurrendered) {
                 Spacer(modifier = Modifier.height(8.dp))
+                // Değişiklik 2: Süre metni
                 Text(
-                    text = "Completion Time: ${formatTime(elapsedTime)}",
+                    text = "Tamamlama Süresi: ${formatTime(elapsedTime)}",
                     color = Color.Gray,
                     fontSize = 14.sp
                 )
@@ -69,7 +71,7 @@ fun ResultPanel(
                     .height(56.dp)
             ) {
                 Text(
-                    "NEW GAME",
+                    "YENİ OYUN",
                     color = Color.Black,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp

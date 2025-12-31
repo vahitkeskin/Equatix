@@ -91,9 +91,6 @@ fun GameGrid(
             }
         }
 
-        // --- GÖRSEL BOŞLUK (İsteğiniz üzerine eklendi) ---
-        Spacer(modifier = Modifier.height(16.dp))
-
         // --- DİKEY EŞİTTİRLER ---
         Row(verticalAlignment = Alignment.CenterVertically) {
             for (j in 0 until n) {

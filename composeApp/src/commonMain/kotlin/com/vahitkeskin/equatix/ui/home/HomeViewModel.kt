@@ -2,10 +2,15 @@ package com.vahitkeskin.equatix.ui.home
 
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
+import com.vahitkeskin.equatix.data.local.createDataStore
 import com.vahitkeskin.equatix.domain.model.Difficulty
 import com.vahitkeskin.equatix.domain.model.GridSize
+import com.vahitkeskin.equatix.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 // Room veritabanındaki Entity'nize karşılık gelen model
@@ -20,16 +25,31 @@ data class ScoreRecord(
 
 class HomeViewModel : ScreenModel {
 
-    // --- State ---
-    // Room'dan gelecek verileri burada tutacağız
+    // --- Repositories ---
+    // Not: createDataStore() fonksiyonunun doğru import edildiğinden emin olun.
+    // Gerçek projede bu sınıfı DI (Koin/Hilt) ile inject etmek daha doğrudur.
+    private val settingsRepo = SettingsRepository(createDataStore())
+
+    // --- UI State (Scores) ---
     private val _scores = MutableStateFlow<List<ScoreRecord>>(emptyList())
     val scores = _scores.asStateFlow()
 
-    private val _isSoundOn = MutableStateFlow(true)
-    val isSoundOn = _isSoundOn.asStateFlow()
+    // --- UI State (Settings - DataStore) ---
+    // DataStore'dan gelen Flow'u StateFlow'a çeviriyoruz.
+    // Böylece UI her zaman güncel veriyi dinler ve uygulama açıldığında son ayar gelir.
+    val isSoundOn: StateFlow<Boolean> = settingsRepo.isSoundOn
+        .stateIn(
+            scope = screenModelScope,
+            started = SharingStarted.WhileSubscribed(5000), // UI arka plana düşerse 5sn sonra durdur
+            initialValue = true // Varsayılan değer
+        )
 
-    private val _isVibrationOn = MutableStateFlow(true)
-    val isVibrationOn = _isVibrationOn.asStateFlow()
+    val isVibrationOn: StateFlow<Boolean> = settingsRepo.isVibrationOn
+        .stateIn(
+            scope = screenModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = true
+        )
 
     init {
         loadScores()
@@ -51,6 +71,19 @@ class HomeViewModel : ScreenModel {
         }
     }
 
-    fun toggleSound() { _isSoundOn.value = !_isSoundOn.value }
-    fun toggleVibration() { _isVibrationOn.value = !_isVibrationOn.value }
+    // --- Actions ---
+
+    fun toggleSound() {
+        screenModelScope.launch {
+            // Mevcut değerin tersini DataStore'a yazıyoruz.
+            // isSoundOn StateFlow olduğu için otomatik olarak güncellenecektir.
+            settingsRepo.setSound(!isSoundOn.value)
+        }
+    }
+
+    fun toggleVibration() {
+        screenModelScope.launch {
+            settingsRepo.setVibration(!isVibrationOn.value)
+        }
+    }
 }

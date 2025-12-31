@@ -21,6 +21,12 @@ class GameViewModel : ScreenModel {
         private set
     var selectedCellIndex by mutableStateOf<Int?>(null)
         private set
+    var isVibrationEnabled by mutableStateOf(true)
+        private set
+
+    fun toggleVibration() {
+        isVibrationEnabled = !isVibrationEnabled
+    }
 
     fun startGame(difficulty: Difficulty, size: GridSize) {
         isSolved = false
