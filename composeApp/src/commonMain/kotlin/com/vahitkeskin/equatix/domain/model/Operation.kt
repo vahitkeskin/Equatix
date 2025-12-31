@@ -4,5 +4,5 @@ enum class Operation(val symbol: String) {
     ADD("+"),
     SUB("-"),
     MUL("×"),
-    DIV("÷") // Bölme eklendi
+    DIV("÷")
 }
