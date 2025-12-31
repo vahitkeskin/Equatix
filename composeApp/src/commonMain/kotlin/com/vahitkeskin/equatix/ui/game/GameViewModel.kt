@@ -246,4 +246,10 @@ class GameViewModel : ScreenModel {
             isSolved = true; selectedCellIndex = null
         }
     }
+
+    // GameViewModel.kt içine ekle
+    fun loadPreviewState(customState: GameState) {
+        this.gameState = customState
+        this.isSolved = true // Çözülmüş modda görmek istediğin için
+    }
 }
