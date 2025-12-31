@@ -37,6 +37,7 @@ kotlin {
             dependencies {
                 implementation(compose.preview)
                 implementation(libs.androidx.activity.compose)
+                implementation(libs.android.material)
             }
         }
         val commonMain by getting {
