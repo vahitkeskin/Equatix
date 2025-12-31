@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.transitions.SlideTransition
 import com.vahitkeskin.equatix.ui.home.HomeScreen
+import com.vahitkeskin.equatix.ui.splash.SplashScreen
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -14,7 +15,7 @@ fun App() {
     MaterialTheme(
         colorScheme = darkColorScheme() // Senin tema ayarların
     ) {
-        Navigator(HomeScreen()) { navigator ->
+        Navigator(SplashScreen()) { navigator ->
             SlideTransition(navigator)
         }
     }
