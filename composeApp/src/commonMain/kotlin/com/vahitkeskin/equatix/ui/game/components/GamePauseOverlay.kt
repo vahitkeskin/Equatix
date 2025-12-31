@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vahitkeskin.equatix.ui.common.GlassBox
 import androidx.compose.foundation.border // Border import'u eklendi
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalAnimationApi::class) // animateEnterExit için gerekli olabilir
 @Composable
@@ -140,20 +141,38 @@ fun PulseRadarEffect() {
 
     val radius1 by infiniteTransition.animateFloat(
         initialValue = 0f, targetValue = 150f,
-        animationSpec = infiniteRepeatable(tween(2000, easing = LinearOutSlowInEasing), RepeatMode.Restart), label = "r1"
+        animationSpec = infiniteRepeatable(
+            tween(2000, easing = LinearOutSlowInEasing),
+            RepeatMode.Restart
+        ), label = "r1"
     )
     val alpha1 by infiniteTransition.animateFloat(
         initialValue = 0.5f, targetValue = 0f,
-        animationSpec = infiniteRepeatable(tween(2000, easing = LinearOutSlowInEasing), RepeatMode.Restart), label = "a1"
+        animationSpec = infiniteRepeatable(
+            tween(2000, easing = LinearOutSlowInEasing),
+            RepeatMode.Restart
+        ), label = "a1"
     )
 
     val radius2 by infiniteTransition.animateFloat(
         initialValue = 0f, targetValue = 150f,
-        animationSpec = infiniteRepeatable(tween(2000, delayMillis = 1000, easing = LinearOutSlowInEasing), RepeatMode.Restart), label = "r2"
+        animationSpec = infiniteRepeatable(
+            tween(
+                2000,
+                delayMillis = 1000,
+                easing = LinearOutSlowInEasing
+            ), RepeatMode.Restart
+        ), label = "r2"
     )
     val alpha2 by infiniteTransition.animateFloat(
         initialValue = 0.5f, targetValue = 0f,
-        animationSpec = infiniteRepeatable(tween(2000, delayMillis = 1000, easing = LinearOutSlowInEasing), RepeatMode.Restart), label = "a2"
+        animationSpec = infiniteRepeatable(
+            tween(
+                2000,
+                delayMillis = 1000,
+                easing = LinearOutSlowInEasing
+            ), RepeatMode.Restart
+        ), label = "a2"
     )
 
     Canvas(modifier = Modifier.size(200.dp)) {
@@ -188,7 +207,9 @@ fun ResumeButton(onClick: () -> Unit) {
 
 @Composable
 fun MiniMenuButton(icon: ImageVector, text: String, color: Color, onClick: () -> Unit) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onClick() }) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable { onClick() }) {
         Box(
             modifier = Modifier
                 .size(48.dp)
@@ -200,5 +221,31 @@ fun MiniMenuButton(icon: ImageVector, text: String, color: Color, onClick: () ->
         }
         Spacer(modifier = Modifier.height(4.dp))
         Text(text, color = Color.Gray, fontSize = 12.sp)
+    }
+}
+
+@Preview
+@Composable
+fun PreviewGamePauseOverlay() {
+    // 1. Arka Plan (Oyun Ekranı Simülasyonu)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF0F172A)), // Uygulama ana rengi
+        contentAlignment = Alignment.Center
+    ) {
+        // Arkada "oyun varmış" gibi göstermek için rastgele içerik
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("Oyun Arka Planı", color = Color.Gray)
+            Text("Burada Grid Var", color = Color.Gray)
+        }
+
+        // 2. Pause Overlay (Görünür Modda)
+        GamePauseOverlay(
+            isVisible = true, // Önizlemede görmek için true yapıyoruz
+            onResume = {},
+            onRestart = {},
+            onQuit = {}
+        )
     }
 }
