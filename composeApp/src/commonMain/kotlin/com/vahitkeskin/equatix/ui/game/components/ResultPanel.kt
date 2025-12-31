@@ -1,5 +1,6 @@
 package com.vahitkeskin.equatix.ui.game.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -15,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vahitkeskin.equatix.ui.common.GlassBox
 import com.vahitkeskin.equatix.ui.game.utils.formatTime
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 fun ResultPanel(
@@ -78,5 +80,24 @@ fun ResultPanel(
                 )
             }
         }
+    }
+}
+
+@Preview
+@Composable
+fun PreviewResultPanelLose() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF0F172A))
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        ResultPanel(
+            isSurrendered = false,
+            elapsedTime = 123,
+            onRestart = {},
+            onGiveUp = {}
+        )
     }
 }

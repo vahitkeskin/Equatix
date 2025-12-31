@@ -1,9 +1,22 @@
 package com.vahitkeskin.equatix.ui.game
 
-import androidx.compose.animation.core.*
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -13,10 +26,15 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.vahitkeskin.equatix.domain.model.Difficulty
 import com.vahitkeskin.equatix.domain.model.GridSize
-import com.vahitkeskin.equatix.ui.game.components.*
+import com.vahitkeskin.equatix.ui.game.components.GameBottomPanel
+import com.vahitkeskin.equatix.ui.game.components.GameHeader
+import com.vahitkeskin.equatix.ui.game.components.GamePauseOverlay
+import com.vahitkeskin.equatix.ui.game.components.GamePlayArea
+import com.vahitkeskin.equatix.ui.game.components.GameStatsBar
 import com.vahitkeskin.equatix.ui.game.dialogs.HintDialog
 import com.vahitkeskin.equatix.ui.game.utils.calculateProgress
 import com.vahitkeskin.equatix.ui.game.visuals.CosmicBackground
@@ -55,7 +73,7 @@ data class GameScreen(
 @Composable
 private fun GameContent(
     viewModel: GameViewModel,
-    navigator: cafe.adriel.voyager.navigator.Navigator,
+    navigator: Navigator,
     difficulty: Difficulty,
     gridSize: GridSize,
     gridN: Int
@@ -66,8 +84,8 @@ private fun GameContent(
     var elapsedTime by remember { mutableStateOf(0L) }
     var isTimerRunning by remember { mutableStateOf(true) }
     var showHintDialog by remember { mutableStateOf(false) }
-    var isTimerVisible by remember { mutableStateOf(true) } // Odak Modu
-    var isGamePaused by remember { mutableStateOf(false) } // Pause Overlay
+    var isTimerVisible by remember { mutableStateOf(true) }
+    var isGamePaused by remember { mutableStateOf(false) }
 
     // Çözüldüğünde Titreşim
     LaunchedEffect(viewModel.isSolved) {

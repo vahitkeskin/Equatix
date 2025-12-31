@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vahitkeskin.equatix.domain.model.Difficulty
 import com.vahitkeskin.equatix.domain.model.GridSize
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 fun GameHeader(
@@ -70,5 +71,35 @@ fun GameHeader(
                 Icon(Icons.Default.Refresh, "Refresh", tint = Color.White)
             }
         }
+    }
+}
+
+@Preview
+@Composable
+fun PreviewGameHeader() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFF0F172A))
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        GameHeader(
+            difficulty = Difficulty.EASY,
+            gridSize = GridSize.SIZE_3x3,
+            isSolved = false,
+            onBack = {},
+            onAutoSolve = {},
+            onRefresh = {}
+        )
+
+        GameHeader(
+            difficulty = Difficulty.HARD,
+            gridSize = GridSize.SIZE_4x4,
+            isSolved = true,
+            onBack = {},
+            onAutoSolve = {},
+            onRefresh = {}
+        )
     }
 }
