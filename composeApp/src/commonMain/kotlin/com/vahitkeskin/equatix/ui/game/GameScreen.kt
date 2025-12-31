@@ -234,64 +234,49 @@ fun PreviewGameContentMaximized() {
     val viewModel = remember { GameViewModel() }
 
     LaunchedEffect(Unit) {
-        val fixedNumbers = listOf(
-            8, 4, 2,
-            12, 10, 5,
-            100, 25, 4
-        )
-
+        val fixedNumbers = listOf(8, 4, 2, 12, 10, 5, 100, 25, 4)
         val customCells = fixedNumbers.mapIndexed { index, value ->
             CellData(
                 id = index,
                 correctValue = value,
-                isHidden = false,
+                isHidden = true,
                 userInput = value.toString(),
                 isRevealedBySystem = false,
                 isLocked = false
             )
         }
-
         val rowOps = listOf(
-            Operation.ADD, Operation.MUL,
-            Operation.ADD, Operation.DIV,
-            Operation.SUB, Operation.MUL
+            Operation.ADD,
+            Operation.MUL,
+            Operation.ADD,
+            Operation.DIV,
+            Operation.SUB,
+            Operation.MUL
         )
-
         val colOps = listOf(
-            Operation.ADD, Operation.ADD,
-            Operation.MUL, Operation.ADD,
-            Operation.MUL, Operation.ADD
+            Operation.ADD,
+            Operation.ADD,
+            Operation.MUL,
+            Operation.ADD,
+            Operation.MUL,
+            Operation.ADD
         )
-
         val rowResults = listOf(16, 14, 0)
         val colResults = listOf(120, 65, 14)
-
-        val staticState = GameState(
-            size = 3,
-            grid = customCells,
-            rowOps = rowOps,
-            colOps = colOps,
-            rowResults = rowResults,
-            colResults = colResults,
-            difficulty = Difficulty.HARD
-        )
-
-        viewModel.loadPreviewState(staticState)
+        val validState =
+            GameState(3, customCells, rowOps, colOps, rowResults, colResults, Difficulty.EASY)
+        viewModel.loadPreviewState(validState)
     }
 
     if (viewModel.gameState != null) {
         GameContent(
             viewModel = viewModel,
             onNavigateBack = {},
-            difficulty = Difficulty.HARD,
+            difficulty = Difficulty.EASY,
             gridSize = GridSize.SIZE_3x3,
             gridN = 3
         )
     } else {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFF0F172A))
-        )
+        Box(modifier = Modifier.fillMaxSize().background(Color(0xFF0F172A)))
     }
 }
