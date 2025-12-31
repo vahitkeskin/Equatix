@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.vahitkeskin.equatix.ui.components.TransparentNumpad
@@ -30,7 +31,8 @@ fun GameBottomPanel(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 16.dp),
+            // Alt boşluğu azalttık (Daha kompakt)
+            .padding(bottom = 4.dp),
         contentAlignment = Alignment.BottomCenter
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -39,7 +41,10 @@ fun GameBottomPanel(
                 enter = slideInVertically { it } + fadeIn(),
                 exit = fadeOut()
             ) {
-                TransparentNumpad(onInput = onInput)
+                // Numpad'i hafifçe küçülterek (%90) üstteki oyun alanına yer açıyoruz
+                Box(modifier = Modifier.scale(0.9f)) {
+                    TransparentNumpad(onInput = onInput)
+                }
             }
 
             AnimatedVisibility(
