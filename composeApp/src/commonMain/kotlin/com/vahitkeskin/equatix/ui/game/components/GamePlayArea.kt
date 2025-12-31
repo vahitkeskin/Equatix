@@ -33,6 +33,8 @@ import com.vahitkeskin.equatix.domain.model.Operation
 import com.vahitkeskin.equatix.ui.common.GlassBox
 import com.vahitkeskin.equatix.ui.components.GameGrid
 import com.vahitkeskin.equatix.ui.game.GameViewModel
+import com.vahitkeskin.equatix.ui.game.components.tutorial.TutorialGridLayer
+import com.vahitkeskin.equatix.ui.game.components.tutorial.TutorialState
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.math.min
 
@@ -42,40 +44,51 @@ fun GamePlayArea(
     viewModel: GameViewModel,
     n: Int,
     isTimerRunning: Boolean,
-    isSolved: Boolean
+    isSolved: Boolean,
+    tutorialState: TutorialState = TutorialState.IDLE
 ) {
     BoxWithConstraints(
-        modifier = modifier.fillMaxWidth().padding(vertical = 8.dp),
+        // Paddingleri kaldırdık, alanı tam kullansın
+        modifier = modifier.fillMaxWidth(),
         contentAlignment = Alignment.Center
     ) {
-        // Calculate responsive cell sizes
+        // Ekran genişliğini tam kullanması için çarpanı 1.0f yaptık (Eskisi 0.95f idi)
         val minDimension = min(maxWidth.value, maxHeight.value)
-        val safeDimension = minDimension * 0.95f
+        val safeDimension = minDimension * 1f
+
         val opWidthRatio = 0.65f
         val totalUnitsInRow = n + (n * opWidthRatio) + 1.1f
         val cellSizeValue = safeDimension / totalUnitsInRow
         val cellSize = cellSizeValue.dp
         val opWidth = (cellSizeValue * opWidthRatio).dp
-        val fontSize = (cellSizeValue * 0.42f).sp
+        // Fontu da hücre büyümesine oranla hafif büyüttük
+        val fontSize = (cellSizeValue * 0.45f).sp
 
         Box {
-            GlassBox(modifier = Modifier.wrapContentSize(), cornerRadius = 24.dp) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+            GlassBox(
+                modifier = Modifier.wrapContentSize(),
+                cornerRadius = 24.dp
+            ) {
+                Box(
+                    // İç padding'i azalttık (16.dp -> 8.dp), böylece grid daha büyük görünür
+                    modifier = Modifier.padding(8.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    GameGrid(
-                        state = viewModel.gameState!!,
-                        viewModel = viewModel,
-                        cellSize = cellSize,
-                        opWidth = opWidth,
-                        fontSize = fontSize
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        GameGrid(
+                            state = viewModel.gameState!!,
+                            viewModel = viewModel,
+                            cellSize = cellSize,
+                            opWidth = opWidth,
+                            fontSize = fontSize
+                        )
+                    }
                 }
             }
 
-            // Pause Overlay
-            if (!isTimerRunning && !isSolved) {
+            if (!isTimerRunning && !isSolved && tutorialState == TutorialState.IDLE) {
                 Box(
                     modifier = Modifier
                         .matchParentSize()
@@ -109,67 +122,23 @@ fun PreviewGamePlayAreaValid() {
     val viewModel = remember { GameViewModel() }
 
     LaunchedEffect(Unit) {
-        val fixedNumbers = listOf(
-            8, 4, 2,
-            12, 10, 5,
-            100, 25, 4
-        )
-
+        val fixedNumbers = listOf(8, 4, 2, 12, 10, 5, 100, 25, 4)
         val customCells = fixedNumbers.mapIndexed { index, value ->
-            CellData(
-                id = index,
-                correctValue = value,
-                isHidden = true,
-                userInput = value.toString(),
-                isRevealedBySystem = false,
-                isLocked = false
-            )
+            CellData(id = index, correctValue = value, isHidden = true, userInput = value.toString(), isRevealedBySystem = false, isLocked = false)
         }
-
-        val rowOps = listOf(
-            Operation.ADD, Operation.MUL,
-            Operation.ADD, Operation.DIV,
-            Operation.SUB, Operation.MUL
-        )
-
-        val colOps = listOf(
-            Operation.ADD, Operation.ADD,
-            Operation.MUL, Operation.ADD,
-            Operation.MUL, Operation.ADD
-        )
-
+        val rowOps = listOf(Operation.ADD, Operation.MUL, Operation.ADD, Operation.DIV, Operation.SUB, Operation.MUL)
+        val colOps = listOf(Operation.ADD, Operation.ADD, Operation.MUL, Operation.ADD, Operation.MUL, Operation.ADD)
         val rowResults = listOf(16, 14, 0)
         val colResults = listOf(120, 65, 14)
-
-        val validState = GameState(
-            size = 3,
-            grid = customCells,
-            rowOps = rowOps,
-            colOps = colOps,
-            rowResults = rowResults,
-            colResults = colResults,
-            difficulty = Difficulty.HARD
-        )
-
+        val validState = GameState(3, customCells, rowOps, colOps, rowResults, colResults, Difficulty.HARD)
         viewModel.loadPreviewState(validState)
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF0F172A)),
-        contentAlignment = Alignment.Center
-    ) {
+    Box(modifier = Modifier.fillMaxSize().background(Color(0xFF0F172A)), contentAlignment = Alignment.Center) {
         if (viewModel.gameState != null) {
             GamePlayArea(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .aspectRatio(1f),
-                viewModel = viewModel,
-                n = 3,
-                isTimerRunning = false,
-                isSolved = true
+                modifier = Modifier.fillMaxWidth().padding(16.dp).aspectRatio(1f),
+                viewModel = viewModel, n = 3, isTimerRunning = false, isSolved = true
             )
         }
     }
