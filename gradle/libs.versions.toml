@@ -1,34 +1,21 @@
 [versions]
-# --- CORE VERSIONS (STABLE) ---
-agp = "8.7.3"                # 8.11.2 henüz yok, en stabil sürüm bu.
-kotlin = "2.1.0"             # 2.3.0 henüz yok, en güncel stabil bu.
-composeMultiplatform = "1.7.1" # 1.9.3 henüz yok, en güncel stabil bu.
-
-# --- ANDROID CONFIG ---
-android-compileSdk = "35"    # 36 henüz Preview aşamasında, 35 stabil.
+agp = "8.7.3"
+kotlin = "2.1.0"
+composeMultiplatform = "1.7.1"
+android-compileSdk = "35"
 android-minSdk = "24"
 android-targetSdk = "35"
-
-# --- ANDROID LIBRARIES ---
 androidx-activity = "1.9.3"  # 1.12.2 yok.
 androidx-appcompat = "1.7.0"
 androidx-core = "1.15.0"     # 1.17.0 yok.
 androidx-espresso = "3.6.1"
 androidx-testExt = "1.2.1"
-
-# --- KMP LIFECYCLE (CRITICAL) ---
-# JetBrains Lifecycle 2.8.0+ kullanıyoruz (KMP ViewModel desteği için).
-# Voyager 1.0.0 ile çakışır, bu yüzden Voyager'ı da güncellemeliyiz.
 androidx-lifecycle = "2.8.4"
-
-# --- VOYAGER (NAVIGATION) ---
-# 1.0.0 sürümü Lifecycle 2.8+ ile çalışmaz (Crash verir).
-# Bu sorunu çözen güncel BETA sürümü kullanıyoruz.
 voyager = "1.1.0-beta03"
-
-# --- UTILS ---
 junit = "4.13.2"
 kotlinx-coroutines = "1.10.1"
+datastore = "1.1.1"
+okio = "3.9.1"
 
 [libraries]
 # Kotlin & Test
@@ -58,6 +45,9 @@ voyager-transitions = { module = "cafe.adriel.voyager:voyager-transitions", vers
 
 # Koin (Dependency Injection)
 koin-core = { module = "io.insert-koin:koin-core", version = "4.0.0" } # Koin 4.0 KMP için daha stabil
+
+androidx-datastore-preferences-core = { group = "androidx.datastore", name = "datastore-preferences-core", version.ref = "datastore" }
+squareup-okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

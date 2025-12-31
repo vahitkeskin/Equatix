@@ -5,8 +5,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Lightbulb
+import androidx.compose.material.icons.outlined.Smartphone
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Vibration
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,8 +28,10 @@ fun GameStatsBar(
     elapsedTime: Long,
     isTimerRunning: Boolean,
     isSolved: Boolean,
+    isVibrationEnabled: Boolean,
     onHintClick: () -> Unit,
-    onPauseToggle: () -> Unit
+    onPauseToggle: () -> Unit,
+    onVibrationToggle: () -> Unit
 ) {
     GlassBox(
         modifier = Modifier.padding(vertical = 8.dp),
@@ -40,19 +44,33 @@ fun GameStatsBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // Hint Button
-            if (!isSolved) {
-                ControlButton(
-                    icon = Icons.Outlined.Lightbulb,
-                    color = Color(0xFFFFD54F),
-                    size = 42.dp,
-                    onClick = onHintClick
-                )
-            } else {
-                Spacer(modifier = Modifier.size(42.dp))
+            // SOL GRUP: İpucu ve Titreşim Butonları
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (!isSolved) {
+                    // 1. İpucu Butonu
+                    ControlButton(
+                        icon = Icons.Outlined.Lightbulb,
+                        color = Color(0xFFFFD54F),
+                        size = 42.dp,
+                        onClick = onHintClick
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    // 2. Titreşim Aç/Kapa Butonu
+                    ControlButton(
+                        icon = if (isVibrationEnabled) Icons.Rounded.Vibration else Icons.Outlined.Smartphone,
+                        color = if (isVibrationEnabled) Color(0xFF32ADE6) else Color.Gray,
+                        size = 42.dp,
+                        onClick = onVibrationToggle
+                    )
+                } else {
+                    // Oyun bittiğinde soldaki butonlar kadar boşluk bırak ki sayaç kaymasın
+                    Spacer(modifier = Modifier.width(92.dp)) // 42 + 8 + 42 = 92
+                }
             }
 
-            // Timer Display
+            // ORTA: Sayaç
             AnimatedCounter(
                 count = formatTime(elapsedTime),
                 style = MaterialTheme.typography.displayMedium.copy(
@@ -63,7 +81,7 @@ fun GameStatsBar(
                 color = if (isTimerRunning) Color.White else Color(0xFFFF9F0A)
             )
 
-            // Play/Pause Button
+            // SAĞ: Play/Pause Butonu
             if (!isSolved) {
                 ControlButton(
                     icon = if (isTimerRunning) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,

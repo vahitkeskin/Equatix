@@ -11,22 +11,24 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
 
-// Constants for physics simulation
-private const val GRAVITY = 0.5f
-private const val DRAG = 0.96f
-private const val SPAWN_CHANCE = 0.03f
-private const val PARTICLE_COUNT = 50
+// --- DOZUNDA AYARLAR (SWEET SPOT) ---
+private const val GRAVITY = 0.45f        // 0.5'ten biraz az, daha süzülerek düşsün
+private const val DRAG = 0.97f           // 0.96'dan biraz fazla, hava direnci azalsın (daha geniş patlar)
+private const val SPAWN_CHANCE = 0.05f   // Her karede %5 şans (Saniyede ortalama 3-4 patlama)
+private const val PARTICLE_COUNT = 80    // Her patlamada 80 tane nokta (Yeterince dolgun)
 
 @Composable
 fun FireworkOverlay() {
     val particles = remember { mutableListOf<FireworkParticle>() }
-    var timeMillis by remember { mutableStateOf(0L) }
 
     val colors = remember {
         listOf(
-            Color(0xFFFF3B30), Color(0xFFFF9500), Color(0xFFFFCC00),
-            Color(0xFF4CD964), Color(0xFF5AC8FA), Color(0xFF007AFF),
-            Color(0xFF5856D6), Color(0xFFFF2D55)
+            Color(0xFFFF3B30), // Kırmızı
+            Color(0xFFFFD700), // Altın (Gold) - Zafer hissi için önemli
+            Color(0xFF32ADE6), // Açık Mavi
+            Color(0xFFFFFFFF), // Beyaz (Parıltı efekti verir)
+            Color(0xFF34C759), // Yeşil
+            Color(0xFFAF52DE)  // Mor
         )
     }
 
@@ -38,9 +40,6 @@ fun FireworkOverlay() {
             withFrameNanos { currentFrameTime ->
                 val delta = (currentFrameTime - lastFrameTime) / 1_000_000_000f
                 lastFrameTime = currentFrameTime
-
-                // Trigger recomposition
-                timeMillis = currentFrameTime / 1_000_000
 
                 // 1. Spawn logic
                 if (Random.nextFloat() < SPAWN_CHANCE) {
@@ -84,7 +83,6 @@ fun FireworkOverlay() {
     }
 
     Canvas(modifier = Modifier.fillMaxSize()) {
-        val trigger = timeMillis // Read state to track recomposition
         val width = size.width
         val height = size.height
 

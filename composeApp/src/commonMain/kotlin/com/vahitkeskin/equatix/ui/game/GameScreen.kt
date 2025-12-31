@@ -7,6 +7,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
@@ -58,9 +60,17 @@ private fun GameContent(
     gridSize: GridSize,
     gridN: Int
 ) {
+    val haptic = LocalHapticFeedback.current
     var elapsedTime by remember { mutableStateOf(0L) }
     var isTimerRunning by remember { mutableStateOf(true) }
     var showHintDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(viewModel.isSolved) {
+        // Eğer oyun çözüldüyse VE kullanıcı pes etmediyse (başarıysa) VE titreşim açıksa
+        if (viewModel.isSolved && !viewModel.isSurrendered && viewModel.isVibrationEnabled) {
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+        }
+    }
 
     // Logic for progress path animation
     val progress by remember(viewModel.gameState) {
@@ -116,8 +126,10 @@ private fun GameContent(
                 elapsedTime = elapsedTime,
                 isTimerRunning = isTimerRunning,
                 isSolved = viewModel.isSolved,
+                isVibrationEnabled = viewModel.isVibrationEnabled, // Yeni parametre
                 onHintClick = { showHintDialog = true },
-                onPauseToggle = { isTimerRunning = !isTimerRunning }
+                onPauseToggle = { isTimerRunning = !isTimerRunning },
+                onVibrationToggle = { viewModel.toggleVibration() }
             )
 
             GamePlayArea(
