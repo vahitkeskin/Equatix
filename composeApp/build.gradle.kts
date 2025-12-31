@@ -64,6 +64,12 @@ kotlin {
 
                 // Koin (Dependency Injection)
                 implementation(libs.koin.core)
+
+                // Local Persistence: DataStore for saving user preferences key-value pairs
+                implementation(libs.androidx.datastore.preferences.core)
+
+                // I/O Operations: Modern file handling (Required dependency for DataStore in KMP)
+                implementation(libs.squareup.okio)
             }
         }
         val commonTest by getting {
@@ -128,5 +134,14 @@ compose.desktop {
             description = "Equatix: Matrix Math Puzzle"
             copyright = "© 2025 Vahit Keskin. All rights reserved."
         }
+    }
+}
+
+configurations.all {
+    resolutionStrategy {
+        // Gradle'ı bu sürümleri kullanmaya zorluyoruz
+        force("androidx.datastore:datastore-preferences-core:1.1.1")
+        force("androidx.datastore:datastore-core:1.1.1")
+        force("com.squareup.okio:okio:3.9.1")
     }
 }
