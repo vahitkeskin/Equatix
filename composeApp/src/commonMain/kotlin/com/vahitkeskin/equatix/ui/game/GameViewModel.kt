@@ -13,6 +13,7 @@ import kotlin.random.Random
 
 class GameViewModel : ScreenModel {
 
+    // --- STATE VARIABLES ---
     var gameState by mutableStateOf<GameState?>(null)
         private set
     var isSolved by mutableStateOf(false)
@@ -24,11 +25,21 @@ class GameViewModel : ScreenModel {
     var isVibrationEnabled by mutableStateOf(true)
         private set
 
+    // Restart için mevcut ayarları tutmak faydalı olabilir
+    var currentDifficulty: Difficulty = Difficulty.EASY
+        private set
+    var currentSize: GridSize = GridSize.SIZE_3x3
+        private set
+
+    // --- ACTIONS ---
+
     fun toggleVibration() {
         isVibrationEnabled = !isVibrationEnabled
     }
 
     fun startGame(difficulty: Difficulty, size: GridSize) {
+        currentDifficulty = difficulty
+        currentSize = size
         isSolved = false
         isSurrendered = false
         selectedCellIndex = null
@@ -38,7 +49,10 @@ class GameViewModel : ScreenModel {
     fun giveUpAndSolve() {
         val currentState = gameState ?: return
         val solvedGrid = currentState.grid.map { cell ->
-            if (cell.isHidden) cell.copy(userInput = cell.correctValue.toString(), isRevealedBySystem = true) else cell
+            if (cell.isHidden) cell.copy(
+                userInput = cell.correctValue.toString(),
+                isRevealedBySystem = true
+            ) else cell
         }
         gameState = currentState.copy(grid = solvedGrid)
         isSolved = true
@@ -46,105 +60,128 @@ class GameViewModel : ScreenModel {
         selectedCellIndex = null
     }
 
+    // --- GAME GENERATION LOGIC (REVISED) ---
+
     private fun generateSolvableLevel(diff: Difficulty, n: Int): GameState {
-        val totalCells = n * n
-        // Bölme işlemi olduğu için 0 gelmemesine dikkat ediyoruz (1'den başlar)
-        val nums = List(totalCells) { Random.nextInt(1, diff.maxNumber + 1) }
+        // [REVIZE] Geçerli ve tam bölünebilir bir oyun tahtası bulana kadar sonsuz döngü
+        while (true) {
+            val totalCells = n * n
+            val nums = List(totalCells) { Random.nextInt(1, diff.maxNumber + 1) }
 
-        val opCountPerDim = n * (n - 1)
+            val opCountPerDim = n * (n - 1)
 
-        // ZORLUĞA GÖRE İŞLEM SEÇİMİ
-        val availableOps = when(diff) {
-            Difficulty.EASY -> listOf(Operation.ADD, Operation.SUB)
-            Difficulty.MEDIUM -> listOf(Operation.ADD, Operation.SUB, Operation.MUL)
-            Difficulty.HARD -> listOf(Operation.ADD, Operation.SUB, Operation.MUL, Operation.DIV)
+            val availableOps = when(diff) {
+                Difficulty.EASY -> listOf(Operation.ADD, Operation.SUB)
+                Difficulty.MEDIUM -> listOf(Operation.ADD, Operation.SUB, Operation.MUL)
+                Difficulty.HARD -> listOf(Operation.ADD, Operation.SUB, Operation.MUL, Operation.DIV)
+            }
+
+            val rOps = List(opCountPerDim) { availableOps.random() }
+            val cOps = List(opCountPerDim) { availableOps.random() }
+
+            val rowResults = mutableListOf<Int>()
+            val colResults = mutableListOf<Int>()
+            var isValidLevel = true // Bu deneme geçerli mi bayrağı
+
+            // 1. Satır Hesapla ve Kontrol Et
+            for (row in 0 until n) {
+                val rowNums = nums.subList(row * n, (row + 1) * n)
+                val rowOpList = rOps.subList(row * (n - 1), (row + 1) * (n - 1))
+
+                val result = calculateLineWithPrecedence(rowNums, rowOpList)
+                if (result == null) {
+                    isValidLevel = false // Hatalı bölme (küsurat) bulundu
+                    break
+                }
+                rowResults.add(result)
+            }
+
+            if (!isValidLevel) continue // Hata varsa sayıları çöpe at, başa dön
+
+            // 2. Sütun Hesapla ve Kontrol Et
+            for (col in 0 until n) {
+                val colNums = (0 until n).map { row -> nums[row * n + col] }
+                val colOpList = (0 until n - 1).map { k -> cOps[col * (n - 1) + k] }
+
+                val result = calculateLineWithPrecedence(colNums, colOpList)
+                if (result == null) {
+                    isValidLevel = false // Hatalı bölme bulundu
+                    break
+                }
+                colResults.add(result)
+            }
+
+            if (!isValidLevel) continue // Hata varsa başa dön
+
+            // --- Eğer buraya geldiysek tüm işlemler matematiksel olarak kusursuzdur ---
+
+            val hiddenMap = determineHiddenCells(diff, n)
+            val cells = nums.mapIndexed { index, value ->
+                val hide = hiddenMap[index]
+                CellData(
+                    id = index,
+                    correctValue = value,
+                    isHidden = hide,
+                    userInput = if (hide) "" else value.toString(),
+                    isLocked = !hide
+                )
+            }
+
+            return GameState(n, cells, rOps, cOps, rowResults, colResults, diff)
         }
-
-        val rOps = List(opCountPerDim) { availableOps.random() }
-        val cOps = List(opCountPerDim) { availableOps.random() }
-
-        val rowResults = mutableListOf<Int>()
-        val colResults = mutableListOf<Int>()
-
-        // Satır Hesapla
-        for (row in 0 until n) {
-            val rowNums = nums.subList(row * n, (row + 1) * n)
-            val rowOpList = rOps.subList(row * (n - 1), (row + 1) * (n - 1))
-            rowResults.add(calculateLineWithPrecedence(rowNums, rowOpList))
-        }
-
-        // Sütun Hesapla
-        for (col in 0 until n) {
-            val colNums = (0 until n).map { row -> nums[row * n + col] }
-            val colOpList = (0 until n - 1).map { k -> cOps[col * (n - 1) + k] }
-            colResults.add(calculateLineWithPrecedence(colNums, colOpList))
-        }
-
-        val hiddenMap = determineHiddenCells(diff, n)
-        val cells = nums.mapIndexed { index, value ->
-            val hide = hiddenMap[index]
-            CellData(
-                id = index,
-                correctValue = value,
-                isHidden = hide,
-                userInput = if (hide) "" else value.toString(),
-                isLocked = !hide
-            )
-        }
-
-        return GameState(n, cells, rOps, cOps, rowResults, colResults, diff)
     }
 
-    // --- YENİ: İŞLEM ÖNCELİĞİNE (PEMDAS) GÖRE HESAPLAMA ---
-    // Önce Çarpma ve Bölme yapılır, sonra Toplama ve Çıkarma
-    private fun calculateLineWithPrecedence(numbers: List<Int>, operations: List<Operation>): Int {
+    // [REVIZE] Dönüş tipi Int? oldu. Hatalı/Kalanlı bölme varsa null döner.
+    private fun calculateLineWithPrecedence(numbers: List<Int>, operations: List<Operation>): Int? {
         val tempNums = numbers.toMutableList()
         val tempOps = operations.toMutableList()
 
-        // 1. TUR: ÇARPMA ve BÖLME
+        // 1. TUR: ÇARPMA ve BÖLME (İşlem Önceliği)
         var i = 0
         while (i < tempOps.size) {
             val op = tempOps[i]
             if (op == Operation.MUL || op == Operation.DIV) {
                 val n1 = tempNums[i]
-                val n2 = tempNums[i+1]
+                val n2 = tempNums[i + 1]
 
-                // Tam sayı bölmesi (Integer Division)
                 val result = if (op == Operation.MUL) {
                     n1 * n2
                 } else {
-                    if (n2 != 0) n1 / n2 else 0 // Sıfıra bölme koruması
+                    // [Kritik Düzeltme]: Tam bölünmüyorsa veya 0'a bölünüyorsa işlemi iptal et
+                    if (n2 == 0 || n1 % n2 != 0) return null
+                    n1 / n2
                 }
 
-                // Listeyi güncelle (İşlemi yapılan iki sayıyı sil, yerine sonucu koy)
+                // Listeyi güncelle
                 tempNums[i] = result
-                tempNums.removeAt(i+1)
+                tempNums.removeAt(i + 1)
                 tempOps.removeAt(i)
             } else {
                 i++
             }
         }
 
-        // 2. TUR: TOPLAMA ve ÇIKARMA (Soldan sağa)
+        // 2. TUR: TOPLAMA ve ÇIKARMA
         var finalResult = tempNums[0]
         for (j in tempOps.indices) {
-            val nextNum = tempNums[j+1]
+            val nextNum = tempNums[j + 1]
             finalResult = when (tempOps[j]) {
                 Operation.ADD -> finalResult + nextNum
                 Operation.SUB -> finalResult - nextNum
-                else -> finalResult // Buraya düşmemeli
+                else -> finalResult
             }
         }
         return finalResult
     }
+
+    // --- HELPERS (Değişmedi) ---
 
     private fun determineHiddenCells(diff: Difficulty, n: Int): BooleanArray {
         val totalCells = n * n
         val hiddenState = BooleanArray(totalCells) { false }
         val indices = (0 until totalCells).toList().shuffled()
 
-        // Zorluk oranları
-        val ratio = when(diff) {
+        val ratio = when (diff) {
             Difficulty.EASY -> 0.30f
             Difficulty.MEDIUM -> 0.45f
             Difficulty.HARD -> 0.60f
@@ -155,7 +192,6 @@ class GameViewModel : ScreenModel {
         for (i in indices) {
             if (currentHiddenCount >= targetHidden) break
             hiddenState[i] = true
-            // Çözülebilirlik kontrolünde de aynı mantığı kullanmalıyız (Şimdilik basitleştirilmiş kontrol)
             if (isSolvable(hiddenState, n)) currentHiddenCount++ else hiddenState[i] = false
         }
         return hiddenState
@@ -168,11 +204,15 @@ class GameViewModel : ScreenModel {
             progress = false
             for (r in 0 until n) {
                 val unknownsInRow = (0 until n).map { c -> r * n + c }.filter { unknownMap[it] }
-                if (unknownsInRow.size == 1) { unknownMap[unknownsInRow[0]] = false; progress = true }
+                if (unknownsInRow.size == 1) {
+                    unknownMap[unknownsInRow[0]] = false; progress = true
+                }
             }
             for (c in 0 until n) {
                 val unknownsInCol = (0 until n).map { r -> r * n + c }.filter { unknownMap[it] }
-                if (unknownsInCol.size == 1) { unknownMap[unknownsInCol[0]] = false; progress = true }
+                if (unknownsInCol.size == 1) {
+                    unknownMap[unknownsInCol[0]] = false; progress = true
+                }
             }
         }
         return !unknownMap.contains(true)
@@ -199,7 +239,11 @@ class GameViewModel : ScreenModel {
     }
 
     private fun checkWin() {
-        val allCorrect = gameState?.grid?.all { if (!it.isHidden) true else it.userInput.toIntOrNull() == it.correctValue } ?: false
-        if (allCorrect) { isSolved = true; selectedCellIndex = null }
+        val allCorrect =
+            gameState?.grid?.all { if (!it.isHidden) true else it.userInput.toIntOrNull() == it.correctValue }
+                ?: false
+        if (allCorrect) {
+            isSolved = true; selectedCellIndex = null
+        }
     }
 }

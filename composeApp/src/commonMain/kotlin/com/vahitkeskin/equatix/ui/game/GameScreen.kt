@@ -61,28 +61,31 @@ private fun GameContent(
     gridN: Int
 ) {
     val haptic = LocalHapticFeedback.current
+
+    // UI State'leri
     var elapsedTime by remember { mutableStateOf(0L) }
     var isTimerRunning by remember { mutableStateOf(true) }
     var showHintDialog by remember { mutableStateOf(false) }
+    var isTimerVisible by remember { mutableStateOf(true) } // Odak Modu
+    var isGamePaused by remember { mutableStateOf(false) } // Pause Overlay
 
+    // Çözüldüğünde Titreşim
     LaunchedEffect(viewModel.isSolved) {
-        // Eğer oyun çözüldüyse VE kullanıcı pes etmediyse (başarıysa) VE titreşim açıksa
         if (viewModel.isSolved && !viewModel.isSurrendered && viewModel.isVibrationEnabled) {
             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
         }
     }
 
-    // Logic for progress path animation
+    // Progress Animasyonu
     val progress by remember(viewModel.gameState) {
         derivedStateOf { calculateProgress(viewModel.gameState) }
     }
-
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
         animationSpec = tween(1000, easing = FastOutSlowInEasing)
     )
 
-    // Timer Logic
+    // Zamanlayıcı Mantığı
     LaunchedEffect(isTimerRunning, viewModel.isSolved) {
         if (viewModel.isSolved) isTimerRunning = false
         while (isTimerRunning && !viewModel.isSolved && isActive) {
@@ -96,11 +99,11 @@ private fun GameContent(
             .fillMaxSize()
             .background(Color(0xFF0F172A))
     ) {
-        // --- Layer 1: Visuals ---
+        // --- KATMAN 1: Görseller (Arkaplan) ---
         CosmicBackground()
         ProgressPath(progress = animatedProgress)
 
-        // --- Layer 2: UI ---
+        // --- KATMAN 2: Ana Oyun Arayüzü ---
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -114,7 +117,10 @@ private fun GameContent(
                 gridSize = gridSize,
                 isSolved = viewModel.isSolved,
                 onBack = { navigator.pop() },
-                onAutoSolve = { isTimerRunning = false; viewModel.giveUpAndSolve() },
+                onAutoSolve = {
+                    isTimerRunning = false
+                    viewModel.giveUpAndSolve()
+                },
                 onRefresh = {
                     viewModel.startGame(difficulty, gridSize)
                     elapsedTime = 0
@@ -122,14 +128,20 @@ private fun GameContent(
                 }
             )
 
+            // Revize Edilmiş StatsBar (Odak Modu & Pause Entegrasyonu)
             GameStatsBar(
                 elapsedTime = elapsedTime,
                 isTimerRunning = isTimerRunning,
                 isSolved = viewModel.isSolved,
-                isVibrationEnabled = viewModel.isVibrationEnabled, // Yeni parametre
+                isVibrationEnabled = viewModel.isVibrationEnabled,
+                isTimerVisible = isTimerVisible,
                 onHintClick = { showHintDialog = true },
-                onPauseToggle = { isTimerRunning = !isTimerRunning },
-                onVibrationToggle = { viewModel.toggleVibration() }
+                onPauseToggle = {
+                    isTimerRunning = !isTimerRunning
+                    isGamePaused = !isGamePaused
+                },
+                onVibrationToggle = { viewModel.toggleVibration() },
+                onTimerToggle = { isTimerVisible = !isTimerVisible }
             )
 
             GamePlayArea(
@@ -146,6 +158,7 @@ private fun GameContent(
                 elapsedTime = elapsedTime,
                 onInput = { viewModel.onInput(it) },
                 onRestart = {
+                    // Alt paneldeki restart butonu (Hızlı Yeniden Başlat)
                     viewModel.startGame(difficulty, gridSize)
                     elapsedTime = 0
                     isTimerRunning = true
@@ -153,7 +166,26 @@ private fun GameContent(
             )
         }
 
-        // --- Layer 3: Overlays ---
+        // --- KATMAN 3: Pause Overlay (En Üstte) ---
+        GamePauseOverlay(
+            isVisible = isGamePaused,
+            onResume = {
+                isGamePaused = false
+                isTimerRunning = true
+            },
+            onRestart = {
+                // Overlay'den Yeniden Başlatma Mantığı
+                isGamePaused = false
+                viewModel.startGame(difficulty, gridSize)
+                elapsedTime = 0
+                isTimerRunning = true
+            },
+            onQuit = {
+                navigator.pop()
+            }
+        )
+
+        // --- KATMAN 4: Dialoglar ve Efektler ---
         if (showHintDialog) {
             HintDialog(onDismiss = { showHintDialog = false })
         }
