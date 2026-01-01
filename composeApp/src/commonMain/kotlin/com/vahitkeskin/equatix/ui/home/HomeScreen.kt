@@ -105,7 +105,6 @@ class HomeScreen : Screen {
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFF0F172A))
-                .systemBarsPadding()
         ) {
             // KATMAN 1: Arka Plan Efektleri
             CosmicBackground() // Yıldızlar
@@ -113,10 +112,12 @@ class HomeScreen : Screen {
 
             // KATMAN 2: Ana İçerik
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(24.dp)
+                    .systemBarsPadding() // DİKKAT: Padding SADECE içeriğe verilir
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // 1. Header (0ms delay)
                 AnimatedSlideIn(visible = startAnimation, delay = 0) {
