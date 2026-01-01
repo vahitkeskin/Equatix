@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
-import com.vahitkeskin.equatix.data.local.createDataStore
 import com.vahitkeskin.equatix.di.AppModule
 import com.vahitkeskin.equatix.domain.model.AppThemeConfig
 import com.vahitkeskin.equatix.domain.model.CellData
@@ -13,10 +12,10 @@ import com.vahitkeskin.equatix.domain.model.Difficulty
 import com.vahitkeskin.equatix.domain.model.GameState
 import com.vahitkeskin.equatix.domain.model.GridSize
 import com.vahitkeskin.equatix.domain.model.Operation
-import com.vahitkeskin.equatix.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 class GameViewModel : ScreenModel {
@@ -31,6 +30,14 @@ class GameViewModel : ScreenModel {
             scope = screenModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = AppThemeConfig.FOLLOW_SYSTEM
+        )
+
+    // Tutorial daha önce izlendi mi? (Flow olarak dinliyoruz)
+    val isTutorialSeen = settingsRepo.isTutorialSeen
+        .stateIn(
+            scope = screenModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = true // Varsayılan true yapalım ki yüklenene kadar göstermesin (güvenli taraf)
         )
 
     // --- GAME STATES ---
@@ -50,6 +57,13 @@ class GameViewModel : ScreenModel {
         private set
     var currentSize: GridSize = GridSize.SIZE_3x3
         private set
+
+    // Tutorial bittiğinde çağıracağız
+    fun markTutorialAsSeen() {
+        screenModelScope.launch {
+            settingsRepo.setTutorialSeen()
+        }
+    }
 
     // --- ACTIONS ---
 

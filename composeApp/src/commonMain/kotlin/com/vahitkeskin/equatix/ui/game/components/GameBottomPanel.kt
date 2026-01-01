@@ -33,7 +33,7 @@ fun GameBottomPanel(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 4.dp),
+            .padding(bottom = 0.dp),
         contentAlignment = Alignment.BottomCenter
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -44,14 +44,13 @@ fun GameBottomPanel(
                 enter = slideInVertically { it } + fadeIn(),
                 exit = fadeOut()
             ) {
-                Box(modifier = Modifier.scale(0.9f)) {
-                    // SORUN ÇÖZÜCÜ:
-                    // TransparentNumpad muhtemelen MaterialTheme.colorScheme.onSurface veya primary kullanıyor.
-                    // Biz burada o renkleri EquatixDesignSystem'den gelen 'numpadText' ile eziyoruz.
+                // DÜZELTME: Scale 0.9f -> 0.85f
+                // Tuş takımını biraz daha küçülterek yukarıdaki Grid'e daha çok yer bıraktık.
+                Box(modifier = Modifier.scale(0.85f)) {
                     MaterialTheme(
                         colorScheme = MaterialTheme.colorScheme.copy(
-                            onSurface = colors.numpadText, // Metin Rengi (Dark'ta Beyaz, Light'ta Lacivert)
-                            primary = colors.numpadText    // Varsa ikon/border rengi
+                            onSurface = colors.numpadText,
+                            primary = colors.numpadText
                         )
                     ) {
                         TransparentNumpad(onInput = onInput)
@@ -67,7 +66,7 @@ fun GameBottomPanel(
                 ResultPanel(
                     isSurrendered = viewModel.isSurrendered,
                     elapsedTime = elapsedTime,
-                    colors = colors, // Renkleri iletiyoruz
+                    colors = colors,
                     onRestart = onRestart,
                     onGiveUp = { }
                 )
@@ -79,18 +78,13 @@ fun GameBottomPanel(
 @Preview
 @Composable
 fun PreviewGameBottomPanel() {
-    // 1. Mock ViewModel
     val viewModel = androidx.compose.runtime.remember { GameViewModel() }
-
-    // 2. Tema Renklerini Al (Dark Mode Örneği)
-    val isDark = true
-    val colors = EquatixDesignSystem.getColors(isDark)
+    val darkColors = EquatixDesignSystem.getColors(true)
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            // Arka planı hardcoded (0xFF0F172A) yerine temadan alıyoruz
-            .background(colors.background)
+            .background(darkColors.background)
             .padding(16.dp),
         contentAlignment = Alignment.BottomCenter
     ) {
@@ -98,7 +92,7 @@ fun PreviewGameBottomPanel() {
             viewModel = viewModel,
             isTimerRunning = true,
             elapsedTime = 125L,
-            colors = colors, // <--- YENİ EKLENEN PARAMETRE
+            colors = darkColors,
             onInput = {},
             onRestart = {}
         )
