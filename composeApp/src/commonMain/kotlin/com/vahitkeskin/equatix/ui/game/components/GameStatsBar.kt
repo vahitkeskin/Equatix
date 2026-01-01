@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.sp
 import com.vahitkeskin.equatix.ui.common.GlassBox
 import com.vahitkeskin.equatix.ui.components.AnimatedCounter
 import com.vahitkeskin.equatix.ui.game.utils.formatTime
+import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -61,6 +62,7 @@ fun GameStatsBar(
     isSolved: Boolean,
     isVibrationEnabled: Boolean,
     isTimerVisible: Boolean,
+    colors: EquatixDesignSystem.ThemeColors,
     onHintClick: () -> Unit,
     onPauseToggle: () -> Unit,
     onVibrationToggle: () -> Unit,
@@ -70,94 +72,96 @@ fun GameStatsBar(
         modifier = Modifier.padding(vertical = 8.dp),
         cornerRadius = 16.dp
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+        // Light modda camın içi çok şeffaf olmasın, biraz beyazımsı olsun
+        Box(
+            modifier = Modifier.background(colors.cardBackground)
         ) {
-            // --- SOL GRUP ---
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (!isSolved) {
-                    ControlButton(
-                        icon = Icons.Outlined.Lightbulb,
-                        color = Color(0xFFFFD54F),
-                        size = 42.dp,
-                        onClick = onHintClick
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    ControlButton(
-                        icon = if (isVibrationEnabled) Icons.Rounded.Vibration else Icons.Outlined.Smartphone,
-                        color = if (isVibrationEnabled) Color(0xFF32ADE6) else Color.Gray,
-                        size = 42.dp,
-                        onClick = onVibrationToggle
-                    )
-                } else {
-                    Spacer(modifier = Modifier.width(92.dp))
-                }
-            }
-
-            // --- ORTA: Zamanlayıcı veya Odak Animasyonu ---
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.height(50.dp) // Yükseklik sabitlemesi (zıplamayı önler)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                AnimatedContent(
-                    targetState = isTimerVisible,
-                    transitionSpec = {
-                        (fadeIn(animationSpec = tween(300)) + scaleIn(initialScale = 0.8f))
-                            .togetherWith(fadeOut(animationSpec = tween(300)) + scaleOut(targetScale = 0.8f))
-                    },
-                    label = "TimerVisibility"
-                ) { visible ->
-                    if (visible) {
-                        AnimatedCounter(
-                            count = formatTime(elapsedTime),
-                            style = MaterialTheme.typography.displayMedium.copy(
-                                fontWeight = FontWeight.Light,
-                                letterSpacing = 3.sp,
-                                fontSize = 40.sp
-                            ),
-                            color = if (isTimerRunning) Color.White else Color(0xFFFF9F0A)
+                // --- SOL GRUP ---
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (!isSolved) {
+                        ControlButton(
+                            icon = Icons.Outlined.Lightbulb,
+                            color = colors.gold,
+                            size = 42.dp,
+                            onClick = onHintClick
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        ControlButton(
+                            icon = if (isVibrationEnabled) Icons.Rounded.Vibration else Icons.Outlined.Smartphone,
+                            color = if (isVibrationEnabled) colors.accent else Color.Gray,
+                            size = 42.dp,
+                            onClick = onVibrationToggle
                         )
                     } else {
-                        // BURASI DEĞİŞTİ: Yazı yerine Animasyon
-                        FocusPulseAnimation(isPaused = !isTimerRunning)
+                        Spacer(modifier = Modifier.width(92.dp))
                     }
                 }
-            }
 
-            // --- SAĞ GRUP ---
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (!isSolved) {
-                    ControlButton(
-                        icon = if (isTimerVisible) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
-                        color = if (isTimerVisible) Color.Gray else Color.White,
-                        size = 42.dp,
-                        onClick = onTimerToggle
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    ControlButton(
-                        icon = if (isTimerRunning) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
-                        color = if (isTimerRunning) Color(0xFF38BDF8) else Color(0xFF34C759),
-                        size = 42.dp,
-                        onClick = onPauseToggle
-                    )
-                } else {
-                    Spacer(modifier = Modifier.width(92.dp))
+                // --- ORTA: Zamanlayıcı ---
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.height(50.dp)
+                ) {
+                    AnimatedContent(
+                        targetState = isTimerVisible,
+                        transitionSpec = {
+                            (fadeIn(animationSpec = tween(300)) + scaleIn(initialScale = 0.8f))
+                                .togetherWith(fadeOut(animationSpec = tween(300)) + scaleOut(targetScale = 0.8f))
+                        },
+                        label = "TimerVisibility"
+                    ) { visible ->
+                        if (visible) {
+                            AnimatedCounter(
+                                count = formatTime(elapsedTime),
+                                style = MaterialTheme.typography.displayMedium.copy(
+                                    fontWeight = FontWeight.Light,
+                                    letterSpacing = 3.sp,
+                                    fontSize = 40.sp
+                                ),
+                                color = if (isTimerRunning) colors.textPrimary else Color(0xFFFF9F0A)
+                            )
+                        } else {
+                            FocusPulseAnimation(isPaused = !isTimerRunning, accentColor = colors.accent)
+                        }
+                    }
+                }
+
+                // --- SAĞ GRUP ---
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (!isSolved) {
+                        ControlButton(
+                            icon = if (isTimerVisible) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
+                            color = if (isTimerVisible) Color.Gray else colors.textPrimary,
+                            size = 42.dp,
+                            onClick = onTimerToggle
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        ControlButton(
+                            icon = if (isTimerRunning) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
+                            color = if (isTimerRunning) colors.accent else colors.success,
+                            size = 42.dp,
+                            onClick = onPauseToggle
+                        )
+                    } else {
+                        Spacer(modifier = Modifier.width(92.dp))
+                    }
                 }
             }
         }
     }
 }
 
-// --- YENİ COMPONENT: Profesyonel Odak Animasyonu ---
 @Composable
-fun FocusPulseAnimation(isPaused: Boolean) {
+fun FocusPulseAnimation(isPaused: Boolean, accentColor: Color) {
     val infiniteTransition = rememberInfiniteTransition(label = "Pulse")
 
-    // Eğer oyun duraklatıldıysa animasyon durur, değilse nefes alır
     val scale by infiniteTransition.animateFloat(
         initialValue = 1f,
         targetValue = if (isPaused) 1f else 1.4f,
@@ -181,47 +185,29 @@ fun FocusPulseAnimation(isPaused: Boolean) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
-        modifier = Modifier.width(120.dp) // Sayaç kadar yer kaplasın
+        modifier = Modifier.width(120.dp)
     ) {
-        // Sol Çizgi
         Canvas(modifier = Modifier.size(30.dp, 2.dp)) {
-            drawRoundRect(
-                color = Color.Gray.copy(alpha = 0.3f),
-                cornerRadius = androidx.compose.ui.geometry.CornerRadius(10f)
-            )
+            drawRoundRect(color = Color.Gray.copy(alpha = 0.3f), cornerRadius = androidx.compose.ui.geometry.CornerRadius(10f))
         }
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        // Ortadaki "Nefes Alan" Çekirdek
         Box(contentAlignment = Alignment.Center) {
-            // Yayılan Hare (Eğer pause değilse)
             if (!isPaused) {
                 Canvas(modifier = Modifier.size(12.dp)) {
-                    drawCircle(
-                        color = Color(0xFF32ADE6),
-                        radius = size.minDimension / 2 * scale,
-                        alpha = alpha
-                    )
+                    drawCircle(color = accentColor, radius = size.minDimension / 2 * scale, alpha = alpha)
                 }
             }
-
-            // Sabit Nokta
             Canvas(modifier = Modifier.size(8.dp)) {
-                drawCircle(
-                    color = if (isPaused) Color.Gray else Color(0xFF32ADE6)
-                )
+                drawCircle(color = if (isPaused) Color.Gray else accentColor)
             }
         }
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        // Sağ Çizgi
         Canvas(modifier = Modifier.size(30.dp, 2.dp)) {
-            drawRoundRect(
-                color = Color.Gray.copy(alpha = 0.3f),
-                cornerRadius = androidx.compose.ui.geometry.CornerRadius(10f)
-            )
+            drawRoundRect(color = Color.Gray.copy(alpha = 0.3f), cornerRadius = androidx.compose.ui.geometry.CornerRadius(10f))
         }
     }
 }
@@ -249,49 +235,56 @@ fun ControlButton(
 @Preview
 @Composable
 fun PreviewGameStatsBar() {
+    // 1. Tema Renklerini Al (Dark Mode)
+    val isDark = true
+    val colors = EquatixDesignSystem.getColors(isDark)
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A)) // Uygulama teması
+            .background(colors.background) // Temadan gelen arka plan
             .padding(16.dp)
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("1. Normal Mod", color = Color.Gray, fontSize = 12.sp)
+            Text("1. Normal Mod", color = colors.textSecondary, fontSize = 12.sp)
             GameStatsBar(
                 elapsedTime = 65, // 01:05
                 isTimerRunning = true,
                 isSolved = false,
                 isVibrationEnabled = true,
                 isTimerVisible = true,
+                colors = colors, // <--- YENİ EKLENEN PARAMETRE
                 onHintClick = {},
                 onPauseToggle = {},
                 onVibrationToggle = {},
                 onTimerToggle = {}
             )
 
-            Text("2. Odak Modu (Kum Saati)", color = Color.Gray, fontSize = 12.sp)
+            Text("2. Odak Modu (Gizli Süre)", color = colors.textSecondary, fontSize = 12.sp)
             GameStatsBar(
                 elapsedTime = 120,
                 isTimerRunning = true,
                 isSolved = false,
                 isVibrationEnabled = false,
                 isTimerVisible = false,
+                colors = colors, // <--- YENİ EKLENEN PARAMETRE
                 onHintClick = {},
                 onPauseToggle = {},
                 onVibrationToggle = {},
                 onTimerToggle = {}
             )
 
-            Text("3. Oyun Duraklatıldı", color = Color.Gray, fontSize = 12.sp)
+            Text("3. Oyun Duraklatıldı", color = colors.textSecondary, fontSize = 12.sp)
             GameStatsBar(
                 elapsedTime = 120,
                 isTimerRunning = false,
                 isSolved = false,
                 isVibrationEnabled = true,
                 isTimerVisible = false,
+                colors = colors, // <--- YENİ EKLENEN PARAMETRE
                 onHintClick = {},
                 onPauseToggle = {},
                 onVibrationToggle = {},
