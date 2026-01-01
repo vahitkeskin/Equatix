@@ -11,8 +11,11 @@ import kotlinx.coroutines.flow.map
 
 class SettingsRepository(private val dataStore: DataStore<Preferences>) {
 
-    private val KEY_SOUND = booleanPreferencesKey("is_sound_on")
-    private val KEY_VIBRATION = booleanPreferencesKey("is_vibration_on")
+    companion object {
+        private val KEY_SOUND = booleanPreferencesKey("is_sound_on")
+        private val KEY_VIBRATION = booleanPreferencesKey("is_vibration_on")
+        private val IS_TUTORIAL_SEEN = booleanPreferencesKey("is_tutorial_seen")
+    }
 
     // Ses Ayarı Okuma (Varsayılan: True)
     val isSoundOn: Flow<Boolean> = dataStore.data.map { prefs ->
@@ -39,13 +42,27 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
     }
 
     val themeConfig: Flow<AppThemeConfig> = dataStore.data.map { preferences ->
-        val ordinal = preferences[intPreferencesKey("app_theme")] ?: AppThemeConfig.FOLLOW_SYSTEM.ordinal
+        val ordinal =
+            preferences[intPreferencesKey("app_theme")] ?: AppThemeConfig.FOLLOW_SYSTEM.ordinal
         AppThemeConfig.values().getOrElse(ordinal) { AppThemeConfig.FOLLOW_SYSTEM }
     }
 
     suspend fun setTheme(config: AppThemeConfig) {
         dataStore.edit { preferences ->
             preferences[intPreferencesKey("app_theme")] = config.ordinal
+        }
+    }
+
+    // Okuma
+    val isTutorialSeen: Flow<Boolean> = dataStore.data
+        .map { preferences ->
+            preferences[IS_TUTORIAL_SEEN] ?: false
+        }
+
+    // Yazma (Görüldü olarak işaretle)
+    suspend fun setTutorialSeen() {
+        dataStore.edit { preferences ->
+            preferences[IS_TUTORIAL_SEEN] = true
         }
     }
 }

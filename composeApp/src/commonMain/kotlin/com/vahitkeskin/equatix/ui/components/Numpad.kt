@@ -23,13 +23,24 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun TransparentNumpad(onInput: (String) -> Unit) {
-    val rows = listOf(listOf("7", "8", "9"), listOf("4", "5", "6"), listOf("1", "2", "3"), listOf("", "0", "DEL"))
+    val rows = listOf(
+        listOf("7", "8", "9"),
+        listOf("4", "5", "6"),
+        listOf("1", "2", "3"),
+        listOf("", "0", "DEL")
+    )
     Box(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             rows.forEach { row ->
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
                     row.forEach { key ->
-                        if (key.isEmpty()) Spacer(modifier = Modifier.size(70.dp)) else GlassKeyButton(key, onInput)
+                        if (key.isEmpty()) Spacer(modifier = Modifier.size(70.dp)) else GlassKeyButton(
+                            key,
+                            onInput
+                        )
                     }
                 }
             }
@@ -40,9 +51,18 @@ fun TransparentNumpad(onInput: (String) -> Unit) {
 @Composable
 fun GlassKeyButton(key: String, onClick: (String) -> Unit) {
     val isDel = key == "DEL"
-    val bgColor = if (isDel) Color(0xFFFF453A).copy(alpha = 0.1f) else Color.White.copy(alpha = 0.08f)
+    val bgColor =
+        if (isDel) Color(0xFFFF453A).copy(alpha = 0.1f) else Color.White.copy(alpha = 0.08f)
     val contentColor = if (isDel) Color(0xFFFF453A) else Color.White
-    Box(modifier = Modifier.size(75.dp).clip(CircleShape).background(bgColor).clickable { onClick(key) }, contentAlignment = Alignment.Center) {
-        Text(text = if (isDel) "⌫" else key, fontSize = 32.sp, color = contentColor, fontWeight = FontWeight.Thin)
+    Box(
+        modifier = Modifier.size(75.dp).clip(CircleShape).background(bgColor)
+            .clickable { onClick(key) }, contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = if (isDel) "⌫" else key,
+            fontSize = 32.sp,
+            color = contentColor,
+            fontWeight = FontWeight.Thin
+        )
     }
 }

@@ -1,6 +1,5 @@
 package com.vahitkeskin.equatix.ui.game
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -72,7 +71,6 @@ private fun GameContent(
 ) {
     val haptic = LocalHapticFeedback.current
 
-    // --- UI State ---
     var elapsedTime by remember { mutableStateOf(0L) }
     var isTimerRunning by remember { mutableStateOf(true) }
     var showHintDialog by remember { mutableStateOf(false) }
@@ -80,7 +78,6 @@ private fun GameContent(
     var isGamePaused by remember { mutableStateOf(false) }
     var tutorialState by remember { mutableStateOf(TutorialState.IDLE) }
 
-    // --- TEMA MANTIĞI (EquatixDesignSystem) ---
     val themeConfig by viewModel.themeConfig.collectAsState()
     val isSystemDark = isSystemInDarkTheme()
     val isDark = when (themeConfig) {
@@ -90,17 +87,18 @@ private fun GameContent(
     }
     val colors = EquatixDesignSystem.getColors(isDark)
 
-    // Arka plan rengi animasyonu
-    val animatedBgColor by animateColorAsState(targetValue = colors.background, animationSpec = tween(500))
-
-    // --- Tutorial ---
-    LaunchedEffect(Unit) {
-        delay(800)
-        tutorialState = TutorialState.ROW_ANIMATION
-        delay(2500)
-        tutorialState = TutorialState.COLUMN_ANIMATION
-        delay(2500)
-        tutorialState = TutorialState.IDLE
+    // Tutorial
+    val isTutorialSeen by viewModel.isTutorialSeen.collectAsState()
+    LaunchedEffect(isTutorialSeen) {
+        if (!isTutorialSeen && !viewModel.isSolved) {
+            delay(800)
+            tutorialState = TutorialState.ROW_ANIMATION
+            delay(2500)
+            tutorialState = TutorialState.COLUMN_ANIMATION
+            delay(2500)
+            tutorialState = TutorialState.IDLE
+            viewModel.markTutorialAsSeen()
+        }
     }
 
     LaunchedEffect(viewModel.isSolved) {
@@ -128,88 +126,85 @@ private fun GameContent(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(animatedBgColor)
+            .background(colors.background)
     ) {
-        // --- 1. KATMAN: Arkaplan ---
-        // Light modda yıldızları koyu (Slate900), Dark modda beyaz yap
         val starColor = if (isDark) Color.White else Color(0xFF0F172A)
-        val starAlpha = if (isDark) 1f else 0.4f // Light modda yıldızları silikleştir
-
-        // Yıldızlar
+        val starAlpha = if (isDark) 1f else 0.4f
         CosmicBackground(
             modifier = Modifier.matchParentSize(),
             starColor = starColor.copy(alpha = starAlpha)
         )
 
-        // --- 2. KATMAN: İçerik ---
+        // ANA YERLEŞİM KOLONU
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .systemBarsPadding()
-                .padding(horizontal = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+                .padding(horizontal = 0.dp),
+            verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            GameHeader(
-                difficulty = difficulty,
-                gridSize = gridSize,
-                isSolved = viewModel.isSolved,
-                colors = colors, // Tema renkleri
-                onBack = onNavigateBack,
-                onAutoSolve = {
-                    isTimerRunning = false
-                    viewModel.giveUpAndSolve()
-                },
-                onRefresh = {
-                    viewModel.startGame(difficulty, gridSize)
-                    elapsedTime = 0
-                    isTimerRunning = true
-                }
-            )
-
-            GameStatsBar(
-                elapsedTime = elapsedTime,
-                isTimerRunning = isTimerRunning,
-                isSolved = viewModel.isSolved,
-                isVibrationEnabled = viewModel.isVibrationEnabled,
-                isTimerVisible = isTimerVisible,
-                colors = colors, // Tema renkleri
-                onHintClick = { showHintDialog = true },
-                onPauseToggle = {
-                    isTimerRunning = !isTimerRunning
-                    isGamePaused = !isGamePaused
-                },
-                onVibrationToggle = { viewModel.toggleVibration() },
-                onTimerToggle = { isTimerVisible = !isTimerVisible }
-            )
-
-            // Progress Path
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 0.dp)
-            ) {
-                // Progress path rengini de temaya göre ayarlayabiliriz
-                ProgressPath(progress = animatedProgress)
+            // 1. HEADER
+            Box(modifier = Modifier.padding(horizontal = 8.dp)) {
+                GameHeader(
+                    difficulty = difficulty,
+                    gridSize = gridSize,
+                    isSolved = viewModel.isSolved,
+                    colors = colors,
+                    onBack = onNavigateBack,
+                    onAutoSolve = {
+                        isTimerRunning = false
+                        viewModel.giveUpAndSolve()
+                    },
+                    onRefresh = {
+                        viewModel.startGame(difficulty, gridSize)
+                        elapsedTime = 0
+                        isTimerRunning = true
+                    }
+                )
             }
 
-            // OYUN ALANI
+            // 2. STATS BAR (Simetrik)
+            Box(modifier = Modifier.padding(horizontal = 8.dp)) {
+                GameStatsBar(
+                    elapsedTime = elapsedTime,
+                    isTimerRunning = isTimerRunning,
+                    isSolved = viewModel.isSolved,
+                    isTimerVisible = isTimerVisible,
+                    colors = colors,
+                    isDark = isDark,
+                    onPauseToggle = {
+                        isTimerRunning = !isTimerRunning
+                        isGamePaused = !isGamePaused
+                    },
+                    onTimerToggle = { isTimerVisible = !isTimerVisible }
+                )
+            }
+
+            // 3. PROGRESS
+            ProgressPath(progress = animatedProgress, primaryColor = colors.success)
+
+            // 4. GRID (ASLAN PAYI - weight 1f)
+            // Bu alan ekranın kalan tüm dikey boşluğunu kullanacak.
             GamePlayArea(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f) // Kritik!
+                    .fillMaxWidth(),
                 viewModel = viewModel,
                 n = gridN,
                 isTimerRunning = isTimerRunning,
                 isSolved = viewModel.isSolved,
                 tutorialState = tutorialState,
-                colors = colors, // Tema renkleri
+                colors = colors,
                 isDark = isDark
             )
 
+            // 5. NUMPAD (Sıkıştırılmış)
             GameBottomPanel(
                 viewModel = viewModel,
                 isTimerRunning = isTimerRunning,
                 elapsedTime = elapsedTime,
-                colors = colors, // Tema renkleri
+                colors = colors,
                 onInput = { viewModel.onInput(it) },
                 onRestart = {
                     viewModel.startGame(difficulty, gridSize)
@@ -219,8 +214,7 @@ private fun GameContent(
             )
         }
 
-        // --- 3. KATMAN: Overlayler ---
-
+        // Overlayler
         GamePauseOverlay(
             isVisible = isGamePaused,
             colors = colors,
@@ -252,6 +246,8 @@ private fun GameContent(
 @Composable
 fun PreviewGameContentMaximized() {
     val viewModel = remember { GameViewModel() }
+    val darkColors = EquatixDesignSystem.getColors(true)
+
     LaunchedEffect(Unit) {
         val fixedNumbers = listOf(8, 4, 2, 12, 10, 5, 100, 25, 4)
         val customCells = fixedNumbers.mapIndexed { index, value ->
@@ -274,6 +270,6 @@ fun PreviewGameContentMaximized() {
             gridN = 3
         )
     } else {
-        Box(modifier = Modifier.fillMaxSize().background(Color(0xFF0F172A)))
+        Box(modifier = Modifier.fillMaxSize().background(darkColors.background))
     }
 }
