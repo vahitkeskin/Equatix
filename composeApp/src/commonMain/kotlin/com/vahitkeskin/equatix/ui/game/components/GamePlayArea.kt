@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -53,28 +52,42 @@ fun GamePlayArea(
     isDark: Boolean
 ) {
     BoxWithConstraints(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxSize(), // Mevcut alanın tamamını kullan
         contentAlignment = Alignment.Center
     ) {
-        val w = maxWidth.value
-        val h = maxHeight.value
-        val isValidConstraints = w > 0 && h > 0 && w.isFinite() && h.isFinite()
-        if (!isValidConstraints) return@BoxWithConstraints
+        val availableW = maxWidth.value
+        val availableH = maxHeight.value
 
-        val minDimension = min(w, h)
-        val safeDimension = if (minDimension > 0) minDimension * 1f else 300f
-        val opWidthRatio = 0.65f
-        val totalUnitsInRow = n + (n * opWidthRatio) + 1.1f
-        val cellSizeValue = safeDimension / totalUnitsInRow
-        val cellSize = cellSizeValue.dp
-        val opWidth = (cellSizeValue * opWidthRatio).dp
-        val calculatedFontSize = cellSizeValue * 0.45f
-        val fontSize = if (calculatedFontSize.isFinite() && calculatedFontSize > 0) calculatedFontSize.sp else 12.sp
+        if (availableW <= 0 || availableH <= 0) return@BoxWithConstraints
+
+        // --- GRID HESAPLAMA MOTORU ---
+        // 5x5'te sıkışmayı önlemek için matematiksel oranlar
+        val opRatio = 0.65f
+
+        // YATAY BİRİM SAYISI
+        // N sayı + (N-1) işlem + Eşittir + Sonuç
+        val totalUnitsX = n + ((n - 1) * opRatio) + 0.5f + 1.0f
+
+        // DİKEY BİRİM SAYISI (Alttaki yeşil toplar sığsın diye)
+        // N sayı + (N-1) işlem + Eşittir + Sonuç
+        val totalUnitsY = n + ((n - 1) * opRatio) + 0.5f + 1.0f
+
+        // Ekranın en ve boyuna göre, bir birimin maksimum pixel değeri
+        val unitSizeX = availableW / totalUnitsX
+        val unitSizeY = availableH / totalUnitsY
+
+        // En küçük olanı seç ki ekrandan taşmasın
+        val unitSizeValue = min(unitSizeX, unitSizeY)
+
+        // Değerleri ata
+        val cellSize = unitSizeValue.dp
+        val opWidth = (unitSizeValue * opRatio).dp
+
+        // Font boyutu: Biraz daha büyüttük (0.45 -> 0.50) ki okunabilsin
+        val fontSize = (unitSizeValue * 0.50f).sp
 
         Box {
-            // Light Modda Gölge veriyoruz ki beyaz zemin üzerinde kart ayrılsın.
-            // Dark modda gölgeye gerek yok, cam efekti yetiyor.
-            val shadowElevation = if (isDark) 0.dp else 12.dp
+            val shadowElevation = if (isDark) 0.dp else 16.dp
 
             GlassBox(
                 modifier = Modifier
@@ -82,20 +95,17 @@ fun GamePlayArea(
                     .shadow(shadowElevation, RoundedCornerShape(24.dp)),
                 cornerRadius = 24.dp
             ) {
-                // Temaya göre kartın iç rengi (Light: Saf Beyaz, Dark: Yarı Saydam Siyah)
                 Box(
                     modifier = Modifier
                         .background(colors.cardBackground)
-                        .padding(8.dp),
+                        .padding(8.dp), // Çok az padding, maksimum içerik
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        // GameGrid'i MaterialTheme ile sarmalayarak renkleri zorluyoruz.
-                        // GameGrid muhtemelen LocalContentColor kullanıyordur.
                         MaterialTheme(
                             colorScheme = MaterialTheme.colorScheme.copy(
-                                onSurface = colors.textPrimary, // Rakamlar
-                                surface = colors.textPrimary    // Genel içerik
+                                onSurface = colors.textPrimary,
+                                surface = colors.textPrimary
                             )
                         ) {
                             GameGrid(
@@ -121,7 +131,7 @@ fun GamePlayArea(
                 Box(
                     modifier = Modifier
                         .matchParentSize()
-                        .background(Color.Black.copy(0.7f), RoundedCornerShape(24.dp)),
+                        .background(Color.Black.copy(0.75f), RoundedCornerShape(24.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -129,14 +139,14 @@ fun GamePlayArea(
                             Icons.Rounded.Pause,
                             null,
                             tint = Color.White,
-                            modifier = Modifier.size(48.dp)
+                            modifier = Modifier.size(56.dp)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             "PAUSED",
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
-                            letterSpacing = 2.sp
+                            letterSpacing = 4.sp
                         )
                     }
                 }
@@ -149,8 +159,6 @@ fun GamePlayArea(
 @Composable
 fun PreviewGamePlayAreaValid() {
     val viewModel = remember { GameViewModel() }
-
-    // 1. TEMA AYARLARI (Dark Mode)
     val isDark = true
     val colors = EquatixDesignSystem.getColors(isDark)
 
@@ -190,22 +198,16 @@ fun PreviewGamePlayAreaValid() {
     }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colors.background), // Temadan gelen arka plan rengi
+        modifier = Modifier.fillMaxSize().background(colors.background),
         contentAlignment = Alignment.Center
     ) {
         if (viewModel.gameState != null) {
             GamePlayArea(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .aspectRatio(1f),
+                modifier = Modifier.fillMaxSize(),
                 viewModel = viewModel,
                 n = 3,
                 isTimerRunning = false,
                 isSolved = true,
-                // YENİ EKLENEN PARAMETRELER:
                 colors = colors,
                 isDark = isDark
             )
