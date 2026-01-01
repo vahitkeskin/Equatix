@@ -1,9 +1,11 @@
 package com.vahitkeskin.equatix.ui.game
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,6 +18,7 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.vahitkeskin.equatix.domain.model.AppThemeConfig
 import com.vahitkeskin.equatix.domain.model.CellData
 import com.vahitkeskin.equatix.domain.model.Difficulty
 import com.vahitkeskin.equatix.domain.model.GameState
@@ -28,6 +31,7 @@ import com.vahitkeskin.equatix.ui.game.utils.calculateProgress
 import com.vahitkeskin.equatix.ui.game.visuals.CosmicBackground
 import com.vahitkeskin.equatix.ui.game.visuals.FireworkOverlay
 import com.vahitkeskin.equatix.ui.game.visuals.ProgressPath
+import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -68,7 +72,7 @@ private fun GameContent(
 ) {
     val haptic = LocalHapticFeedback.current
 
-    // UI State'leri
+    // --- UI State ---
     var elapsedTime by remember { mutableStateOf(0L) }
     var isTimerRunning by remember { mutableStateOf(true) }
     var showHintDialog by remember { mutableStateOf(false) }
@@ -76,7 +80,20 @@ private fun GameContent(
     var isGamePaused by remember { mutableStateOf(false) }
     var tutorialState by remember { mutableStateOf(TutorialState.IDLE) }
 
-    // --- Tutorial Başlangıcı ---
+    // --- TEMA MANTIĞI (EquatixDesignSystem) ---
+    val themeConfig by viewModel.themeConfig.collectAsState()
+    val isSystemDark = isSystemInDarkTheme()
+    val isDark = when (themeConfig) {
+        AppThemeConfig.FOLLOW_SYSTEM -> isSystemDark
+        AppThemeConfig.DARK -> true
+        AppThemeConfig.LIGHT -> false
+    }
+    val colors = EquatixDesignSystem.getColors(isDark)
+
+    // Arka plan rengi animasyonu
+    val animatedBgColor by animateColorAsState(targetValue = colors.background, animationSpec = tween(500))
+
+    // --- Tutorial ---
     LaunchedEffect(Unit) {
         delay(800)
         tutorialState = TutorialState.ROW_ANIMATION
@@ -111,19 +128,25 @@ private fun GameContent(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A))
+            .background(animatedBgColor)
     ) {
-        CosmicBackground()
+        // --- 1. KATMAN: Arkaplan ---
+        // Light modda yıldızları koyu (Slate900), Dark modda beyaz yap
+        val starColor = if (isDark) Color.White else Color(0xFF0F172A)
+        val starAlpha = if (isDark) 1f else 0.4f // Light modda yıldızları silikleştir
 
+        // Yıldızlar
+        CosmicBackground(
+            modifier = Modifier.matchParentSize(),
+            starColor = starColor.copy(alpha = starAlpha)
+        )
+
+        // --- 2. KATMAN: İçerik ---
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .systemBarsPadding()
-                // DÜZELTME: Padding 16.dp -> 8.dp (veya 4.dp).
-                // Kenar boşluğunu ne kadar azaltırsan, Grid o kadar büyür.
                 .padding(horizontal = 8.dp),
-            // DÜZELTME: SpaceBetween yerine spacedBy.
-            // Elemanları birbirine yaklaştırarak ortaya (Grid'e) yer açıyoruz.
             verticalArrangement = Arrangement.spacedBy(4.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -131,6 +154,7 @@ private fun GameContent(
                 difficulty = difficulty,
                 gridSize = gridSize,
                 isSolved = viewModel.isSolved,
+                colors = colors, // Tema renkleri
                 onBack = onNavigateBack,
                 onAutoSolve = {
                     isTimerRunning = false
@@ -149,6 +173,7 @@ private fun GameContent(
                 isSolved = viewModel.isSolved,
                 isVibrationEnabled = viewModel.isVibrationEnabled,
                 isTimerVisible = isTimerVisible,
+                colors = colors, // Tema renkleri
                 onHintClick = { showHintDialog = true },
                 onPauseToggle = {
                     isTimerRunning = !isTimerRunning
@@ -158,29 +183,33 @@ private fun GameContent(
                 onTimerToggle = { isTimerVisible = !isTimerVisible }
             )
 
-            // Progress Path: Boşlukları sıfırladık
+            // Progress Path
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 0.dp)
             ) {
+                // Progress path rengini de temaya göre ayarlayabiliriz
                 ProgressPath(progress = animatedProgress)
             }
 
-            // OYUN ALANI (Maksimum büyüklük)
+            // OYUN ALANI
             GamePlayArea(
-                modifier = Modifier.weight(1f), // Kalan tüm alanı kapla
+                modifier = Modifier.weight(1f),
                 viewModel = viewModel,
                 n = gridN,
                 isTimerRunning = isTimerRunning,
                 isSolved = viewModel.isSolved,
-                tutorialState = tutorialState
+                tutorialState = tutorialState,
+                colors = colors, // Tema renkleri
+                isDark = isDark
             )
 
             GameBottomPanel(
                 viewModel = viewModel,
                 isTimerRunning = isTimerRunning,
                 elapsedTime = elapsedTime,
+                colors = colors, // Tema renkleri
                 onInput = { viewModel.onInput(it) },
                 onRestart = {
                     viewModel.startGame(difficulty, gridSize)
@@ -190,21 +219,12 @@ private fun GameContent(
             )
         }
 
-        // --- Tutorial Text ---
-        if (tutorialState != TutorialState.IDLE) {
-            //
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 120.dp)
-            ) {
-                // Tutorial metni buraya (GlassBox içinde)
-            }
-        }
+        // --- 3. KATMAN: Overlayler ---
 
-        // --- Pause Overlay ---
         GamePauseOverlay(
             isVisible = isGamePaused,
+            colors = colors,
+            isDark = isDark,
             onResume = {
                 isGamePaused = false
                 isTimerRunning = true
@@ -232,39 +252,16 @@ private fun GameContent(
 @Composable
 fun PreviewGameContentMaximized() {
     val viewModel = remember { GameViewModel() }
-
     LaunchedEffect(Unit) {
         val fixedNumbers = listOf(8, 4, 2, 12, 10, 5, 100, 25, 4)
         val customCells = fixedNumbers.mapIndexed { index, value ->
-            CellData(
-                id = index,
-                correctValue = value,
-                isHidden = true,
-                userInput = value.toString(),
-                isRevealedBySystem = false,
-                isLocked = false
-            )
+            CellData(id = index, correctValue = value, isHidden = true, userInput = value.toString(), isRevealedBySystem = false, isLocked = false)
         }
-        val rowOps = listOf(
-            Operation.ADD,
-            Operation.MUL,
-            Operation.ADD,
-            Operation.DIV,
-            Operation.SUB,
-            Operation.MUL
-        )
-        val colOps = listOf(
-            Operation.ADD,
-            Operation.ADD,
-            Operation.MUL,
-            Operation.ADD,
-            Operation.MUL,
-            Operation.ADD
-        )
+        val rowOps = listOf(Operation.ADD, Operation.MUL, Operation.ADD, Operation.DIV, Operation.SUB, Operation.MUL)
+        val colOps = listOf(Operation.ADD, Operation.ADD, Operation.MUL, Operation.ADD, Operation.MUL, Operation.ADD)
         val rowResults = listOf(16, 14, 0)
         val colResults = listOf(120, 65, 14)
-        val validState =
-            GameState(3, customCells, rowOps, colOps, rowResults, colResults, Difficulty.EASY)
+        val validState = GameState(3, customCells, rowOps, colOps, rowResults, colResults, Difficulty.EASY)
         viewModel.loadPreviewState(validState)
     }
 

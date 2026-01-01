@@ -3,6 +3,8 @@ package com.vahitkeskin.equatix.ui.home
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.vahitkeskin.equatix.data.local.createDataStore
+import com.vahitkeskin.equatix.di.AppModule
+import com.vahitkeskin.equatix.domain.model.AppThemeConfig
 import com.vahitkeskin.equatix.domain.model.Difficulty
 import com.vahitkeskin.equatix.domain.model.GridSize
 import com.vahitkeskin.equatix.domain.repository.SettingsRepository
@@ -26,24 +28,35 @@ data class ScoreRecord(
 class HomeViewModel : ScreenModel {
 
     // --- Repositories ---
-    // Not: createDataStore() fonksiyonunun doğru import edildiğinden emin olun.
-    // Gerçek projede bu sınıfı DI (Koin/Hilt) ile inject etmek daha doğrudur.
-    private val settingsRepo = SettingsRepository(createDataStore())
+    // NOT: Gerçek bir projede burası Koin/Hilt ile inject edilmelidir.
+    // Şimdilik manuel instance alıyoruz.
+    private val settingsRepo = AppModule.settingsRepository
 
     // --- UI State (Scores) ---
     private val _scores = MutableStateFlow<List<ScoreRecord>>(emptyList())
     val scores = _scores.asStateFlow()
 
-    // --- UI State (Settings - DataStore) ---
-    // DataStore'dan gelen Flow'u StateFlow'a çeviriyoruz.
-    // Böylece UI her zaman güncel veriyi dinler ve uygulama açıldığında son ayar gelir.
+    // --- UI State (Settings) ---
+
+    // 1. TEMA AYARI (YENİ)
+    // Repository'den gelen akışı StateFlow'a çeviriyoruz.
+    // Başlangıç değeri FOLLOW_SYSTEM, ama DataStore okununca gerçek değer gelecek.
+    val themeConfig: StateFlow<AppThemeConfig> = settingsRepo.themeConfig
+        .stateIn(
+            scope = screenModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = AppThemeConfig.FOLLOW_SYSTEM
+        )
+
+    // 2. SES AYARI
     val isSoundOn: StateFlow<Boolean> = settingsRepo.isSoundOn
         .stateIn(
             scope = screenModelScope,
-            started = SharingStarted.WhileSubscribed(5000), // UI arka plana düşerse 5sn sonra durdur
-            initialValue = true // Varsayılan değer
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = true
         )
 
+    // 3. TİTREŞİM AYARI
     val isVibrationOn: StateFlow<Boolean> = settingsRepo.isVibrationOn
         .stateIn(
             scope = screenModelScope,
@@ -57,11 +70,8 @@ class HomeViewModel : ScreenModel {
 
     private fun loadScores() {
         screenModelScope.launch {
-            // TODO: Burada Room Repository'den verileri çekin
-            // val data = repository.getAllScores()
-            // _scores.value = data
-
-            // MOCK DATA (Örnek Görünüm İçin)
+            // İleride burası Room DB'den beslenecek.
+            // Şimdilik Mock Data:
             _scores.value = listOf(
                 ScoreRecord(1, "Bugün", 1500, "00:45", Difficulty.HARD, GridSize.SIZE_5x5),
                 ScoreRecord(2, "Dün", 1200, "01:10", Difficulty.MEDIUM, GridSize.SIZE_4x4),
@@ -71,12 +81,17 @@ class HomeViewModel : ScreenModel {
         }
     }
 
-    // --- Actions ---
+    // --- Actions (Kullanıcı Etkileşimleri) ---
+
+    // Temayı Değiştir (UI'dan çağrılır)
+    fun setTheme(config: AppThemeConfig) {
+        screenModelScope.launch {
+            settingsRepo.setTheme(config)
+        }
+    }
 
     fun toggleSound() {
         screenModelScope.launch {
-            // Mevcut değerin tersini DataStore'a yazıyoruz.
-            // isSoundOn StateFlow olduğu için otomatik olarak güncellenecektir.
             settingsRepo.setSound(!isSoundOn.value)
         }
     }

@@ -4,6 +4,8 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
+import com.vahitkeskin.equatix.domain.model.AppThemeConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -33,6 +35,17 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
     suspend fun setVibration(enabled: Boolean) {
         dataStore.edit { prefs ->
             prefs[KEY_VIBRATION] = enabled
+        }
+    }
+
+    val themeConfig: Flow<AppThemeConfig> = dataStore.data.map { preferences ->
+        val ordinal = preferences[intPreferencesKey("app_theme")] ?: AppThemeConfig.FOLLOW_SYSTEM.ordinal
+        AppThemeConfig.values().getOrElse(ordinal) { AppThemeConfig.FOLLOW_SYSTEM }
+    }
+
+    suspend fun setTheme(config: AppThemeConfig) {
+        dataStore.edit { preferences ->
+            preferences[intPreferencesKey("app_theme")] = config.ordinal
         }
     }
 }
