@@ -3,7 +3,9 @@ package com.vahitkeskin.equatix.ui.splash
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -21,8 +23,12 @@ import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.vahitkeskin.equatix.di.AppModule
+import com.vahitkeskin.equatix.domain.model.AppThemeConfig
 import com.vahitkeskin.equatix.ui.home.HomeScreen
+import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
 import kotlinx.coroutines.delay
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.random.Random
 
 class SplashScreen : Screen {
@@ -31,106 +37,143 @@ class SplashScreen : Screen {
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
 
-        // Animasyon State'leri
-        var startAnimation by remember { mutableStateOf(false) }
+        // 1. Mantık ve Veri Katmanı (Preview'da çalışmaz, sadece burada çalışır)
+        val settingsRepo = AppModule.settingsRepository
+        val themeConfig by settingsRepo.themeConfig.collectAsState(initial = AppThemeConfig.FOLLOW_SYSTEM)
+        val isSystemDark = isSystemInDarkTheme()
 
-        // Logo Ölçek Animasyonu (Spring Efekti ile)
-        val scale by animateFloatAsState(
-            targetValue = if (startAnimation) 1f else 0.5f,
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessLow
-            )
-        )
-
-        // Opaklık Animasyonu
-        val alpha by animateFloatAsState(
-            targetValue = if (startAnimation) 1f else 0f,
-            animationSpec = tween(1500)
-        )
-
-        LaunchedEffect(Unit) {
-            startAnimation = true
-            delay(2500) // 2.5 saniye bekle
-            navigator.replace(HomeScreen()) // Home'a git ve Splash'i geçmişten sil
+        val isDark = when (themeConfig) {
+            AppThemeConfig.FOLLOW_SYSTEM -> isSystemDark
+            AppThemeConfig.DARK -> true
+            AppThemeConfig.LIGHT -> false
         }
 
+        // Navigasyon Mantığı
+        LaunchedEffect(Unit) {
+            delay(2500)
+            navigator.replace(HomeScreen())
+        }
+
+        // 2. Saf UI Katmanı (Aşağıdaki fonksiyonu çağırıyoruz)
+        SplashUI(isDark = isDark)
+    }
+}
+
+/**
+ * STATELESS UI COMPONENT
+ * Navigator veya DataStore bilmez. Sadece renk ve çizim yapar.
+ * Bu sayede Preview edilebilir.
+ */
+@Composable
+fun SplashUI(isDark: Boolean) {
+    val colors = EquatixDesignSystem.getColors(isDark)
+
+    // Arka Plan Gradyanı
+    val bgGradient = Brush.verticalGradient(
+        colors = if (isDark) {
+            listOf(colors.background, Color.Black)
+        } else {
+            listOf(colors.background, Color.White)
+        }
+    )
+
+    val rainColor = if (isDark) colors.accent else colors.textPrimary
+
+    // Animasyon State'leri (UI içinde yönetilebilir)
+    var startAnimation by remember { mutableStateOf(false) }
+
+    val scale by animateFloatAsState(
+        targetValue = if (startAnimation) 1f else 0.5f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        )
+    )
+
+    val alpha by animateFloatAsState(
+        targetValue = if (startAnimation) 1f else 0f,
+        animationSpec = tween(1500)
+    )
+
+    LaunchedEffect(Unit) {
+        startAnimation = true
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(bgGradient),
+        contentAlignment = Alignment.Center
+    ) {
+        // 1. KATMAN: Matrix Yağmuru
+        MatrixRainBackground(dropColor = rainColor, isDark = isDark)
+
+        // 2. KATMAN: Logo ve Başlık
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .scale(scale)
+                .alpha(alpha)
+        ) {
+            // Logo Kutusu
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .background(
+                        color = colors.textPrimary.copy(alpha = 0.05f),
+                        shape = RoundedCornerShape(24.dp)
+                    )
+                    .padding(20.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "∑",
+                    fontSize = 50.sp,
+                    color = colors.accent
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "EQUATIX",
+                style = MaterialTheme.typography.displayMedium,
+                color = colors.textPrimary,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 8.sp
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "MATRIX PUZZLE",
+                color = colors.textSecondary,
+                fontSize = 12.sp,
+                letterSpacing = 4.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        // 3. KATMAN: Alt Telif
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(Color(0xFF0F172A), Color(0xFF000000))
-                    )
-                ),
-            contentAlignment = Alignment.Center
+                .padding(bottom = 32.dp),
+            contentAlignment = Alignment.BottomCenter
         ) {
-            // 1. KATMAN: Canvas Matrix Efekti
-            MatrixRainBackground()
-
-            // 2. KATMAN: Logo ve Başlık
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-                modifier = Modifier
-                    .scale(scale)
-                    .alpha(alpha)
-            ) {
-                // Logo Kutusu (Basit bir geometrik şekil veya ikon)
-                Box(
-                    modifier = Modifier
-                        .size(100.dp)
-                        .background(Color.White.copy(0.1f), androidx.compose.foundation.shape.RoundedCornerShape(24.dp))
-                        .padding(20.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "∑", // Matematik Sembolü
-                        fontSize = 50.sp,
-                        color = Color(0xFF38BDF8)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Text(
-                    text = "EQUATIX",
-                    style = MaterialTheme.typography.displayMedium,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 8.sp
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "MATRIX PUZZLE",
-                    color = Color.Gray,
-                    fontSize = 12.sp,
-                    letterSpacing = 4.sp
-                )
-            }
-
-            // 3. KATMAN: Alt Telif Bilgisi
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(bottom = 32.dp),
-                contentAlignment = Alignment.BottomCenter
-            ) {
-                Text(
-                    text = "v1.0",
-                    color = Color.White.copy(0.3f),
-                    fontSize = 10.sp
-                )
-            }
+            Text(
+                text = "v1.0",
+                color = colors.textSecondary.copy(alpha = 0.5f),
+                fontSize = 10.sp
+            )
         }
     }
 }
 
-// --- CANVAS EFEKTİ: DİJİTAL YAĞMUR ---
+// --- MATRIX YAĞMURU ---
 @Composable
-fun MatrixRainBackground() {
+fun MatrixRainBackground(dropColor: Color, isDark: Boolean) {
     val infiniteTransition = rememberInfiniteTransition(label = "rain")
     val time by infiniteTransition.animateFloat(
         initialValue = 0f,
@@ -142,28 +185,25 @@ fun MatrixRainBackground() {
         label = "time"
     )
 
-    // Rastgele noktalar oluştur (Sadece bir kez)
     val drops = remember {
-        List(40) { // 40 adet düşen çizgi
+        List(40) {
             MatrixDrop(
                 x = Random.nextFloat(),
-                y = Random.nextFloat(), // Başlangıç Y
-                speed = Random.nextFloat() * 0.5f + 0.2f, // Hız
-                length = Random.nextFloat() * 0.15f + 0.05f // Çizgi uzunluğu
+                y = Random.nextFloat(),
+                speed = Random.nextFloat() * 0.5f + 0.2f,
+                length = Random.nextFloat() * 0.15f + 0.05f
             )
         }
     }
 
-    Canvas(modifier = Modifier.fillMaxSize().alpha(0.3f)) {
+    val canvasAlpha = if (isDark) 0.3f else 0.15f
+
+    Canvas(modifier = Modifier.fillMaxSize().alpha(canvasAlpha)) {
         val width = size.width
         val height = size.height
 
         drops.forEach { drop ->
-            // Zamanla aşağı inme mantığı
             val currentY = (drop.y + time * drop.speed * 5f) % 1.2f
-            // 1.2f yapıyoruz ki ekranın biraz altına inip sonra yukarıdan başlasın
-
-            // Eğer ekranın içindeyse çiz
             if (currentY - drop.length < 1f) {
                 val startY = (currentY - drop.length) * height
                 val endY = currentY * height
@@ -171,7 +211,7 @@ fun MatrixRainBackground() {
 
                 drawLine(
                     brush = Brush.verticalGradient(
-                        colors = listOf(Color.Transparent, Color(0xFF34C759)), // Matrix Yeşili
+                        colors = listOf(Color.Transparent, dropColor),
                         startY = startY,
                         endY = endY
                     ),
@@ -191,3 +231,21 @@ private data class MatrixDrop(
     val speed: Float,
     val length: Float
 )
+
+// ==========================================
+//              PREVIEW BÖLÜMÜ
+// ==========================================
+
+@Preview
+@Composable
+fun PreviewSplashDark() {
+    // Navigator ve DataStore olmadan doğrudan UI çiziyoruz
+    SplashUI(isDark = true)
+}
+
+@Preview
+@Composable
+fun PreviewSplashLight() {
+    // Navigator ve DataStore olmadan doğrudan UI çiziyoruz
+    SplashUI(isDark = false)
+}

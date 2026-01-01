@@ -4,16 +4,36 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import cafe.adriel.voyager.core.model.ScreenModel
+import cafe.adriel.voyager.core.model.screenModelScope
+import com.vahitkeskin.equatix.data.local.createDataStore
+import com.vahitkeskin.equatix.di.AppModule
+import com.vahitkeskin.equatix.domain.model.AppThemeConfig
 import com.vahitkeskin.equatix.domain.model.CellData
 import com.vahitkeskin.equatix.domain.model.Difficulty
 import com.vahitkeskin.equatix.domain.model.GameState
 import com.vahitkeskin.equatix.domain.model.GridSize
 import com.vahitkeskin.equatix.domain.model.Operation
+import com.vahitkeskin.equatix.domain.repository.SettingsRepository
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlin.random.Random
 
 class GameViewModel : ScreenModel {
 
-    // --- STATE VARIABLES ---
+    // --- REPOSITORIES ---
+    // Tema ve Ayarları okumak için
+    private val settingsRepo = AppModule.settingsRepository
+
+    // --- SETTINGS STATES (Flow) ---
+    val themeConfig: StateFlow<AppThemeConfig> = settingsRepo.themeConfig
+        .stateIn(
+            scope = screenModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = AppThemeConfig.FOLLOW_SYSTEM
+        )
+
+    // --- GAME STATES ---
     var gameState by mutableStateOf<GameState?>(null)
         private set
     var isSolved by mutableStateOf(false)
@@ -60,10 +80,9 @@ class GameViewModel : ScreenModel {
         selectedCellIndex = null
     }
 
-    // --- GAME GENERATION LOGIC (REVISED) ---
+    // --- GAME GENERATION LOGIC ---
 
     private fun generateSolvableLevel(diff: Difficulty, n: Int): GameState {
-        // [REVIZE] Geçerli ve tam bölünebilir bir oyun tahtası bulana kadar sonsuz döngü
         while (true) {
             val totalCells = n * n
             val nums = List(totalCells) { Random.nextInt(1, diff.maxNumber + 1) }
@@ -81,39 +100,37 @@ class GameViewModel : ScreenModel {
 
             val rowResults = mutableListOf<Int>()
             val colResults = mutableListOf<Int>()
-            var isValidLevel = true // Bu deneme geçerli mi bayrağı
+            var isValidLevel = true
 
-            // 1. Satır Hesapla ve Kontrol Et
+            // 1. Satır Hesapla
             for (row in 0 until n) {
                 val rowNums = nums.subList(row * n, (row + 1) * n)
                 val rowOpList = rOps.subList(row * (n - 1), (row + 1) * (n - 1))
 
                 val result = calculateLineWithPrecedence(rowNums, rowOpList)
                 if (result == null) {
-                    isValidLevel = false // Hatalı bölme (küsurat) bulundu
+                    isValidLevel = false
                     break
                 }
                 rowResults.add(result)
             }
 
-            if (!isValidLevel) continue // Hata varsa sayıları çöpe at, başa dön
+            if (!isValidLevel) continue
 
-            // 2. Sütun Hesapla ve Kontrol Et
+            // 2. Sütun Hesapla
             for (col in 0 until n) {
                 val colNums = (0 until n).map { row -> nums[row * n + col] }
                 val colOpList = (0 until n - 1).map { k -> cOps[col * (n - 1) + k] }
 
                 val result = calculateLineWithPrecedence(colNums, colOpList)
                 if (result == null) {
-                    isValidLevel = false // Hatalı bölme bulundu
+                    isValidLevel = false
                     break
                 }
                 colResults.add(result)
             }
 
-            if (!isValidLevel) continue // Hata varsa başa dön
-
-            // --- Eğer buraya geldiysek tüm işlemler matematiksel olarak kusursuzdur ---
+            if (!isValidLevel) continue
 
             val hiddenMap = determineHiddenCells(diff, n)
             val cells = nums.mapIndexed { index, value ->
@@ -131,12 +148,10 @@ class GameViewModel : ScreenModel {
         }
     }
 
-    // [REVIZE] Dönüş tipi Int? oldu. Hatalı/Kalanlı bölme varsa null döner.
     private fun calculateLineWithPrecedence(numbers: List<Int>, operations: List<Operation>): Int? {
         val tempNums = numbers.toMutableList()
         val tempOps = operations.toMutableList()
 
-        // 1. TUR: ÇARPMA ve BÖLME (İşlem Önceliği)
         var i = 0
         while (i < tempOps.size) {
             val op = tempOps[i]
@@ -147,12 +162,10 @@ class GameViewModel : ScreenModel {
                 val result = if (op == Operation.MUL) {
                     n1 * n2
                 } else {
-                    // [Kritik Düzeltme]: Tam bölünmüyorsa veya 0'a bölünüyorsa işlemi iptal et
                     if (n2 == 0 || n1 % n2 != 0) return null
                     n1 / n2
                 }
 
-                // Listeyi güncelle
                 tempNums[i] = result
                 tempNums.removeAt(i + 1)
                 tempOps.removeAt(i)
@@ -161,7 +174,6 @@ class GameViewModel : ScreenModel {
             }
         }
 
-        // 2. TUR: TOPLAMA ve ÇIKARMA
         var finalResult = tempNums[0]
         for (j in tempOps.indices) {
             val nextNum = tempNums[j + 1]
@@ -174,7 +186,7 @@ class GameViewModel : ScreenModel {
         return finalResult
     }
 
-    // --- HELPERS (Değişmedi) ---
+    // --- HELPERS ---
 
     private fun determineHiddenCells(diff: Difficulty, n: Int): BooleanArray {
         val totalCells = n * n
@@ -247,9 +259,8 @@ class GameViewModel : ScreenModel {
         }
     }
 
-    // GameViewModel.kt içine ekle
     fun loadPreviewState(customState: GameState) {
         this.gameState = customState
-        this.isSolved = true // Çözülmüş modda görmek istediğin için
+        this.isSolved = true
     }
 }
