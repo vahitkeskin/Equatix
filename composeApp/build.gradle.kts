@@ -6,6 +6,8 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.room)
 }
 
 kotlin {
@@ -50,27 +52,33 @@ kotlin {
                 implementation(compose.components.resources)
                 implementation(compose.components.uiToolingPreview)
 
-                // Material Icons (Refresh, Info vb. için zorunlu)
+                // Material Icons
                 implementation(compose.materialIconsExtended)
 
                 // Lifecycle (ViewModel & Runtime)
                 implementation(libs.androidx.lifecycle.viewmodelCompose)
                 implementation(libs.androidx.lifecycle.runtimeCompose)
 
-                // Voyager (Navigation & ScreenModel)
+                // Voyager (Navigation)
                 implementation(libs.voyager.navigator)
                 implementation(libs.voyager.screenmodel)
                 implementation(libs.voyager.koin)
                 implementation(libs.voyager.transitions)
 
-                // Koin (Dependency Injection)
+                // Koin (DI)
                 implementation(libs.koin.core)
 
-                // Local Persistence: DataStore for saving user preferences key-value pairs
+                // DataStore (Basit veriler için)
                 implementation(libs.androidx.datastore.preferences.core)
-
-                // I/O Operations: Modern file handling (Required dependency for DataStore in KMP)
                 implementation(libs.squareup.okio)
+
+                // --- EKLENEN DATABASE DEPENDENCIES ---
+                // Room Runtime
+                implementation(libs.androidx.room.runtime)
+                // SQLite Bundled (Native Driver - iOS/Desktop için kritik)
+                implementation(libs.androidx.sqlite.bundled)
+                // Kotlinx DateTime (KMP zaman işlemleri için)
+                implementation(libs.kotlinx.datetime)
             }
         }
         val commonTest by getting {
@@ -81,21 +89,36 @@ kotlin {
         val desktopMain by getting {
             dependencies {
                 implementation(compose.desktop.currentOs)
-                // Swing Coroutines (Desktop için)
                 implementation(libs.kotlinx.coroutines.swing)
             }
         }
     }
 }
 
+// --- ROOM SCHEMA CONFIGURATION ---
+// Room'un veritabanı şemasını nerede oluşturacağını belirtiyoruz
+room {
+    schemaDirectory("$projectDir/schemas")
+}
+
+// --- KSP DEPENDENCIES (Code Generation) ---
+// Room Compiler'ı tüm platformlara bağlıyoruz
+dependencies {
+    // KSP, CommonMainMetadata ile tüm target'lara kod üretir
+    add("kspCommonMainMetadata", libs.androidx.room.compiler)
+    // Her platform için ayrı ayrı eklemek en garantisidir
+    add("kspAndroid", libs.androidx.room.compiler)
+    add("kspDesktop", libs.androidx.room.compiler)
+    add("kspIosArm64", libs.androidx.room.compiler)
+    add("kspIosSimulatorArm64", libs.androidx.room.compiler)
+}
+
 android {
     namespace = "com.vahitkeskin.equatix"
-    // TOML dosyasındaki [versions] android-compileSdk değerini okur (35)
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
         applicationId = "com.vahitkeskin.equatix"
-        // TOML dosyasındaki değerleri okur
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
@@ -130,17 +153,15 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "com.vahitkeskin.equatix"
             packageVersion = "1.0.0"
-
-            // Desktop için açıklama ve telif bilgileri
             description = "Equatix: Matrix Math Puzzle"
             copyright = "© 2025 Vahit Keskin. All rights reserved."
         }
     }
 }
 
+// Versiyon çakışmalarını önleme
 configurations.all {
     resolutionStrategy {
-        // Gradle'ı bu sürümleri kullanmaya zorluyoruz
         force("androidx.datastore:datastore-preferences-core:1.1.1")
         force("androidx.datastore:datastore-core:1.1.1")
         force("com.squareup.okio:okio:3.9.1")
