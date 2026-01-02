@@ -34,6 +34,11 @@ import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.text.font.FontWeight
 
 data class GameScreen(
     val difficulty: Difficulty,
@@ -238,6 +243,19 @@ private fun GameContent(
 
         if (viewModel.isSolved && !viewModel.isSurrendered) {
             FireworkOverlay()
+        }
+    }
+
+    // Oyun bittiğini (isSolved) yakaladığımız bir LaunchedEffect var ya, oraya ekleme yapalım:
+    LaunchedEffect(viewModel.isSolved) {
+        if (viewModel.isSolved && !viewModel.isSurrendered) {
+
+            // YENİ: Süreyi ve bitişi ViewModel'e bildirip kaydettiriyoruz
+            viewModel.onGameFinished(elapsedTime)
+
+            if (viewModel.isVibrationEnabled) {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            }
         }
     }
 }

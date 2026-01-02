@@ -21,8 +21,8 @@ import kotlin.random.Random
 class GameViewModel : ScreenModel {
 
     // --- REPOSITORIES ---
-    // Tema ve Ayarları okumak için
     private val settingsRepo = AppModule.settingsRepository
+    private val scoreRepo = AppModule.scoreRepository
 
     // --- SETTINGS STATES (Flow) ---
     val themeConfig: StateFlow<AppThemeConfig> = settingsRepo.themeConfig
@@ -32,12 +32,11 @@ class GameViewModel : ScreenModel {
             initialValue = AppThemeConfig.FOLLOW_SYSTEM
         )
 
-    // Tutorial daha önce izlendi mi? (Flow olarak dinliyoruz)
     val isTutorialSeen = settingsRepo.isTutorialSeen
         .stateIn(
             scope = screenModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = true // Varsayılan true yapalım ki yüklenene kadar göstermesin (güvenli taraf)
+            initialValue = true
         )
 
     // --- GAME STATES ---
@@ -50,6 +49,12 @@ class GameViewModel : ScreenModel {
     var selectedCellIndex by mutableStateOf<Int?>(null)
         private set
     var isVibrationEnabled by mutableStateOf(true)
+        private set
+
+    // --- DIALOG STATES (YENİ EKLENDİ) ---
+    var showWinDialog by mutableStateOf(false)
+        private set
+    var lastGameScore by mutableStateOf(0)
         private set
 
     // Restart için mevcut ayarları tutmak faydalı olabilir
@@ -76,6 +81,7 @@ class GameViewModel : ScreenModel {
         currentSize = size
         isSolved = false
         isSurrendered = false
+        showWinDialog = false // Yeni oyun başlarken diyaloğu kapat
         selectedCellIndex = null
         gameState = generateSolvableLevel(difficulty, size.value)
     }
@@ -92,6 +98,10 @@ class GameViewModel : ScreenModel {
         isSolved = true
         isSurrendered = true
         selectedCellIndex = null
+    }
+
+    fun dismissWinDialog() {
+        showWinDialog = false
     }
 
     // --- GAME GENERATION LOGIC ---
@@ -269,8 +279,58 @@ class GameViewModel : ScreenModel {
             gameState?.grid?.all { if (!it.isHidden) true else it.userInput.toIntOrNull() == it.correctValue }
                 ?: false
         if (allCorrect) {
-            isSolved = true; selectedCellIndex = null
+            isSolved = true
+            selectedCellIndex = null
+            // Not: Kaydetme işlemi onGameFinished içinde yapılıyor (Süre bilgisi için)
         }
+    }
+
+    /**
+     * Oyun bittiğinde GameScreen'den bu fonksiyon çağrılır.
+     */
+    fun onGameFinished(finalTimeSeconds: Long) {
+        // Eğer pes edildiyse veya oyun durumu yoksa kaydetme
+        if (isSurrendered || gameState == null) return
+
+        screenModelScope.launch {
+            val state = gameState!!
+
+            // Puanı Hesapla
+            val finalScore = calculateScore(state.difficulty, state.size, finalTimeSeconds)
+
+            // --- GÜNCELLEME: Diyaloğu Göster ---
+            lastGameScore = finalScore
+            showWinDialog = true
+
+            // GridSize Enum'ına çevir
+            val gridSizeEnum = when(state.size) {
+                3 -> GridSize.SIZE_3x3
+                4 -> GridSize.SIZE_4x4
+                5 -> GridSize.SIZE_5x5
+                else -> GridSize.SIZE_3x3
+            }
+
+            // Repository üzerinden kaydet
+            scoreRepo.saveScore(
+                score = finalScore,
+                timeSeconds = finalTimeSeconds,
+                difficulty = state.difficulty,
+                gridSize = gridSizeEnum
+            )
+        }
+    }
+
+    private fun calculateScore(difficulty: Difficulty, gridSize: Int, timeSeconds: Long): Int {
+        val diffMultiplier = when(difficulty) {
+            Difficulty.EASY -> 1
+            Difficulty.MEDIUM -> 2
+            Difficulty.HARD -> 3
+        }
+
+        val baseScore = 1000 * diffMultiplier * gridSize
+        val timePenalty = (timeSeconds * 2).toInt()
+
+        return (baseScore - timePenalty).coerceAtLeast(100)
     }
 
     fun loadPreviewState(customState: GameState) {
