@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.rounded.Smartphone
 import androidx.compose.material.icons.rounded.Vibration
@@ -130,7 +131,11 @@ fun HomeOverlayPanel(
 }
 
 @Composable
-private fun HistoryList(viewModel: HomeViewModel, colors: EquatixDesignSystem.ThemeColors, isDark: Boolean) {
+private fun HistoryList(
+    viewModel: HomeViewModel,
+    colors: EquatixDesignSystem.ThemeColors,
+    isDark: Boolean
+) {
     val scores by viewModel.scores.collectAsState()
 
     if (scores.isEmpty()) {
@@ -147,70 +152,104 @@ private fun HistoryList(viewModel: HomeViewModel, colors: EquatixDesignSystem.Th
             )
         }
     } else {
-        // Listeyi sınırlı bir yükseklikte tutabiliriz veya ekrana sığdırabiliriz
         LazyColumn(
-            modifier = Modifier.heightIn(max = 400.dp), // Çok uzamasın
+            modifier = Modifier.heightIn(max = 400.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(bottom = 12.dp)
         ) {
-            items(scores) { score ->
-                // Satır Arka Planı
-                // Dark modda çok hafif beyazlık (%5), Light modda hafif gri
-                val itemBg = if (isDark) Color.White.copy(0.05f) else Color(0xFFF8FAFC)
-                val borderColor = if (isDark) Color.Transparent else Color(0xFFE2E8F0)
+            items(items = scores, key = { it.id }) { score ->
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(itemBg, RoundedCornerShape(16.dp))
-                        .border(1.dp, borderColor, RoundedCornerShape(16.dp))
-                        .padding(20.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    // Sol Taraf (Tarih ve Zorluk)
-                    Column {
-                        Text(
-                            text = score.date,
-                            color = colors.textPrimary,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = "${score.difficulty.label} • ${score.gridSize.label}",
-                            color = score.difficulty.color, // Enum içinden gelen renk
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-
-                    // Sağ Taraf (Puan ve Süre)
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text(
-                            text = "${score.score} P",
-                            color = colors.success,
-                            fontWeight = FontWeight.Black,
-                            fontSize = 22.sp
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.History,
-                                contentDescription = null,
-                                tint = colors.textSecondary,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = score.time,
-                                color = colors.textSecondary,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold
-                            )
+                val dismissState = rememberSwipeToDismissBoxState(
+                    confirmValueChange = {
+                        if (it == SwipeToDismissBoxValue.EndToStart) {
+                            viewModel.deleteScore(score.id)
+                            true
+                        } else {
+                            false
                         }
                     }
-                }
+                )
+                val itemBg = if (isDark) Color.White.copy(0.05f) else Color(0xFFF8FAFC)
+                SwipeToDismissBox(
+                    state = dismissState,
+                    enableDismissFromStartToEnd = false, // Sadece sağdan sola
+                    backgroundContent = {
+                        val alignment = Alignment.CenterEnd
+                        val icon = Icons.Default.Delete
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(itemBg, RoundedCornerShape(16.dp)) // Hep kırmızı
+                                .padding(horizontal = 20.dp),
+                            contentAlignment = alignment
+                        ) {
+                            // İkon sadece kaydırma belli bir seviyeye gelince görünsün (daha temiz bir görüntü için)
+                            if (dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart) {
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = "Delete",
+                                    tint = Color.White
+                                )
+                            }
+                        }
+                    },
+                    content = {
+                        val borderColor = if (isDark) Color.Transparent else Color(0xFFE2E8F0)
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                // Bu background, arkadaki kırmızıyı gizleyen şeydir:
+                                .background(itemBg, RoundedCornerShape(16.dp))
+                                .border(1.dp, borderColor, RoundedCornerShape(16.dp))
+                                .padding(20.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            // ... İçerik aynı ...
+                            Column {
+                                Text(
+                                    text = score.date,
+                                    color = colors.textPrimary,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = "${score.difficulty.label} • ${score.gridSize.label}",
+                                    color = score.difficulty.color,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(
+                                    text = "${score.score} P",
+                                    color = colors.success,
+                                    fontWeight = FontWeight.Black,
+                                    fontSize = 22.sp
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.History,
+                                        contentDescription = null,
+                                        tint = colors.textSecondary,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = score.time,
+                                        color = colors.textSecondary,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                        }
+                    }
+                )
             }
         }
     }
