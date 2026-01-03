@@ -182,7 +182,7 @@ private fun HistoryList(
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(colors.error, RoundedCornerShape(16.dp))
+                                .background(itemBg, RoundedCornerShape(16.dp))
                                 .padding(horizontal = 20.dp),
                             contentAlignment = alignment
                         ) {

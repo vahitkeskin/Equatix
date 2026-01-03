@@ -42,7 +42,7 @@ class HomeViewModel : ScreenModel {
     val isNotificationEnabled = _isNotificationEnabled.asStateFlow()
 
     // --- State: Seçilen Saat (UI'da göstermek için) ---
-    // Varsayılan olarak 22:00 başlatıyoruz.
+    // Varsayılan olarak 09:00 başlatıyoruz.
     // (İsterseniz NotificationManager'a getAlarmHour() ekleyip oradan da okuyabilirsiniz)
     private var savedHour = 9
     private var savedMinute = 0
