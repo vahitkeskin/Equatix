@@ -7,4 +7,4 @@ interface MusicManager {
     fun isPlaying(): Boolean
 }
 
-//expect fun createMusicManager(): MusicManager
+expect fun createMusicManager(): MusicManager

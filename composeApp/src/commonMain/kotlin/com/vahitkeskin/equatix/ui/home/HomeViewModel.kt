@@ -50,9 +50,32 @@ class HomeViewModel : ScreenModel {
     private val _notificationTime = MutableStateFlow(savedHour to savedMinute)
     val notificationTime = _notificationTime.asStateFlow()
 
+    private val musicManager = AppModule.musicManager
+
+    // Müzik Açık/Kapalı durumu (Varsayılan olarak kapalı başlasın isteyebilirsin)
+    // Bunu da DataStore'a kaydedebilirsin ama şimdilik hafızada tutalım.
+    private val _isMusicOn = MutableStateFlow(false)
+    val isMusicOn = _isMusicOn.asStateFlow()
+
     // --- BAŞLANGIÇ KONTROLÜ ---
     init {
         checkInitialState()
+    }
+
+    fun toggleMusic(enabled: Boolean) {
+        _isMusicOn.value = enabled
+        if (enabled) {
+            // 0.2f -> Çok kısık, rahatsız etmeyen (Loş) bir ses seviyesi
+            musicManager.playLooping(volume = 0.2f)
+        } else {
+            musicManager.stop()
+        }
+    }
+
+    // Uygulama alta atılınca müzik dursun istersen onDispose/onCleared içinde stop çağırmalısın.
+    override fun onDispose() {
+        musicManager.stop()
+        super.onDispose()
     }
 
     // Uygulama açıldığında veya Resume olduğunda durumu kontrol et
@@ -87,8 +110,8 @@ class HomeViewModel : ScreenModel {
         //TODO time test
         val targetInstant = nowInstant.plus(2.minutes)
         val targetTime = targetInstant.toLocalDateTime(TimeZone.currentSystemDefault())
-        savedHour = targetTime.hour
-        savedMinute = targetTime.minute
+        //savedHour = targetTime.hour
+        //savedMinute = targetTime.minute
 
         // UI'daki saati güncelle (StateFlow)
         _notificationTime.value = savedHour to savedMinute
@@ -161,7 +184,9 @@ class HomeViewModel : ScreenModel {
     private fun convertTimestampToDate(timestamp: Long): String {
         val instant = Instant.fromEpochMilliseconds(timestamp)
         val date = instant.toLocalDateTime(TimeZone.currentSystemDefault())
-        return "${date.dayOfMonth}/${date.monthNumber} ${date.hour}:${date.minute.toString().padStart(2, '0')}"
+        return "${date.dayOfMonth}/${date.monthNumber} ${date.hour}:${
+            date.minute.toString().padStart(2, '0')
+        }"
     }
 
     fun setTheme(config: AppThemeConfig) {
