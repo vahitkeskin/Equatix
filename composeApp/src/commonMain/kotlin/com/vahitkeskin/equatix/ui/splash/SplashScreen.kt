@@ -25,6 +25,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.vahitkeskin.equatix.di.AppModule
 import com.vahitkeskin.equatix.domain.model.AppThemeConfig
+import com.vahitkeskin.equatix.platform.getAppVersion
 import com.vahitkeskin.equatix.ui.home.HomeScreen
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
 import kotlinx.coroutines.delay
@@ -163,7 +164,7 @@ fun SplashUI(isDark: Boolean) {
             contentAlignment = Alignment.BottomCenter
         ) {
             Text(
-                text = "v1.0",
+                text = "v${getAppVersion()}", // Dinamik Sürüm
                 color = colors.textSecondary.copy(alpha = 0.5f),
                 fontSize = 10.sp
             )

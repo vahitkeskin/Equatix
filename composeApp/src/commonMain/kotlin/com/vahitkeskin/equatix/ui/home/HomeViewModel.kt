@@ -7,14 +7,19 @@ import com.vahitkeskin.equatix.domain.model.AppThemeConfig
 import com.vahitkeskin.equatix.domain.model.Difficulty
 import com.vahitkeskin.equatix.domain.model.GridSize
 import com.vahitkeskin.equatix.ui.game.utils.formatTime
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.StateFlow
+import com.vahitkeskin.equatix.utils.NotificationContent
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Duration.Companion.minutes
 
 data class ScoreRecord(
     val id: Long,
@@ -27,12 +32,92 @@ data class ScoreRecord(
 
 class HomeViewModel : ScreenModel {
 
-    // Repositories
+    // --- Repositories ---
     private val settingsRepo = AppModule.settingsRepository
     private val scoreRepo = AppModule.scoreRepository
+    private val notificationManager = AppModule.notificationManager
 
-    // --- UI State (Scores) ---
-    // Artık .map fonksiyonu tanınacak
+    // --- State: Bildirim İzni ve Durumu ---
+    private val _isNotificationEnabled = MutableStateFlow(false)
+    val isNotificationEnabled = _isNotificationEnabled.asStateFlow()
+
+    // --- State: Seçilen Saat (UI'da göstermek için) ---
+    // Varsayılan olarak 22:00 başlatıyoruz.
+    // (İsterseniz NotificationManager'a getAlarmHour() ekleyip oradan da okuyabilirsiniz)
+    private var savedHour = 9
+    private var savedMinute = 0
+
+    private val _notificationTime = MutableStateFlow(savedHour to savedMinute)
+    val notificationTime = _notificationTime.asStateFlow()
+
+    // --- BAŞLANGIÇ KONTROLÜ ---
+    init {
+        checkInitialState()
+    }
+
+    // Uygulama açıldığında veya Resume olduğunda durumu kontrol et
+    private fun checkInitialState() {
+        val hasPerm = notificationManager.hasPermission()
+        // Kullanıcı daha önce switch'i açık bıraktı mı? (Varsayılan true)
+        val isUserEnabled = notificationManager.isReminderEnabled()
+
+        // Hem izin verilmeli HEM DE kullanıcı sistemi aktif etmiş olmalı
+        if (hasPerm && isUserEnabled) {
+            _isNotificationEnabled.value = true
+        } else {
+            // İzin yoksa veya kullanıcı kapattıysa kapalı göster
+            _isNotificationEnabled.value = false
+        }
+    }
+
+    // UI'dan çağrılan izin kontrolü tazeleme (Örn: Ayarlardan dönünce)
+    fun refreshPermissionStatus() {
+        checkInitialState()
+    }
+
+    fun openAppSettings() {
+        notificationManager.openSystemSettings()
+    }
+
+    // --- ALARM KURMA / İPTAL ETME ---
+    fun setNotificationSchedule(enable: Boolean) {
+
+        val nowInstant = Clock.System.now()
+
+        //TODO time test
+        val targetInstant = nowInstant.plus(2.minutes)
+        val targetTime = targetInstant.toLocalDateTime(TimeZone.currentSystemDefault())
+        savedHour = targetTime.hour
+        savedMinute = targetTime.minute
+
+        // UI'daki saati güncelle (StateFlow)
+        _notificationTime.value = savedHour to savedMinute
+
+        if (enable) {
+            // Rastgele, ilgi çekici bir mesaj seç
+            val message = NotificationContent.getRandomMessage()
+
+            // Alarmı Kur (Manager bunu hafızaya da kaydeder)
+            notificationManager.scheduleDailyReminder(
+                hour = savedHour,
+                minute = savedMinute,
+                title = message.title,
+                body = message.body
+            )
+
+            // Switch'i aç
+            _isNotificationEnabled.value = true
+        } else {
+            // İptal Et (Manager hafızada is_enabled = false yapar)
+            notificationManager.cancelDailyReminder()
+
+            // Switch'i kapat
+            _isNotificationEnabled.value = false
+        }
+    }
+
+    // --- UI State (Scores & Settings) ---
+
     val scores: StateFlow<List<ScoreRecord>> = scoreRepo.recentScores
         .map { entities ->
             entities.map { entity ->
@@ -103,7 +188,6 @@ class HomeViewModel : ScreenModel {
         }
     }
 
-    // Sınıfın içine ekle:
     fun deleteScore(id: Long) {
         screenModelScope.launch {
             scoreRepo.deleteScore(id)
