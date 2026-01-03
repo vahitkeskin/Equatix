@@ -7,11 +7,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.NotificationsOff
 import androidx.compose.material.icons.rounded.Smartphone
 import androidx.compose.material.icons.rounded.Vibration
 import androidx.compose.material.icons.rounded.VolumeOff
@@ -20,7 +23,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -28,12 +30,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import com.vahitkeskin.equatix.domain.model.AppThemeConfig
+import com.vahitkeskin.equatix.platform.getAppVersion
 import com.vahitkeskin.equatix.ui.common.AnimatedSegmentedControl
 import com.vahitkeskin.equatix.ui.common.GlassBox
 import com.vahitkeskin.equatix.ui.home.HomeScreen
 import com.vahitkeskin.equatix.ui.home.HomeViewModel
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
+import com.vahitkeskin.equatix.ui.utils.rememberNotificationPermissionControl
 
 @Composable
 fun HomeOverlayPanel(
@@ -43,8 +50,6 @@ fun HomeOverlayPanel(
     isDark: Boolean,
     colors: EquatixDesignSystem.ThemeColors
 ) {
-    // 1. Karartma Katmanı (Dimmer)
-    // Dark modda arkası neredeyse tamamen kararsın ki öndeki cam efekti parlasın
     val overlayDimColor = if (isDark) Color.Black.copy(0.85f) else Color.Black.copy(0.4f)
 
     AnimatedVisibility(
@@ -56,8 +61,8 @@ fun HomeOverlayPanel(
             modifier = Modifier
                 .fillMaxSize()
                 .background(overlayDimColor)
-                .clickable(enabled = false) {} // Tıklamayı yut
-                .clickable { onDismiss() } // Boşluğa tıklayınca kapat
+                .clickable(enabled = false) {}
+                .clickable { onDismiss() }
         )
     }
 
@@ -69,26 +74,20 @@ fun HomeOverlayPanel(
         val overlay = overlayType ?: return@AnimatedVisibility
 
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            // 2. Ana Kart (Glass veya Solid)
-            // GlassBox dış çerçeveyi ve bluru sağlar.
             GlassBox(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
                     .wrapContentHeight()
                     .padding(16.dp)
-                    // Gölge: Light modda yumuşak gölge, Dark modda glow yok (cam efekti yeterli)
                     .shadow(
                         elevation = if (isDark) 0.dp else 16.dp,
                         shape = RoundedCornerShape(24.dp)
                     ),
                 cornerRadius = 24.dp
             ) {
-                // 3. İçerik Konteynerı
-                // İşte "Beyaz Kutu" sorununu çözen yer burası.
-                // GlassBox'ın içine kendi background rengimizi (Yarı saydam siyah veya Solid beyaz) basıyoruz.
                 Column(
                     modifier = Modifier
-                        .background(colors.cardBackground) // <-- KRİTİK NOKTA
+                        .background(colors.cardBackground)
                         .padding(24.dp)
                 ) {
                     // Header
@@ -102,7 +101,7 @@ fun HomeOverlayPanel(
                             style = MaterialTheme.typography.displaySmall.copy(
                                 fontWeight = FontWeight.Black,
                                 color = colors.textPrimary,
-                                fontSize = 28.sp // Büyük Başlık
+                                fontSize = 28.sp
                             )
                         )
                         IconButton(onClick = onDismiss) {
@@ -170,9 +169,10 @@ private fun HistoryList(
                     }
                 )
                 val itemBg = if (isDark) Color.White.copy(0.05f) else Color(0xFFF8FAFC)
+
                 SwipeToDismissBox(
                     state = dismissState,
-                    enableDismissFromStartToEnd = false, // Sadece sağdan sola
+                    enableDismissFromStartToEnd = false,
                     backgroundContent = {
                         val alignment = Alignment.CenterEnd
                         val icon = Icons.Default.Delete
@@ -180,11 +180,10 @@ private fun HistoryList(
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(itemBg, RoundedCornerShape(16.dp)) // Hep kırmızı
+                                .background(colors.error, RoundedCornerShape(16.dp))
                                 .padding(horizontal = 20.dp),
                             contentAlignment = alignment
                         ) {
-                            // İkon sadece kaydırma belli bir seviyeye gelince görünsün (daha temiz bir görüntü için)
                             if (dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart) {
                                 Icon(
                                     imageVector = icon,
@@ -200,14 +199,12 @@ private fun HistoryList(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                // Bu background, arkadaki kırmızıyı gizleyen şeydir:
                                 .background(itemBg, RoundedCornerShape(16.dp))
                                 .border(1.dp, borderColor, RoundedCornerShape(16.dp))
                                 .padding(20.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            // ... İçerik aynı ...
                             Column {
                                 Text(
                                     text = score.date,
@@ -256,38 +253,56 @@ private fun HistoryList(
 }
 
 @Composable
-private fun SettingsList(viewModel: HomeViewModel, isDark: Boolean, colors: EquatixDesignSystem.ThemeColors) {
+private fun SettingsList(
+    viewModel: HomeViewModel,
+    isDark: Boolean,
+    colors: EquatixDesignSystem.ThemeColors
+) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    // State Takipleri
     val isSoundOn by viewModel.isSoundOn.collectAsState()
     val isVibrationOn by viewModel.isVibrationOn.collectAsState()
     val themeConfig by viewModel.themeConfig.collectAsState()
+    val isNotificationEnabled by viewModel.isNotificationEnabled.collectAsState()
+    val notificationTime by viewModel.notificationTime.collectAsState()
 
-    Column(verticalArrangement = Arrangement.spacedBy(24.dp)) { // Elemanlar arası boşluk
+    // 1. LIFECYCLE TAKİBİ (İzin durumu için)
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            viewModel.refreshPermissionStatus()
+        }
+    }
 
-        // --- GÖRÜNÜM BÖLÜMÜ ---
+    // 2. İZİN KONTROLCÜSÜ
+    val permissionControl = rememberNotificationPermissionControl(
+        onPermissionResult = { isGranted ->
+            if (isGranted) {
+                // İzin Verildi -> Planla
+                viewModel.setNotificationSchedule(true)
+            } else {
+                // Reddedildi -> Ayarlara Gönder
+                viewModel.openAppSettings()
+            }
+        }
+    )
+
+    Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
+
+        // --- GÖRÜNÜM ---
         SectionTitle("GÖRÜNÜM", colors)
 
-        // Tema Seçici
         AnimatedSegmentedControl(
             items = AppThemeConfig.values().toList(),
             selectedItem = themeConfig,
             onItemSelected = { viewModel.setTheme(it) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                // Segmented control arkası şeffaf olsun ki kart rengi görünsün
-                .background(Color.Transparent),
-            itemLabel = { config ->
-                when(config) {
-                    AppThemeConfig.FOLLOW_SYSTEM -> "Sistem"
-                    AppThemeConfig.LIGHT -> "Açık"
-                    AppThemeConfig.DARK -> "Koyu"
-                }
-            }
+            modifier = Modifier.fillMaxWidth().height(48.dp).background(Color.Transparent),
+            itemLabel = { if (it == AppThemeConfig.FOLLOW_SYSTEM) "Sistem" else if (it == AppThemeConfig.LIGHT) "Açık" else "Koyu" }
         )
 
         Divider(color = colors.divider)
 
-        // --- TERCİHLER BÖLÜMÜ ---
+        // --- TERCİHLER ---
         SectionTitle("TERCİHLER", colors)
 
         SettingItem(
@@ -308,11 +323,35 @@ private fun SettingsList(viewModel: HomeViewModel, isDark: Boolean, colors: Equa
             onToggle = { viewModel.toggleVibration() }
         )
 
+        // Dinamik Zaman Metni (Örn: "Her gece 22:00'de")
+        val timeString = "${notificationTime.first.toString().padStart(2, '0')}:${notificationTime.second.toString().padStart(2, '0')}"
+        val subtitleText = if (isNotificationEnabled) "Her gece $timeString'de" else "Kapalı"
+
+        // 3. GÜNLÜK HATIRLATICI
+        SettingItem(
+            title = "Günlük Hatırlatıcı",
+            subtitle = subtitleText, // Dinamik metin
+            icon = if (isNotificationEnabled) Icons.Rounded.Notifications else Icons.Rounded.NotificationsOff,
+            isOn = isNotificationEnabled,
+            isDark = isDark,
+            colors = colors,
+            onToggle = { shouldEnable ->
+                if (shouldEnable) {
+                    if (permissionControl.hasPermission()) {
+                        viewModel.setNotificationSchedule(true)
+                    } else {
+                        permissionControl.launchPermissionRequest()
+                    }
+                } else {
+                    viewModel.setNotificationSchedule(false)
+                }
+            }
+        )
+
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Versiyon Bilgisi
         Text(
-            text = "EQUATIX v1.0",
+            text = "EQUATIX v${getAppVersion()}", // Dinamik Sürüm
             color = colors.textSecondary.copy(0.5f),
             fontSize = 14.sp,
             textAlign = TextAlign.Center,
@@ -333,60 +372,60 @@ private fun SectionTitle(text: String, colors: EquatixDesignSystem.ThemeColors) 
 }
 
 @Composable
-private fun SettingItem(
+fun SettingItem(
     title: String,
+    subtitle: String? = null,
     icon: ImageVector,
     isOn: Boolean,
     isDark: Boolean,
     colors: EquatixDesignSystem.ThemeColors,
-    onToggle: () -> Unit
+    onToggle: (Boolean) -> Unit
 ) {
-    val activeColor = colors.success
-    val inactiveColor = colors.textPrimary
-
-    // Butonun Arka Planı
-    // Aktif değilse ŞEFFAF olsun (Burası önemli, beyaz kalmasın)
-    val bgColor = if (isOn) activeColor.copy(0.1f) else Color.Transparent
-
-    // Kenarlık
-    val borderColor = if (isOn) activeColor.copy(0.5f) else colors.textPrimary.copy(0.15f)
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .clickable { onToggle() }
-            .background(bgColor) // Arka plan burada uygulanıyor
-            .border(1.dp, borderColor, RoundedCornerShape(16.dp))
-            .padding(20.dp), // İri butonlar
+            .clickable { onToggle(!isOn) }
+            .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = if (isOn) activeColor else inactiveColor,
-                modifier = Modifier.size(28.dp)
-            )
-            Spacer(modifier = Modifier.width(20.dp))
-            Text(
-                text = title,
-                color = colors.textPrimary,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium
-            )
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(colors.textSecondary.copy(0.1f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, null, tint = colors.textPrimary, modifier = Modifier.size(20.dp))
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = colors.textPrimary,
+                    fontWeight = FontWeight.SemiBold
+                )
+                if (subtitle != null) {
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.textSecondary,
+                        fontSize = 12.sp
+                    )
+                }
+            }
         }
 
         Switch(
             checked = isOn,
-            onCheckedChange = { onToggle() },
+            onCheckedChange = onToggle,
             colors = SwitchDefaults.colors(
                 checkedThumbColor = Color.White,
-                checkedTrackColor = activeColor,
-                uncheckedThumbColor = if(isDark) Color.Gray else Color.White,
-                uncheckedTrackColor = if(isDark) Color.Black else Color.Gray,
-                uncheckedBorderColor = Color.Transparent
+                checkedTrackColor = colors.accent,
+                uncheckedThumbColor = colors.textSecondary,
+                uncheckedTrackColor = colors.cardBackground
             )
         )
     }

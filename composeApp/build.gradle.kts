@@ -40,6 +40,7 @@ kotlin {
                 implementation(compose.preview)
                 implementation(libs.androidx.activity.compose)
                 implementation(libs.android.material)
+                implementation(libs.androidx.work.runtime.ktx)
             }
         }
         val commonMain by getting {
