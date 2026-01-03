@@ -13,6 +13,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.MusicOff
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.NotificationsOff
 import androidx.compose.material.icons.rounded.Smartphone
@@ -266,6 +268,7 @@ private fun SettingsList(
     val themeConfig by viewModel.themeConfig.collectAsState()
     val isNotificationEnabled by viewModel.isNotificationEnabled.collectAsState()
     val notificationTime by viewModel.notificationTime.collectAsState()
+    val isMusicOn by viewModel.isMusicOn.collectAsState()
 
     // 1. LIFECYCLE TAKİBİ (İzin durumu için)
     LaunchedEffect(lifecycleOwner) {
@@ -305,13 +308,15 @@ private fun SettingsList(
         // --- TERCİHLER ---
         SectionTitle("TERCİHLER", colors)
 
+        // 1. YENİ: Arka Plan Müziği
         SettingItem(
-            title = "Oyun Sesleri",
-            icon = if (isSoundOn) Icons.Rounded.VolumeUp else Icons.Rounded.VolumeOff,
-            isOn = isSoundOn,
+            title = "Arka Plan Müziği",
+            subtitle = "Rahatlatıcı Piyano", // Kullanıcı ne çalacağını bilsin
+            icon = if (isMusicOn) Icons.Rounded.MusicNote else Icons.Rounded.MusicOff,
+            isOn = isMusicOn,
             isDark = isDark,
             colors = colors,
-            onToggle = { viewModel.toggleSound() }
+            onToggle = { viewModel.toggleMusic(it) }
         )
 
         SettingItem(
@@ -325,7 +330,7 @@ private fun SettingsList(
 
         // Dinamik Zaman Metni (Örn: "Her gece 22:00'de")
         val timeString = "${notificationTime.first.toString().padStart(2, '0')}:${notificationTime.second.toString().padStart(2, '0')}"
-        val subtitleText = if (isNotificationEnabled) "Her gece $timeString'de" else "Kapalı"
+        val subtitleText = if (isNotificationEnabled) "Her gün $timeString'da" else "Kapalı"
 
         // 3. GÜNLÜK HATIRLATICI
         SettingItem(
