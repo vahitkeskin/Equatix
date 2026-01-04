@@ -43,8 +43,8 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
 
     val themeConfig: Flow<AppThemeConfig> = dataStore.data.map { preferences ->
         val ordinal =
-            preferences[intPreferencesKey("app_theme")] ?: AppThemeConfig.DARK.ordinal
-        AppThemeConfig.values().getOrElse(ordinal) { AppThemeConfig.DARK }
+            preferences[intPreferencesKey("app_theme")] ?: AppThemeConfig.FOLLOW_SYSTEM.ordinal
+        AppThemeConfig.values().getOrElse(ordinal) { AppThemeConfig.FOLLOW_SYSTEM }
     }
 
     suspend fun setTheme(config: AppThemeConfig) {

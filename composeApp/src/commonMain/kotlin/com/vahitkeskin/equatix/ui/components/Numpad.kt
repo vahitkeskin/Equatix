@@ -2,14 +2,7 @@ package com.vahitkeskin.equatix.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,9 +13,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
 
 @Composable
-fun TransparentNumpad(onInput: (String) -> Unit) {
+fun TransparentNumpad(
+    colors: EquatixDesignSystem.ThemeColors, // <--- TEMA EKLENDİ
+    onInput: (String) -> Unit
+) {
     val rows = listOf(
         listOf("7", "8", "9"),
         listOf("4", "5", "6"),
@@ -37,10 +34,15 @@ fun TransparentNumpad(onInput: (String) -> Unit) {
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     row.forEach { key ->
-                        if (key.isEmpty()) Spacer(modifier = Modifier.size(70.dp)) else GlassKeyButton(
-                            key,
-                            onInput
-                        )
+                        if (key.isEmpty()) {
+                            Spacer(modifier = Modifier.size(70.dp))
+                        } else {
+                            GlassKeyButton(
+                                key = key,
+                                colors = colors, // Rengi iletiyoruz
+                                onClick = onInput
+                            )
+                        }
                     }
                 }
             }
@@ -49,19 +51,33 @@ fun TransparentNumpad(onInput: (String) -> Unit) {
 }
 
 @Composable
-fun GlassKeyButton(key: String, onClick: (String) -> Unit) {
+fun GlassKeyButton(
+    key: String,
+    colors: EquatixDesignSystem.ThemeColors,
+    onClick: (String) -> Unit
+) {
     val isDel = key == "DEL"
-    val bgColor =
-        if (isDel) Color(0xFFFF453A).copy(alpha = 0.1f) else Color.White.copy(alpha = 0.08f)
-    val contentColor = if (isDel) Color(0xFFFF453A) else Color.White
+
+    // DEL tuşu için 'error' rengi, Rakamlar için 'numpadText' rengi (Dark:Beyaz, Light:Lacivert)
+    val baseColor = if (isDel) colors.error else colors.numpadText
+
+    // Arka plan rengi baseColor'un çok saydam hali (%8)
+    // Dark modda: White %8 -> Buzlu cam
+    // Light modda: Lacivert %8 -> Hafif gri/mavi cam (Görünür)
+    val bgColor = baseColor.copy(alpha = if(isDel) 0.1f else 0.08f)
+
     Box(
-        modifier = Modifier.size(75.dp).clip(CircleShape).background(bgColor)
-            .clickable { onClick(key) }, contentAlignment = Alignment.Center
+        modifier = Modifier
+            .size(75.dp)
+            .clip(CircleShape)
+            .background(bgColor)
+            .clickable { onClick(key) },
+        contentAlignment = Alignment.Center
     ) {
         Text(
             text = if (isDel) "⌫" else key,
             fontSize = 32.sp,
-            color = contentColor,
+            color = baseColor, // İkon/Yazı rengi
             fontWeight = FontWeight.Thin
         )
     }

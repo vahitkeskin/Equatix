@@ -45,7 +45,6 @@ fun GameBottomPanel(
                 exit = fadeOut()
             ) {
                 // DÜZELTME: Scale 0.9f -> 0.85f
-                // Tuş takımını biraz daha küçülterek yukarıdaki Grid'e daha çok yer bıraktık.
                 Box(modifier = Modifier.scale(0.85f)) {
                     MaterialTheme(
                         colorScheme = MaterialTheme.colorScheme.copy(
@@ -53,7 +52,11 @@ fun GameBottomPanel(
                             primary = colors.numpadText
                         )
                     ) {
-                        TransparentNumpad(onInput = onInput)
+                        // --- DÜZELTME BURADA YAPILDI ---
+                        TransparentNumpad(
+                            colors = colors, // colors parametresi buraya eklendi
+                            onInput = onInput
+                        )
                     }
                 }
             }
@@ -67,8 +70,7 @@ fun GameBottomPanel(
                     isSurrendered = viewModel.isSurrendered,
                     elapsedTime = elapsedTime,
                     colors = colors,
-                    onRestart = onRestart,
-                    onGiveUp = { }
+                    onRestart = onRestart
                 )
             }
         }

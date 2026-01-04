@@ -5,15 +5,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,6 +22,7 @@ import com.vahitkeskin.equatix.domain.model.CellData
 import com.vahitkeskin.equatix.domain.model.GameState
 import com.vahitkeskin.equatix.domain.model.Operation
 import com.vahitkeskin.equatix.ui.game.GameViewModel
+import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
 
 @Composable
 fun GameGrid(
@@ -37,24 +30,21 @@ fun GameGrid(
     viewModel: GameViewModel,
     cellSize: Dp,
     opWidth: Dp,
-    fontSize: TextUnit
+    fontSize: TextUnit,
+    colors: EquatixDesignSystem.ThemeColors // <--- TEMA EKLENDİ
 ) {
     val n = state.size
-    // Dikey operatörler için boşluk hesabı (Hücre boyutunun yarısı kadar)
     val gapHeight = cellSize * 0.5f
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // --- ANA IZGARA DÖNGÜSÜ ---
         for (i in 0 until n) {
-            // 1. SATIR: Hücreler + Yatay Operatörler + Satır Sonucu
+            // --- SATIRLAR ---
             Row(verticalAlignment = Alignment.CenterVertically) {
                 for (j in 0 until n) {
                     val cell = state.grid[i * n + j]
-
-                    // ViewModel'den seçim durumunu kontrol et
                     val isSelected = viewModel.selectedCellIndex == cell.id
 
                     GridCell(
@@ -62,30 +52,28 @@ fun GameGrid(
                         isSelected = isSelected,
                         cellSize = cellSize,
                         fontSize = fontSize,
+                        colors = colors, // Rengi iletiyoruz
                         onClick = { viewModel.onCellSelected(cell.id) }
                     )
 
-                    // Yatay Operatör (Son sütun hariç)
                     if (j < n - 1) {
-                        OpSymbol(state.rowOps[i * (n - 1) + j], opWidth, fontSize)
+                        OpSymbol(state.rowOps[i * (n - 1) + j], opWidth, fontSize, colors)
                     }
                 }
-                // Satır sonu eşittir ve sonuç
-                OpText("=", opWidth, fontSize)
+                OpText("=", opWidth, fontSize, colors)
                 ResultCell(state.rowResults[i], cellSize, fontSize)
             }
 
-            // 2. ARA SATIR: Dikey Operatörler (Son satır hariç)
+            // --- ARA SATIRLAR (Dikey Operatörler) ---
             if (i < n - 1) {
                 Row(
                     modifier = Modifier.height(gapHeight),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     for (j in 0 until n) {
-                        VerticalOp(state.colOps[j * (n - 1) + i], cellSize, fontSize)
+                        VerticalOp(state.colOps[j * (n - 1) + i], cellSize, fontSize, colors)
                         if (j < n - 1) Spacer(modifier = Modifier.width(opWidth))
                     }
-                    // Sağ taraftaki sonuç sütunu hizası için boşluk
                     Spacer(modifier = Modifier.width(opWidth + cellSize))
                 }
             }
@@ -94,7 +82,7 @@ fun GameGrid(
         // --- DİKEY EŞİTTİRLER ---
         Row(verticalAlignment = Alignment.CenterVertically) {
             for (j in 0 until n) {
-                VerticalEquals(cellSize, fontSize) // Genişlik olarak opWidth değil cellSize kullandık ki ortalansın
+                VerticalEquals(cellSize, fontSize, colors)
                 if (j < n - 1) Spacer(modifier = Modifier.width(opWidth))
             }
             Spacer(modifier = Modifier.width(opWidth + cellSize))
@@ -112,7 +100,7 @@ fun GameGrid(
 }
 
 // ----------------------------------------------------------------
-// YARDIMCI BİLEŞENLER (COMPONENTS)
+// ALT BİLEŞENLER
 // ----------------------------------------------------------------
 
 @Composable
@@ -121,20 +109,20 @@ fun GridCell(
     isSelected: Boolean,
     cellSize: Dp,
     fontSize: TextUnit,
+    colors: EquatixDesignSystem.ThemeColors,
     onClick: () -> Unit
 ) {
-    // Animasyonlu renk geçişleri
-    val backgroundColor by animateColorAsState(
-        targetValue = when {
-            data.isLocked -> Color.White.copy(alpha = 0.1f) // Kilitli hücre (sabit sayı)
-            isSelected -> Color(0xFF38BDF8).copy(alpha = 0.3f) // Seçili
-            else -> Color.White.copy(alpha = 0.05f) // Normal boş hücre
-        },
-        animationSpec = tween(200)
-    )
+    // Light Mod: Temiz kart rengi / Dark Mod: Hafif transparan siyah
+    val targetBg = when {
+        data.isLocked -> colors.cardBackground
+        isSelected -> colors.accent.copy(alpha = 0.2f)
+        else -> colors.gridLines.copy(alpha = 0.1f)
+    }
+
+    val backgroundColor by animateColorAsState(targetValue = targetBg, animationSpec = tween(200))
 
     val borderColor by animateColorAsState(
-        targetValue = if (isSelected) Color(0xFF38BDF8) else Color.Transparent
+        targetValue = if (isSelected) colors.accent else Color.Transparent
     )
 
     Box(
@@ -143,12 +131,11 @@ fun GridCell(
             .padding(2.dp)
             .border(1.5.dp, borderColor, RoundedCornerShape(12.dp))
             .background(backgroundColor, RoundedCornerShape(12.dp))
-            .clickable(enabled = !data.isLocked) { onClick() }, // Kilitliyse tıklanamaz
+            .clickable(enabled = !data.isLocked) { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        val textColor = if (data.isLocked) Color.White else Color(0xFF38BDF8)
-
-        // Ekranda gösterilecek metin: Kilitliyse doğru değer, değilse kullanıcının girdiği değer
+        // Kullanıcı girdisi Accent rengiyle, Sabit sayılar Ana Metin rengiyle
+        val textColor = if (data.isLocked) colors.textPrimary else colors.accent
         val displayText = if (data.isLocked) data.correctValue.toString() else data.userInput
 
         Text(
@@ -161,15 +148,36 @@ fun GridCell(
 }
 
 @Composable
-fun VerticalEquals(width: Dp, fontSize: TextUnit) {
-    Box(
-        modifier = Modifier.width(width).height(20.dp),
-        contentAlignment = Alignment.Center
-    ) {
+fun OpSymbol(
+    op: Operation,
+    width: Dp,
+    fontSize: TextUnit,
+    colors: EquatixDesignSystem.ThemeColors
+) {
+    Box(modifier = Modifier.width(width), contentAlignment = Alignment.Center) {
+        // Temadan gelen özel operatör renkleri
+        val color = when(op) {
+            Operation.ADD -> colors.opAdd
+            Operation.SUB -> colors.opSub
+            Operation.MUL -> colors.opMul
+            Operation.DIV -> colors.opDiv
+        }
+        Text(text = op.symbol, color = color, fontWeight = FontWeight.Normal, fontSize = fontSize)
+    }
+}
+
+@Composable
+fun VerticalOp(op: Operation, width: Dp, fontSize: TextUnit, colors: EquatixDesignSystem.ThemeColors) {
+    OpSymbol(op, width, fontSize, colors)
+}
+
+@Composable
+fun VerticalEquals(width: Dp, fontSize: TextUnit, colors: EquatixDesignSystem.ThemeColors) {
+    Box(modifier = Modifier.width(width).height(20.dp), contentAlignment = Alignment.Center) {
         Text(
             text = "=",
             modifier = Modifier.rotate(90f),
-            color = Color.Gray,
+            color = colors.textSecondary, // İkincil renk (Daha silik)
             fontWeight = FontWeight.Light,
             fontSize = fontSize
         )
@@ -177,36 +185,13 @@ fun VerticalEquals(width: Dp, fontSize: TextUnit) {
 }
 
 @Composable
-fun OpSymbol(op: Operation, width: Dp, fontSize: TextUnit) {
+fun OpText(text: String, width: Dp, fontSize: TextUnit, colors: EquatixDesignSystem.ThemeColors) {
     Box(modifier = Modifier.width(width), contentAlignment = Alignment.Center) {
-        val color = when(op) {
-            Operation.ADD -> Color(0xFF0A84FF) // Mavi
-            Operation.SUB -> Color(0xFFFF453A) // Kırmızı
-            Operation.MUL -> Color(0xFFFF9F0A) // Turuncu
-            Operation.DIV -> Color(0xFFAB47BC) // Mor
-        }
-        Text(text = op.symbol, color = color, fontWeight = FontWeight.Normal, fontSize = fontSize)
-    }
-}
-
-@Composable
-fun VerticalOp(op: Operation, width: Dp, fontSize: TextUnit) {
-    // VerticalOp aslında OpSymbol ile aynı görseli kullanıyor ama boyutu farklı olabilir
-    // Şimdilik aynı mantıkla kutu içine alıyoruz
-    Box(modifier = Modifier.width(width), contentAlignment = Alignment.Center) {
-        val color = when(op) {
-            Operation.ADD -> Color(0xFF0A84FF)
-            Operation.SUB -> Color(0xFFFF453A)
-            Operation.MUL -> Color(0xFFFF9F0A)
-            Operation.DIV -> Color(0xFFAB47BC)
-        }
-        Text(text = op.symbol, color = color, fontWeight = FontWeight.Normal, fontSize = fontSize)
-    }
-}
-
-@Composable
-fun OpText(text: String, width: Dp, fontSize: TextUnit) {
-    Box(modifier = Modifier.width(width), contentAlignment = Alignment.Center) {
-        Text(text = text, color = Color.Gray, fontWeight = FontWeight.Light, fontSize = fontSize)
+        Text(
+            text = text,
+            color = colors.textSecondary,
+            fontWeight = FontWeight.Light,
+            fontSize = fontSize
+        )
     }
 }
