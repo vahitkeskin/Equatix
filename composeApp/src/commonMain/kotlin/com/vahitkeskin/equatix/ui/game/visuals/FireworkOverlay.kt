@@ -6,42 +6,42 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
 
-// --- DOZUNDA AYARLAR (SWEET SPOT) ---
-private const val GRAVITY = 0.45f        // 0.5'ten biraz az, daha süzülerek düşsün
-private const val DRAG = 0.97f           // 0.96'dan biraz fazla, hava direnci azalsın (daha geniş patlar)
-private const val SPAWN_CHANCE = 0.05f   // Her karede %5 şans (Saniyede ortalama 3-4 patlama)
-private const val PARTICLE_COUNT = 80    // Her patlamada 80 tane nokta (Yeterince dolgun)
+private const val GRAVITY = 0.45f
+private const val DRAG = 0.97f
+private const val SPAWN_CHANCE = 0.05f
+private const val PARTICLE_COUNT = 80
 
 @Composable
 fun FireworkOverlay() {
     val particles = remember { mutableListOf<FireworkParticle>() }
 
+    // Hardcoded renkler yerine Tematik + Canlı renkler karması
+    // Not: ThemeColors'a erişim olmadığı için manuel eşleştirme yapıyoruz
+    // ama EquatixDesignSystem'den bildiğimiz tonları kullanıyoruz.
     val colors = remember {
         listOf(
-            Color(0xFFFF3B30), // Kırmızı
-            Color(0xFFFFD700), // Altın (Gold) - Zafer hissi için önemli
-            Color(0xFF32ADE6), // Açık Mavi
-            Color(0xFFFFFFFF), // Beyaz (Parıltı efekti verir)
-            Color(0xFF34C759), // Yeşil
-            Color(0xFFAF52DE)  // Mor
+            Color(0xFFFF453A), // Error Red (Tema)
+            Color(0xFFFBBF24), // Gold (Tema)
+            Color(0xFF38BDF8), // Accent Sky (Tema)
+            Color(0xFF34D399), // Success Green (Tema)
+            Color(0xFFAF52DE), // Purple (OpDiv rengi)
+            Color(0xFFFFFFFF)  // Sparkle White
         )
     }
 
-    // Animation Loop
     LaunchedEffect(Unit) {
         var lastFrameTime = withFrameNanos { it }
-
         while (true) {
             withFrameNanos { currentFrameTime ->
                 val delta = (currentFrameTime - lastFrameTime) / 1_000_000_000f
                 lastFrameTime = currentFrameTime
 
-                // 1. Spawn logic
                 if (Random.nextFloat() < SPAWN_CHANCE) {
                     val centerX = Random.nextFloat()
                     val centerY = Random.nextFloat() * 0.4f
@@ -65,7 +65,6 @@ fun FireworkOverlay() {
                     }
                 }
 
-                // 2. Physics update
                 val iterator = particles.listIterator()
                 while (iterator.hasNext()) {
                     val p = iterator.next()
@@ -75,7 +74,6 @@ fun FireworkOverlay() {
                     p.vx *= DRAG
                     p.vy *= DRAG
                     p.alpha -= 0.5f * delta
-
                     if (p.alpha <= 0f) iterator.remove()
                 }
             }
@@ -85,11 +83,9 @@ fun FireworkOverlay() {
     Canvas(modifier = Modifier.fillMaxSize()) {
         val width = size.width
         val height = size.height
-
         particles.forEach { p ->
             val screenX = p.x * width
             val screenY = p.y * height
-
             if (p.alpha > 0f) {
                 drawCircle(
                     color = p.color.copy(alpha = p.alpha),

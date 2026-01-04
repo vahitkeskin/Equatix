@@ -16,16 +16,14 @@ fun AnimatedCounter(
     count: String,
     modifier: Modifier = Modifier,
     style: TextStyle = MaterialTheme.typography.bodyLarge,
-    color: Color = Color.White
+    color: Color // <--- Varsayılan Color.White kaldırıldı
 ) {
     Row(modifier = modifier) {
         count.forEach { char ->
             if (char.isDigit()) {
-                // Sadece rakamlar için kayma animasyonu
                 AnimatedContent(
                     targetState = char,
                     transitionSpec = {
-                        // Yeni sayı alttan gelsin, eski sayı yukarı gitsin (Odometer efekti)
                         slideInVertically { height -> height } + fadeIn() with
                                 slideOutVertically { height -> -height } + fadeOut()
                     }
@@ -33,16 +31,15 @@ fun AnimatedCounter(
                     Text(
                         text = targetChar.toString(),
                         style = style,
-                        color = color,
+                        color = color, // Temadan gelen renk
                         textAlign = TextAlign.Center
                     )
                 }
             } else {
-                // ":" işareti sabit kalsın, titreme yapmasın
                 Text(
                     text = char.toString(),
                     style = style,
-                    color = color,
+                    color = color, // Temadan gelen renk
                     textAlign = TextAlign.Center
                 )
             }

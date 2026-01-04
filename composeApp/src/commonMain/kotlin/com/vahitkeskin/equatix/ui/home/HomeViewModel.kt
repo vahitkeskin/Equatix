@@ -164,7 +164,7 @@ class HomeViewModel : ScreenModel {
         .stateIn(
             scope = screenModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = AppThemeConfig.DARK
+            initialValue = AppThemeConfig.FOLLOW_SYSTEM
         )
 
     val isSoundOn: StateFlow<Boolean> = settingsRepo.isSoundOn

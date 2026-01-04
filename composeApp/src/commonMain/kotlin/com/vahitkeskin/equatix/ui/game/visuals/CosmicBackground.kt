@@ -15,11 +15,10 @@ import kotlin.random.Random
 fun CosmicBackground(
     modifier: Modifier = Modifier,
     starCount: Int = 100,
-    starColor: Color = Color.White // YENİ: Dışarıdan renk alabilir hale geldi
+    starColor: Color // <--- ZORUNLU YAPILDI, TEMA KONTROLÜ İÇİN
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "cosmic_stars")
 
-    // Yıldızların yanıp sönme efekti (Alpha animasyonu)
     val starAlpha by infiniteTransition.animateFloat(
         initialValue = 0.3f,
         targetValue = 1f,
@@ -30,7 +29,6 @@ fun CosmicBackground(
         label = "star_alpha"
     )
 
-    // Yıldız pozisyonlarını sadece bir kez hesapla (Recomposition'da titremesin)
     val stars = remember {
         List(starCount) {
             StarData(
@@ -46,7 +44,6 @@ fun CosmicBackground(
         val height = size.height
 
         stars.forEach { star ->
-            // Renk parametresini burada kullanıyoruz
             drawCircle(
                 color = starColor.copy(alpha = starAlpha * (star.size / 4f)),
                 radius = star.size,
@@ -56,9 +53,4 @@ fun CosmicBackground(
     }
 }
 
-// Yıldız verisi için basit bir data class
-private data class StarData(
-    val x: Float,
-    val y: Float,
-    val size: Float
-)
+private data class StarData(val x: Float, val y: Float, val size: Float)

@@ -1,15 +1,11 @@
 package com.vahitkeskin.equatix.ui.game.components
 
-import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.*
 import androidx.compose.animation.core.*
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,6 +21,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -48,18 +45,29 @@ fun GameStatsBar(
     onPauseToggle: () -> Unit,
     onTimerToggle: () -> Unit
 ) {
+    val borderColor = if (isDark) Color.Transparent else colors.gridLines.copy(alpha = 0.5f)
     GlassBox(
-        modifier = Modifier.padding(vertical = 4.dp),
+        modifier = Modifier
+            .padding(vertical = 4.dp)
+            .shadow(
+                elevation = 0.dp,
+                shape = RoundedCornerShape(20.dp),
+                spotColor = Color.Black.copy(alpha = 0.15f),
+                ambientColor = Color.Black.copy(alpha = 0.1f)
+            )
+            .border(
+                width = if (isDark) 0.dp else 1.dp,
+                color = borderColor,
+                shape = RoundedCornerShape(20.dp)
+            ),
         cornerRadius = 20.dp
     ) {
-        // Row yerine Box kullanarak tam merkezleme garantisi veriyoruz
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp, vertical = 6.dp)
-                .height(50.dp) // Yüksekliği biraz daha kıstık (Daha fazla yer kalsın)
+                .height(50.dp)
         ) {
-
             // --- SOL BUTON (Gizle/Göster) ---
             if (!isSolved) {
                 Box(modifier = Modifier.align(Alignment.CenterStart)) {
@@ -80,10 +88,7 @@ fun GameStatsBar(
                     .fillMaxHeight(),
                 contentAlignment = Alignment.Center
             ) {
-                // Arka Plan Efekti
                 TimerCosmicEffect(isDark = isDark, colors = colors)
-
-                // Süre
                 AnimatedContent(
                     targetState = isTimerVisible,
                     transitionSpec = {
@@ -98,9 +103,9 @@ fun GameStatsBar(
                             style = MaterialTheme.typography.displayMedium.copy(
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 2.sp,
-                                fontSize = 30.sp // Fontu optimize ettik
+                                fontSize = 30.sp
                             ),
-                            color = if (isTimerRunning) colors.textPrimary else Color(0xFFFF9F0A)
+                            color = if (isTimerRunning) colors.textPrimary else colors.gold
                         )
                     } else {
                         FocusPulseAnimation(isPaused = !isTimerRunning, accentColor = colors.accent)
@@ -123,7 +128,7 @@ fun GameStatsBar(
     }
 }
 
-// --- Görsel Efektler ---
+// ... TimerCosmicEffect, FocusPulseAnimation, ControlButton kodları aynı kalacak ...
 @Composable
 private fun TimerCosmicEffect(isDark: Boolean, colors: EquatixDesignSystem.ThemeColors) {
     val infiniteTransition = rememberInfiniteTransition(label = "TimerGlow")
@@ -132,10 +137,7 @@ private fun TimerCosmicEffect(isDark: Boolean, colors: EquatixDesignSystem.Theme
         animationSpec = infiniteRepeatable(tween(2000, easing = LinearEasing), RepeatMode.Reverse),
         label = "Alpha"
     )
-
-    Box(
-        modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(14.dp))
-    ) {
+    Box(modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(14.dp))) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             drawRoundRect(
                 color = colors.accent.copy(alpha = if (isDark) 0.1f else 0.05f),
@@ -159,7 +161,10 @@ fun FocusPulseAnimation(isPaused: Boolean, accentColor: Color) {
     )
     Box(contentAlignment = Alignment.Center) {
         Canvas(modifier = Modifier.size(10.dp)) {
-            drawCircle(color = accentColor, radius = size.minDimension / 2 * scale)
+            drawCircle(
+                color = accentColor,
+                radius = size.minDimension / 2 * scale
+            )
         }
     }
 }
@@ -174,7 +179,12 @@ fun ControlButton(icon: ImageVector, color: Color, size: Dp, onClick: () -> Unit
         border = BorderStroke(1.dp, color.copy(alpha = 0.2f))
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Icon(icon, null, tint = color, modifier = Modifier.size(size * 0.5f))
+            Icon(
+                icon,
+                null,
+                tint = color,
+                modifier = Modifier.size(size * 0.5f)
+            )
         }
     }
 }
@@ -182,7 +192,7 @@ fun ControlButton(icon: ImageVector, color: Color, size: Dp, onClick: () -> Unit
 @Preview
 @Composable
 fun PreviewGameStatsBar() {
-    val darkColors = EquatixDesignSystem.getColors(true)
+    val darkColors = EquatixDesignSystem.getColors(false)
     Box(modifier = Modifier.fillMaxWidth().background(darkColors.background).padding(16.dp)) {
         GameStatsBar(65, true, false, true, darkColors, true, {}, {})
     }
