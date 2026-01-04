@@ -110,7 +110,15 @@ class HomeScreen : Screen {
                 AnimatedSlideIn(visible = startAnimation, delay = 600) {
                     CyberStartButton(
                         isDark = isDark,
-                        onClick = { navigator.push(GameScreen(selectedDiff, selectedSize)) }
+                        onClick = {
+                            navigator.push(
+                                GameScreen(
+                                    difficulty = selectedDiff,
+                                    gridSize = selectedSize,
+                                    isDarkTheme = isDark
+                                )
+                            )
+                        }
                     )
                 }
 

@@ -4,9 +4,21 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -17,13 +29,16 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import com.vahitkeskin.equatix.domain.model.AppThemeConfig
 import com.vahitkeskin.equatix.domain.model.CellData
 import com.vahitkeskin.equatix.domain.model.Difficulty
 import com.vahitkeskin.equatix.domain.model.GameState
 import com.vahitkeskin.equatix.domain.model.GridSize
 import com.vahitkeskin.equatix.domain.model.Operation
-import com.vahitkeskin.equatix.ui.game.components.*
+import com.vahitkeskin.equatix.ui.game.components.GameBottomPanel
+import com.vahitkeskin.equatix.ui.game.components.GameHeader
+import com.vahitkeskin.equatix.ui.game.components.GamePauseOverlay
+import com.vahitkeskin.equatix.ui.game.components.GamePlayArea
+import com.vahitkeskin.equatix.ui.game.components.GameStatsBar
 import com.vahitkeskin.equatix.ui.game.components.tutorial.TutorialState
 import com.vahitkeskin.equatix.ui.game.dialogs.HintDialog
 import com.vahitkeskin.equatix.ui.game.utils.calculateProgress
@@ -34,15 +49,11 @@ import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import org.jetbrains.compose.ui.tooling.preview.Preview
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.ui.text.font.FontWeight
 
 data class GameScreen(
     val difficulty: Difficulty,
-    val gridSize: GridSize
+    val gridSize: GridSize,
+    val isDarkTheme: Boolean
 ) : Screen {
 
     @Composable
@@ -61,7 +72,8 @@ data class GameScreen(
             onNavigateBack = { navigator.pop() },
             difficulty = difficulty,
             gridSize = gridSize,
-            gridN = state.size
+            gridN = state.size,
+            isDarkTheme = isDarkTheme // <--- İçeri iletiyoruz
         )
     }
 }
@@ -72,7 +84,8 @@ private fun GameContent(
     onNavigateBack: () -> Unit,
     difficulty: Difficulty,
     gridSize: GridSize,
-    gridN: Int
+    gridN: Int,
+    isDarkTheme: Boolean
 ) {
     val haptic = LocalHapticFeedback.current
 
@@ -83,16 +96,12 @@ private fun GameContent(
     var isGamePaused by remember { mutableStateOf(false) }
     var tutorialState by remember { mutableStateOf(TutorialState.IDLE) }
 
-    val themeConfig by viewModel.themeConfig.collectAsState()
-    val isSystemDark = isSystemInDarkTheme()
-    val isDark = when (themeConfig) {
-        AppThemeConfig.FOLLOW_SYSTEM -> isSystemDark
-        AppThemeConfig.DARK -> true
-        AppThemeConfig.LIGHT -> false
-    }
-    val colors = EquatixDesignSystem.getColors(isDark)
+    // TEMA AYARLARI (Flash Fix)
+    // ViewModel'den collect etmek yerine doğrudan parametreyi kullanıyoruz.
+    // Böylece ekran açıldığı AN (0.ms) doğru renkler hazırdır.
+    val colors = remember(isDarkTheme) { EquatixDesignSystem.getColors(isDarkTheme) }
 
-    // Tutorial
+    // Tutorial Logic
     val isTutorialSeen by viewModel.isTutorialSeen.collectAsState()
     LaunchedEffect(isTutorialSeen) {
         if (!isTutorialSeen && !viewModel.isSolved) {
@@ -133,19 +142,19 @@ private fun GameContent(
             .fillMaxSize()
             .background(colors.background)
     ) {
-        val starColor = if (isDark) Color.White else Color(0xFF0F172A)
-        val starAlpha = if (isDark) 1f else 0.4f
+        // Yıldızlar: Parametreden gelen temaya göre anında ayarlanır
+        val starColor = if (isDarkTheme) Color.White else colors.textPrimary
+        val starAlpha = if (isDarkTheme) 1f else 0.2f
+
         CosmicBackground(
             modifier = Modifier.matchParentSize(),
             starColor = starColor.copy(alpha = starAlpha)
         )
 
-        // ANA YERLEŞİM KOLONU
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .systemBarsPadding()
-                .padding(horizontal = 0.dp),
+                .systemBarsPadding(),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -169,7 +178,7 @@ private fun GameContent(
                 )
             }
 
-            // 2. STATS BAR (Simetrik)
+            // 2. STATS BAR
             Box(modifier = Modifier.padding(horizontal = 8.dp)) {
                 GameStatsBar(
                     elapsedTime = elapsedTime,
@@ -177,7 +186,7 @@ private fun GameContent(
                     isSolved = viewModel.isSolved,
                     isTimerVisible = isTimerVisible,
                     colors = colors,
-                    isDark = isDark,
+                    isDark = isDarkTheme, // Parametre kullanıldı
                     onPauseToggle = {
                         isTimerRunning = !isTimerRunning
                         isGamePaused = !isGamePaused
@@ -187,24 +196,24 @@ private fun GameContent(
             }
 
             // 3. PROGRESS
-            ProgressPath(progress = animatedProgress, primaryColor = colors.success)
+            ProgressPath(
+                progress = animatedProgress,
+                colors = colors
+            )
 
-            // 4. GRID (ASLAN PAYI - weight 1f)
-            // Bu alan ekranın kalan tüm dikey boşluğunu kullanacak.
+            // 4. GRID
             GamePlayArea(
                 modifier = Modifier
-                    .weight(1f) // Kritik!
+                    .weight(1f)
                     .fillMaxWidth(),
                 viewModel = viewModel,
                 n = gridN,
-                isTimerRunning = isTimerRunning,
-                isSolved = viewModel.isSolved,
                 tutorialState = tutorialState,
                 colors = colors,
-                isDark = isDark
+                isDark = isDarkTheme // Parametre kullanıldı
             )
 
-            // 5. NUMPAD (Sıkıştırılmış)
+            // 5. NUMPAD
             GameBottomPanel(
                 viewModel = viewModel,
                 isTimerRunning = isTimerRunning,
@@ -223,7 +232,7 @@ private fun GameContent(
         GamePauseOverlay(
             isVisible = isGamePaused,
             colors = colors,
-            isDark = isDark,
+            isDark = isDarkTheme, // Parametre kullanıldı
             onResume = {
                 isGamePaused = false
                 isTimerRunning = true
@@ -246,13 +255,9 @@ private fun GameContent(
         }
     }
 
-    // Oyun bittiğini (isSolved) yakaladığımız bir LaunchedEffect var ya, oraya ekleme yapalım:
     LaunchedEffect(viewModel.isSolved) {
         if (viewModel.isSolved && !viewModel.isSurrendered) {
-
-            // YENİ: Süreyi ve bitişi ViewModel'e bildirip kaydettiriyoruz
             viewModel.onGameFinished(elapsedTime)
-
             if (viewModel.isVibrationEnabled) {
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             }
@@ -264,7 +269,8 @@ private fun GameContent(
 @Composable
 fun PreviewGameContentMaximized() {
     val viewModel = remember { GameViewModel() }
-    val darkColors = EquatixDesignSystem.getColors(true)
+    val isDark = true
+    val darkColors = EquatixDesignSystem.getColors(isDark)
 
     LaunchedEffect(Unit) {
         val fixedNumbers = listOf(8, 4, 2, 12, 10, 5, 100, 25, 4)
@@ -285,7 +291,8 @@ fun PreviewGameContentMaximized() {
             onNavigateBack = {},
             difficulty = Difficulty.EASY,
             gridSize = GridSize.SIZE_3x3,
-            gridN = 3
+            gridN = 3,
+            isDarkTheme = isDark // Preview için sabit değer
         )
     } else {
         Box(modifier = Modifier.fillMaxSize().background(darkColors.background))

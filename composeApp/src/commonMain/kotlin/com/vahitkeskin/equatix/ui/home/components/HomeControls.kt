@@ -17,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -38,14 +39,31 @@ fun HomeSelectionPanel(
     isDark: Boolean,
     colors: EquatixDesignSystem.ThemeColors
 ) {
+    val borderColor = if (isDark) Color.Transparent else colors.gridLines.copy(alpha = 0.5f)
+    val containerBg = if (isDark) Color.White.copy(0.03f) else colors.cardBackground
+
     GlassBox(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            // 1. GÖLGE (Light Mod için derinlik)
+            .shadow(
+                elevation = 0.dp,
+                shape = RoundedCornerShape(24.dp),
+                spotColor = Color.Black.copy(alpha = 0.1f),
+                ambientColor = Color.Black.copy(alpha = 0.05f)
+            )
+            // 2. KENARLIK (Light Mod için netlik)
+            .border(
+                width = if (isDark) 0.dp else 1.dp,
+                color = borderColor,
+                shape = RoundedCornerShape(24.dp)
+            ),
         cornerRadius = 24.dp,
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(if(isDark) Color.White.copy(0.03f) else Color.White.copy(0.6f))
+                .background(containerBg)
                 .padding(20.dp)
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
@@ -97,10 +115,14 @@ fun CyberStartButton(isDark: Boolean, onClick: () -> Unit) {
         label = "alpha"
     )
 
+    // Light Mod için butona da hafif bir gölge ekleyelim ki panel ile uyumlu olsun
+    val buttonShadow = if (isDark) 0.dp else 8.dp
+
     val bgGradient = if (isDark) {
         Brush.horizontalGradient(listOf(Color(0xFF34C759).copy(0.15f), Color(0xFF32ADE6).copy(0.15f)))
     } else {
-        Brush.horizontalGradient(listOf(Color(0xFF0F172A), Color(0xFF334155)))
+        // Light modda buton çok koyu kalıyordu, biraz daha soft ama dikkat çekici bir lacivert
+        Brush.horizontalGradient(listOf(Color(0xFF0F172A), Color(0xFF1E293B)))
     }
 
     val borderBrush = if (isDark) {
@@ -113,6 +135,12 @@ fun CyberStartButton(isDark: Boolean, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .height(72.dp)
+            // Buton gölgesi (Sadece Light Mod)
+            .shadow(
+                elevation = buttonShadow,
+                shape = RoundedCornerShape(24.dp),
+                spotColor = Color(0xFF0F172A).copy(0.25f)
+            )
             .clip(RoundedCornerShape(24.dp))
             .background(bgGradient)
             .clickable { onClick() }
