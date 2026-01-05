@@ -51,7 +51,9 @@ fun GameHeader(
                 // Light Modda: Hafif gri zemin (Slate-200) görünürlük sağlar
                 // Dark Modda: Hafif şeffaf beyaz
                 .background(
-                    color = if(colors.background.red > 0.5f) Color(0xFFE2E8F0) else Color.White.copy(0.1f),
+                    color = if (colors.background.red > 0.5f) Color(0xFFE2E8F0) else Color.White.copy(
+                        0.1f
+                    ),
                     shape = RoundedCornerShape(12.dp)
                 )
                 .size(40.dp)
