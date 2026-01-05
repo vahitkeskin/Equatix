@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -31,10 +33,18 @@ fun GameGrid(
     cellSize: Dp,
     opWidth: Dp,
     fontSize: TextUnit,
-    colors: EquatixDesignSystem.ThemeColors // <--- TEMA EKLENDİ
+    colors: EquatixDesignSystem.ThemeColors
 ) {
+
     val n = state.size
     val gapHeight = cellSize * 0.5f
+    val puzzleIdentity = remember(state.grid) {
+        state.grid.map { it.correctValue }
+    }
+
+    LaunchedEffect(puzzleIdentity) {
+        printBoardLog(state)
+    }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -52,7 +62,7 @@ fun GameGrid(
                         isSelected = isSelected,
                         cellSize = cellSize,
                         fontSize = fontSize,
-                        colors = colors, // Rengi iletiyoruz
+                        colors = colors,
                         onClick = { viewModel.onCellSelected(cell.id) }
                     )
 
@@ -61,7 +71,7 @@ fun GameGrid(
                     }
                 }
                 OpText("=", opWidth, fontSize, colors)
-                ResultCell(state.rowResults[i], cellSize, fontSize)
+                GameGridResultCell(state.rowResults[i], cellSize, fontSize)
             }
 
             // --- ARA SATIRLAR (Dikey Operatörler) ---
@@ -91,12 +101,73 @@ fun GameGrid(
         // --- EN ALT SONUÇLAR ---
         Row(verticalAlignment = Alignment.CenterVertically) {
             for (j in 0 until n) {
-                ResultCell(state.colResults[j], cellSize, fontSize)
+                GameGridResultCell(state.colResults[j], cellSize, fontSize)
                 if (j < n - 1) Spacer(modifier = Modifier.width(opWidth))
             }
             Spacer(modifier = Modifier.width(opWidth + cellSize))
         }
     }
+}
+
+private fun printBoardLog(state: GameState) {
+    val n = state.size
+    val cellWidth = 4
+    val opWidth = 3
+
+    println("================ EQUATIX BOARD STATE ================")
+
+    // --- İç İçe Fonksiyon: Matris Yazdırıcı ---
+    fun printMatrix(title: String, isSolution: Boolean) {
+        println("\n=== $title ===")
+        for (i in 0 until n) {
+            // 1. SATIR: Sayılar ve Yatay Operatörler
+            val sbRow = StringBuilder()
+            for (j in 0 until n) {
+                val cell = state.grid[i * n + j]
+                // Çözüm mü yoksa kullanıcının gördüğü mü?
+                val value = if (isSolution) {
+                    cell.correctValue.toString()
+                } else {
+                    if (cell.isLocked) cell.correctValue.toString()
+                    else if (cell.userInput.isNotEmpty()) cell.userInput
+                    else "?"
+                }
+                sbRow.append(value.padStart(cellWidth, ' '))
+
+                if (j < n - 1) {
+                    val op = state.rowOps[i * (n - 1) + j].symbol
+                    sbRow.append(" $op ".padStart(opWidth, ' '))
+                }
+            }
+            sbRow.append(" = ${state.rowResults[i]}")
+            println(sbRow.toString())
+
+            // 2. ARA SATIR: Dikey Operatörler
+            if (i < n - 1) {
+                val sbVert = StringBuilder()
+                for (j in 0 until n) {
+                    val op = state.colOps[j * (n - 1) + i].symbol
+                    sbVert.append(" $op ".padStart(cellWidth, ' '))
+                    if (j < n - 1) sbVert.append("".padStart(opWidth, ' '))
+                }
+                println(sbVert.toString())
+            }
+        }
+        // 3. EN ALT: Sütun Sonuçları
+        println("-".repeat(n * (cellWidth + opWidth)))
+        val sbColRes = StringBuilder()
+        for (j in 0 until n) {
+            sbColRes.append(state.colResults[j].toString().padStart(cellWidth, ' '))
+            if (j < n - 1) sbColRes.append("".padStart(opWidth, ' '))
+        }
+        println(sbColRes.toString())
+    }
+
+    // Fonksiyonları çağır
+    printMatrix("OYUNCU EKRANI (USER VIEW)", isSolution = false)
+    printMatrix("CEVAP ANAHTARI (SOLUTION)", isSolution = true)
+
+    println("=====================================================")
 }
 
 // ----------------------------------------------------------------
@@ -112,7 +183,6 @@ fun GridCell(
     colors: EquatixDesignSystem.ThemeColors,
     onClick: () -> Unit
 ) {
-    // Light Mod: Temiz kart rengi / Dark Mod: Hafif transparan siyah
     val targetBg = when {
         data.isLocked -> colors.cardBackground
         isSelected -> colors.accent.copy(alpha = 0.2f)
@@ -120,10 +190,7 @@ fun GridCell(
     }
 
     val backgroundColor by animateColorAsState(targetValue = targetBg, animationSpec = tween(200))
-
-    val borderColor by animateColorAsState(
-        targetValue = if (isSelected) colors.accent else Color.Transparent
-    )
+    val borderColor by animateColorAsState(targetValue = if (isSelected) colors.accent else Color.Transparent)
 
     Box(
         modifier = Modifier
@@ -134,7 +201,6 @@ fun GridCell(
             .clickable(enabled = !data.isLocked) { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        // Kullanıcı girdisi Accent rengiyle, Sabit sayılar Ana Metin rengiyle
         val textColor = if (data.isLocked) colors.textPrimary else colors.accent
         val displayText = if (data.isLocked) data.correctValue.toString() else data.userInput
 
@@ -148,14 +214,44 @@ fun GridCell(
 }
 
 @Composable
-fun OpSymbol(
-    op: Operation,
-    width: Dp,
-    fontSize: TextUnit,
-    colors: EquatixDesignSystem.ThemeColors
+fun GameGridResultCell(
+    result: Int,
+    cellSize: Dp,
+    baseFontSize: TextUnit,
 ) {
+    // Rakam sayısını al
+    val text = result.toString()
+    val length = text.length
+
+    // Yazı boyutunu uzunluğa göre ölçekle
+    // 3 basamak ise %70, 4 ve üzeri ise %60 boyuta indir.
+    val dynamicFontSize = when {
+        length >= 4 -> baseFontSize * 0.6f
+        length == 3 -> baseFontSize * 0.7f
+        else -> baseFontSize
+    }
+
+    Box(
+        modifier = Modifier
+            .size(cellSize)
+            .padding(2.dp)
+            .background(Color(0xFF34C759).copy(alpha = 0.2f), RoundedCornerShape(12.dp)),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            color = Color(0xFF34C759),
+            fontWeight = FontWeight.Bold,
+            fontSize = dynamicFontSize, // Dinamik font
+            maxLines = 1,
+            softWrap = false
+        )
+    }
+}
+
+@Composable
+fun OpSymbol(op: Operation, width: Dp, fontSize: TextUnit, colors: EquatixDesignSystem.ThemeColors) {
     Box(modifier = Modifier.width(width), contentAlignment = Alignment.Center) {
-        // Temadan gelen özel operatör renkleri
         val color = when(op) {
             Operation.ADD -> colors.opAdd
             Operation.SUB -> colors.opSub
@@ -177,7 +273,7 @@ fun VerticalEquals(width: Dp, fontSize: TextUnit, colors: EquatixDesignSystem.Th
         Text(
             text = "=",
             modifier = Modifier.rotate(90f),
-            color = colors.textSecondary, // İkincil renk (Daha silik)
+            color = colors.textSecondary,
             fontWeight = FontWeight.Light,
             fontSize = fontSize
         )
