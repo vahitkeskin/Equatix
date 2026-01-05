@@ -6,14 +6,15 @@ import androidx.compose.runtime.setValue
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.vahitkeskin.equatix.di.AppModule
-import com.vahitkeskin.equatix.domain.model.AppThemeConfig
 import com.vahitkeskin.equatix.domain.model.CellData
 import com.vahitkeskin.equatix.domain.model.Difficulty
 import com.vahitkeskin.equatix.domain.model.GameState
 import com.vahitkeskin.equatix.domain.model.GridSize
 import com.vahitkeskin.equatix.domain.model.Operation
+import com.vahitkeskin.equatix.ui.game.utils.GameUiEvent
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlin.random.Random
@@ -24,20 +25,16 @@ class GameViewModel : ScreenModel {
     private val settingsRepo = AppModule.settingsRepository
     private val scoreRepo = AppModule.scoreRepository
 
-    // --- SETTINGS STATES (Flow) ---
-    val themeConfig: StateFlow<AppThemeConfig> = settingsRepo.themeConfig
-        .stateIn(
-            scope = screenModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = AppThemeConfig.FOLLOW_SYSTEM
-        )
-
     val isTutorialSeen = settingsRepo.isTutorialSeen
         .stateIn(
             scope = screenModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = true
         )
+
+    // --- UI EVENTS (Haptic Feedback vb.) ---
+    private val _uiEvent = Channel<GameUiEvent>()
+    val uiEvent = _uiEvent.receiveAsFlow()
 
     // --- GAME STATES ---
     var gameState by mutableStateOf<GameState?>(null)
@@ -51,7 +48,7 @@ class GameViewModel : ScreenModel {
     var isVibrationEnabled by mutableStateOf(true)
         private set
 
-    // --- DIALOG STATES (YENİ EKLENDİ) ---
+    // --- DIALOG STATES ---
     var showWinDialog by mutableStateOf(false)
         private set
     var lastGameScore by mutableStateOf(0)
@@ -102,6 +99,124 @@ class GameViewModel : ScreenModel {
 
     fun dismissWinDialog() {
         showWinDialog = false
+    }
+
+    // --- INPUT LOGIC (GÜNCELLENDİ: Prefix Check & Haptic) ---
+
+    fun onCellSelected(index: Int) {
+        if (gameState?.grid?.get(index)?.isLocked == false && !isSolved) selectedCellIndex = index
+    }
+
+    /**
+     * UI'dan gelen tuş girişlerini yönetir.
+     * @param key: Girilen karakter (Rakam veya "DEL")
+     */
+    fun onInput(key: String) {
+        val currentIndex = selectedCellIndex ?: return
+        val currentGameState = gameState ?: return
+
+        // Oyun bitmişse veya pes edilmişse işlem yapma
+        if (isSolved || isSurrendered) return
+
+        val currentGrid = currentGameState.grid.toMutableList()
+        val currentCell = currentGrid[currentIndex]
+
+        // Hücre kilitliyse işlem yapma
+        if (currentCell.isLocked) return
+
+        if (key == "DEL") {
+            // --- SİLME MANTIĞI ---
+            // Silme işleminde prefix kontrolüne gerek yok, sadece son karakteri sileriz.
+            if (currentCell.userInput.isNotEmpty()) {
+                val newVal = currentCell.userInput.dropLast(1)
+                val updatedCell = currentCell.copy(userInput = newVal)
+                currentGrid[currentIndex] = updatedCell
+                gameState = currentGameState.copy(grid = currentGrid)
+            }
+        } else {
+            // --- SAYI GİRME MANTIĞI (Prefix Check) ---
+            val currentInput = currentCell.userInput
+            // Kullanıcı max 3 hane girebilsin (opsiyonel sınır)
+            if (currentInput.length >= 3) {
+                triggerErrorHaptic()
+                return
+            }
+
+            val candidateInput = currentInput + key
+            val correctValueStr = currentCell.correctValue.toString()
+
+            // Eğer girilen yeni değer, doğru cevabın başlangıcıysa kabul et.
+            // Örn: Cevap 45, Girdi "4" -> Kabul.
+            // Örn: Cevap 45, Girdi "46" -> Reddet.
+            if (correctValueStr.startsWith(candidateInput)) {
+                val updatedCell = currentCell.copy(userInput = candidateInput)
+                currentGrid[currentIndex] = updatedCell
+                gameState = currentGameState.copy(grid = currentGrid)
+
+                // Eğer tam eşleşme sağlandıysa tüm oyunu kontrol et
+                if (candidateInput == correctValueStr) {
+                    checkWin()
+                }
+            } else {
+                // Girdi yanlış yola saptı, state güncelleme ve titret
+                triggerErrorHaptic()
+            }
+        }
+    }
+
+    private fun triggerErrorHaptic() {
+        // Eğer titreşim ayarı açıksas UI'a sinyal gönder
+        if (isVibrationEnabled) {
+            screenModelScope.launch {
+                _uiEvent.send(GameUiEvent.VibrateError)
+            }
+        }
+    }
+
+    private fun checkWin() {
+        val allCorrect =
+            gameState?.grid?.all { if (!it.isHidden) true else it.userInput.toIntOrNull() == it.correctValue }
+                ?: false
+        if (allCorrect) {
+            isSolved = true
+            selectedCellIndex = null
+            // Not: Kaydetme işlemi onGameFinished içinde yapılıyor
+        }
+    }
+
+    /**
+     * Oyun bittiğinde GameScreen'den bu fonksiyon çağrılır.
+     */
+    fun onGameFinished(finalTimeSeconds: Long) {
+        // Eğer pes edildiyse veya oyun durumu yoksa kaydetme
+        if (isSurrendered || gameState == null) return
+
+        screenModelScope.launch {
+            val state = gameState!!
+
+            // Puanı Hesapla
+            val finalScore = calculateScore(state.difficulty, state.size, finalTimeSeconds)
+
+            // Diyaloğu Göster
+            lastGameScore = finalScore
+            showWinDialog = true
+
+            // GridSize Enum'ına çevir
+            val gridSizeEnum = when(state.size) {
+                3 -> GridSize.SIZE_3x3
+                4 -> GridSize.SIZE_4x4
+                5 -> GridSize.SIZE_5x5
+                else -> GridSize.SIZE_3x3
+            }
+
+            // Repository üzerinden kaydet
+            scoreRepo.saveScore(
+                score = finalScore,
+                timeSeconds = finalTimeSeconds,
+                difficulty = state.difficulty,
+                gridSize = gridSizeEnum
+            )
+        }
     }
 
     // --- GAME GENERATION LOGIC ---
@@ -252,72 +367,6 @@ class GameViewModel : ScreenModel {
             }
         }
         return !unknownMap.contains(true)
-    }
-
-    fun onCellSelected(index: Int) {
-        if (gameState?.grid?.get(index)?.isLocked == false && !isSolved) selectedCellIndex = index
-    }
-
-    fun onInput(key: String) {
-        val currentIndex = selectedCellIndex ?: return
-        val currentGameState = gameState ?: return
-        if (isSolved) return
-        val newGrid = currentGameState.grid.toMutableList()
-        val currentCell = newGrid[currentIndex]
-        val oldVal = currentCell.userInput
-        val newVal = when (key) {
-            "DEL" -> if (oldVal.isNotEmpty()) oldVal.dropLast(1) else ""
-            else -> if (oldVal.length < 3) oldVal + key else oldVal
-        }
-        newGrid[currentIndex] = currentCell.copy(userInput = newVal)
-        gameState = currentGameState.copy(grid = newGrid)
-        checkWin()
-    }
-
-    private fun checkWin() {
-        val allCorrect =
-            gameState?.grid?.all { if (!it.isHidden) true else it.userInput.toIntOrNull() == it.correctValue }
-                ?: false
-        if (allCorrect) {
-            isSolved = true
-            selectedCellIndex = null
-            // Not: Kaydetme işlemi onGameFinished içinde yapılıyor (Süre bilgisi için)
-        }
-    }
-
-    /**
-     * Oyun bittiğinde GameScreen'den bu fonksiyon çağrılır.
-     */
-    fun onGameFinished(finalTimeSeconds: Long) {
-        // Eğer pes edildiyse veya oyun durumu yoksa kaydetme
-        if (isSurrendered || gameState == null) return
-
-        screenModelScope.launch {
-            val state = gameState!!
-
-            // Puanı Hesapla
-            val finalScore = calculateScore(state.difficulty, state.size, finalTimeSeconds)
-
-            // --- GÜNCELLEME: Diyaloğu Göster ---
-            lastGameScore = finalScore
-            showWinDialog = true
-
-            // GridSize Enum'ına çevir
-            val gridSizeEnum = when(state.size) {
-                3 -> GridSize.SIZE_3x3
-                4 -> GridSize.SIZE_4x4
-                5 -> GridSize.SIZE_5x5
-                else -> GridSize.SIZE_3x3
-            }
-
-            // Repository üzerinden kaydet
-            scoreRepo.saveScore(
-                score = finalScore,
-                timeSeconds = finalTimeSeconds,
-                difficulty = state.difficulty,
-                gridSize = gridSizeEnum
-            )
-        }
     }
 
     private fun calculateScore(difficulty: Difficulty, gridSize: Int, timeSeconds: Long): Int {

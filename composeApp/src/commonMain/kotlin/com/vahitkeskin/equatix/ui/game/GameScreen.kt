@@ -41,6 +41,7 @@ import com.vahitkeskin.equatix.ui.game.components.GamePlayArea
 import com.vahitkeskin.equatix.ui.game.components.GameStatsBar
 import com.vahitkeskin.equatix.ui.game.components.tutorial.TutorialState
 import com.vahitkeskin.equatix.ui.game.dialogs.HintDialog
+import com.vahitkeskin.equatix.ui.game.utils.GameUiEvent
 import com.vahitkeskin.equatix.ui.game.utils.calculateProgress
 import com.vahitkeskin.equatix.ui.game.visuals.CosmicBackground
 import com.vahitkeskin.equatix.ui.game.visuals.FireworkOverlay
@@ -96,10 +97,20 @@ private fun GameContent(
     var isGamePaused by remember { mutableStateOf(false) }
     var tutorialState by remember { mutableStateOf(TutorialState.IDLE) }
 
-    // TEMA AYARLARI (Flash Fix)
-    // ViewModel'den collect etmek yerine doğrudan parametreyi kullanıyoruz.
-    // Böylece ekran açıldığı AN (0.ms) doğru renkler hazırdır.
     val colors = remember(isDarkTheme) { EquatixDesignSystem.getColors(isDarkTheme) }
+
+    // --- 1. EVENT LISTENER (Hata Titreşimi İçin) ---
+    // ViewModel'den gelen 'VibrateError' olayını dinler.
+    LaunchedEffect(viewModel) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is GameUiEvent.VibrateError -> {
+                    // Hatalı tuşlamada titreşim (Hata hissi için LongPress uygun)
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                }
+            }
+        }
+    }
 
     // Tutorial Logic
     val isTutorialSeen by viewModel.isTutorialSeen.collectAsState()
@@ -115,6 +126,7 @@ private fun GameContent(
         }
     }
 
+    // Oyun Bittiğinde Kazanma Titreşimi
     LaunchedEffect(viewModel.isSolved) {
         if (viewModel.isSolved && !viewModel.isSurrendered && viewModel.isVibrationEnabled) {
             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -129,6 +141,7 @@ private fun GameContent(
         animationSpec = tween(1000, easing = FastOutSlowInEasing)
     )
 
+    // Timer Logic
     LaunchedEffect(isTimerRunning, viewModel.isSolved) {
         if (viewModel.isSolved) isTimerRunning = false
         while (isTimerRunning && !viewModel.isSolved && isActive) {
@@ -137,12 +150,19 @@ private fun GameContent(
         }
     }
 
+    // Oyun bittiğinde skoru hesaplamak için ViewModel'i tetikle
+    LaunchedEffect(viewModel.isSolved) {
+        if (viewModel.isSolved && !viewModel.isSurrendered) {
+            viewModel.onGameFinished(elapsedTime)
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(colors.background)
     ) {
-        // Yıldızlar: Parametreden gelen temaya göre anında ayarlanır
+        // Arkaplan
         val starColor = if (isDarkTheme) Color.White else colors.textPrimary
         val starAlpha = if (isDarkTheme) 1f else 0.2f
 
@@ -158,7 +178,7 @@ private fun GameContent(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 1. HEADER
+            // HEADER
             Box(modifier = Modifier.padding(horizontal = 8.dp)) {
                 GameHeader(
                     difficulty = difficulty,
@@ -178,7 +198,7 @@ private fun GameContent(
                 )
             }
 
-            // 2. STATS BAR
+            // STATS
             Box(modifier = Modifier.padding(horizontal = 8.dp)) {
                 GameStatsBar(
                     elapsedTime = elapsedTime,
@@ -186,7 +206,7 @@ private fun GameContent(
                     isSolved = viewModel.isSolved,
                     isTimerVisible = isTimerVisible,
                     colors = colors,
-                    isDark = isDarkTheme, // Parametre kullanıldı
+                    isDark = isDarkTheme,
                     onPauseToggle = {
                         isTimerRunning = !isTimerRunning
                         isGamePaused = !isGamePaused
@@ -195,13 +215,13 @@ private fun GameContent(
                 )
             }
 
-            // 3. PROGRESS
+            // PROGRESS
             ProgressPath(
                 progress = animatedProgress,
                 colors = colors
             )
 
-            // 4. GRID
+            // GRID
             GamePlayArea(
                 modifier = Modifier
                     .weight(1f)
@@ -210,16 +230,19 @@ private fun GameContent(
                 n = gridN,
                 tutorialState = tutorialState,
                 colors = colors,
-                isDark = isDarkTheme // Parametre kullanıldı
+                isDark = isDarkTheme
             )
 
-            // 5. NUMPAD
+            // NUMPAD
             GameBottomPanel(
                 viewModel = viewModel,
                 isTimerRunning = isTimerRunning,
                 elapsedTime = elapsedTime,
                 colors = colors,
-                onInput = { viewModel.onInput(it) },
+                onInput = { key ->
+                    // Input mantığı artık tamamen ViewModel içinde yönetiliyor
+                    viewModel.onInput(key)
+                },
                 onRestart = {
                     viewModel.startGame(difficulty, gridSize)
                     elapsedTime = 0
@@ -228,11 +251,12 @@ private fun GameContent(
             )
         }
 
-        // Overlayler
+        // --- OVERLAYS ---
+
         GamePauseOverlay(
             isVisible = isGamePaused,
             colors = colors,
-            isDark = isDarkTheme, // Parametre kullanıldı
+            isDark = isDarkTheme,
             onResume = {
                 isGamePaused = false
                 isTimerRunning = true
@@ -273,6 +297,7 @@ fun PreviewGameContentMaximized() {
     val darkColors = EquatixDesignSystem.getColors(isDark)
 
     LaunchedEffect(Unit) {
+        // Preview Setup
         val fixedNumbers = listOf(8, 4, 2, 12, 10, 5, 100, 25, 4)
         val customCells = fixedNumbers.mapIndexed { index, value ->
             CellData(
@@ -284,26 +309,11 @@ fun PreviewGameContentMaximized() {
                 isLocked = false
             )
         }
-        val rowOps = listOf(
-            Operation.ADD,
-            Operation.MUL,
-            Operation.ADD,
-            Operation.DIV,
-            Operation.SUB,
-            Operation.MUL
-        )
-        val colOps = listOf(
-            Operation.ADD,
-            Operation.ADD,
-            Operation.MUL,
-            Operation.ADD,
-            Operation.MUL,
-            Operation.ADD
-        )
+        val rowOps = listOf(Operation.ADD, Operation.MUL, Operation.ADD, Operation.DIV, Operation.SUB, Operation.MUL)
+        val colOps = listOf(Operation.ADD, Operation.ADD, Operation.MUL, Operation.ADD, Operation.MUL, Operation.ADD)
         val rowResults = listOf(16, 14, 0)
         val colResults = listOf(120, 65, 14)
-        val validState =
-            GameState(3, customCells, rowOps, colOps, rowResults, colResults, Difficulty.EASY)
+        val validState = GameState(3, customCells, rowOps, colOps, rowResults, colResults, Difficulty.EASY)
         viewModel.loadPreviewState(validState)
     }
 
@@ -314,7 +324,7 @@ fun PreviewGameContentMaximized() {
             difficulty = Difficulty.EASY,
             gridSize = GridSize.SIZE_3x3,
             gridN = 3,
-            isDarkTheme = isDark // Preview için sabit değer
+            isDarkTheme = isDark
         )
     } else {
         Box(modifier = Modifier.fillMaxSize().background(darkColors.background))
