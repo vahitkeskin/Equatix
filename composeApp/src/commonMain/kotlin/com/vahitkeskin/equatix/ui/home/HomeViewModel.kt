@@ -93,11 +93,15 @@ class HomeViewModel : ScreenModel {
         updateLanguageState(language)
     }
 
-    fun setLanguage(language: AppLanguage) {
-        // 1. Kaydet
-        storage.saveString(LANGUAGE_KEY, language.code)
-        // 2. State'i Güncelle
-        updateLanguageState(language)
+    fun setLanguage(selectedLanguage: AppLanguage) {
+        _currentLanguage.value = selectedLanguage
+        storage.saveString("KEY_LANGUAGE", selectedLanguage.code)
+        val languageToLoad = if (selectedLanguage == AppLanguage.SYSTEM) {
+            AppLanguage.getDeviceLanguage()
+        } else {
+            selectedLanguage
+        }
+        _strings.value = AppDictionary.getStrings(languageToLoad)
     }
 
     private fun updateLanguageState(language: AppLanguage) {

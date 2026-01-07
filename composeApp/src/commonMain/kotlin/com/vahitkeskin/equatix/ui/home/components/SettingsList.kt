@@ -73,7 +73,6 @@ fun SettingsList(
             currentLanguage = currentLanguage,
             onLanguageSelected = { viewModel.setLanguage(it) },
             colors = colors
-            // "SEÇ" butonu için metin buradan gider
         )
 
         HorizontalDivider(color = colors.divider)

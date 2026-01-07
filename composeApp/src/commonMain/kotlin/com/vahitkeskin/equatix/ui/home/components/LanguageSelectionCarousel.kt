@@ -27,6 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -40,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
 import com.vahitkeskin.equatix.domain.model.AppLanguage
+import com.vahitkeskin.equatix.ui.home.HomeViewModel
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
@@ -90,6 +92,13 @@ fun LanguageSelectionCarousel(
                 val actualIndex = globalIndex % items.size
                 val language = items[actualIndex]
                 val isSelected = language == currentLanguage
+
+                val appStrings by HomeViewModel().strings.collectAsState()
+                val labelText = if (language == AppLanguage.SYSTEM) {
+                    appStrings.langSystem
+                } else {
+                    language.label
+                }
 
                 // --- Animasyon Hesaplamaları ---
                 val pageOffset = (
@@ -164,7 +173,7 @@ fun LanguageSelectionCarousel(
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
-                                    text = language.label,
+                                    text = labelText,
                                     style = MaterialTheme.typography.labelMedium.copy(
                                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                         letterSpacing = 0.5.sp
