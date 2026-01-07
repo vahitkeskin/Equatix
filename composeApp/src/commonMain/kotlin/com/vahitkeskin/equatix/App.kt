@@ -5,7 +5,6 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.transitions.SlideTransition
-import com.vahitkeskin.equatix.ui.home.HomeScreen
 import com.vahitkeskin.equatix.ui.splash.SplashScreen
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
