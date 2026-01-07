@@ -57,7 +57,9 @@ data class AppStrings(
     val pauseTitle: String,   // "DURAKLATILDI"
     val pauseResume: String,  // "DEVAM ET"
     val pauseRestart: String, // "Yeniden"
-    val pauseQuit: String     // "Çıkış"
+    val pauseQuit: String,     // "Çıkış"
+
+    val btnSelect: String, // YENİ
 ) {
     // YARDIMCI FONKSİYON: Enum'ı alıp doğru metni döndürür
     fun getDifficultyLabel(difficulty: Difficulty): String {
@@ -107,6 +109,7 @@ object AppDictionary {
         pauseResume = "RESUME",
         pauseRestart = "Restart",
         pauseQuit = "Quit",
+        btnSelect = "SEÇ",
     )
 
     val tr = AppStrings(
@@ -144,6 +147,7 @@ object AppDictionary {
         pauseResume = "DEVAM ET",
         pauseRestart = "Yeniden",
         pauseQuit = "Çıkış",
+        btnSelect = "SELECT",
     )
 
     val de = AppStrings(
@@ -181,12 +185,52 @@ object AppDictionary {
         pauseResume = "FORTSETZEN",
         pauseRestart = "Neustart",
         pauseQuit = "Beenden",
+        btnSelect = "WÄHLEN",
+    )
+
+    val ar = AppStrings(
+        appName = "إكواتيكس",
+        close = "إغلاق",
+        delete = "حذف",
+        scoresTitle = "النتائج",
+        settingsTitle = "الإعدادات",
+        difficultyLevel = "مستوى الصعوبة",
+        gridSize = "حجم الشبكة",
+        noHistory = "لم تلعب أي لعبة بعد.",
+        scorePointSuffix = "ن",
+        language = "اللغة",
+        appearance = "المظهر",
+        preferences = "التفضيلات",
+        system = "النظام",
+        light = "فاتح",
+        dark = "داكن",
+        backgroundMusic = "موسيقى الخلفية",
+        musicSubtitle = "بيانو مريح",
+        vibration = "الاهتزاز",
+        dailyReminder = "تذكير يومي",
+        reminderOnPrefix = "يومياً عند",
+        reminderOff = "متوقف",
+        startGame = "بدء اللعبة",
+        resultSolution = "الحل",
+        resultPerfect = "ممتاز!",
+        resultTimePrefix = "الوقت:",
+        resultNextTime = "حظاً أوفر في المرة القادمة!",
+        resultNewGame = "لعبة جديدة",
+        diffEasy = "مبتدئ",
+        diffMedium = "متوسط",
+        diffHard = "خبير",
+        pauseTitle = "موقوف مؤقتاً",
+        pauseResume = "استئناف",
+        pauseRestart = "إعادة تشغيل",
+        pauseQuit = "خروج",
+        btnSelect = "اختيار",
     )
 
     fun getStrings(language: AppLanguage): AppStrings {
         return when (language) {
             AppLanguage.TURKISH -> tr
             AppLanguage.GERMAN -> de
+            AppLanguage.ARABIC -> ar
             else -> en
         }
     }

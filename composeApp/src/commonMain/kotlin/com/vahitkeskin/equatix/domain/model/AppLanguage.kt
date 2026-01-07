@@ -9,7 +9,8 @@ enum class AppLanguage(
 ) {
     TURKISH("tr", "Türkçe", "🇹🇷"),
     ENGLISH("en", "English", "🇺🇸"),
-    GERMAN("de", "Deutsch", "🇩🇪");
+    GERMAN("de", "Deutsch", "🇩🇪"),
+    ARABIC("ar", "العربية", "🇸🇦");
 
     companion object {
         fun getDeviceLanguage(): AppLanguage {
