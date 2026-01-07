@@ -1,44 +1,43 @@
 package com.vahitkeskin.equatix.ui.home.components
 
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.rounded.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.repeatOnLifecycle
-import com.vahitkeskin.equatix.domain.model.AppLanguage
-import com.vahitkeskin.equatix.domain.model.AppStrings
-import com.vahitkeskin.equatix.domain.model.AppThemeConfig
-import com.vahitkeskin.equatix.platform.getAppVersion
-import com.vahitkeskin.equatix.ui.common.AnimatedSegmentedControl
 import com.vahitkeskin.equatix.ui.common.GlassBox
 import com.vahitkeskin.equatix.ui.home.HomeScreen
 import com.vahitkeskin.equatix.ui.home.HomeViewModel
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
-import com.vahitkeskin.equatix.ui.utils.rememberNotificationPermissionControl
 
 @Composable
 fun HomeOverlayPanel(
@@ -51,28 +50,34 @@ fun HomeOverlayPanel(
     val overlayDimColor = if (isDark) Color.Black.copy(0.85f) else Color.Black.copy(0.4f)
     val strings by viewModel.strings.collectAsState()
 
-    AnimatedVisibility(
-        visible = overlayType != null,
-        enter = fadeIn(),
-        exit = fadeOut()
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(overlayDimColor)
-                .clickable(enabled = false) {}
-                .clickable { onDismiss() }
-        )
-    }
+    // 1. Kapsayıcı Box (Implicit Receiver hatasını önler ve katmanları yönetir)
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
 
-    AnimatedVisibility(
-        visible = overlayType != null,
-        enter = slideInVertically { it } + fadeIn(),
-        exit = slideOutVertically { it } + fadeOut(),
-    ) {
-        val overlay = overlayType ?: return@AnimatedVisibility
+        // Katman 1: Karartma Arka Planı
+        AnimatedVisibility(
+            visible = overlayType != null,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier.matchParentSize()
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(overlayDimColor)
+                    .clickable(enabled = false) {}
+                    .clickable { onDismiss() }
+            )
+        }
 
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        // Katman 2: Panel İçeriği
+        AnimatedVisibility(
+            visible = overlayType != null,
+            enter = slideInVertically { it } + fadeIn(),
+            exit = slideOutVertically { it } + fadeOut(),
+            modifier = Modifier.align(Alignment.Center)
+        ) {
+            val overlay = overlayType ?: return@AnimatedVisibility
+
             GlassBox(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
@@ -89,13 +94,12 @@ fun HomeOverlayPanel(
                         .background(colors.cardBackground)
                         .padding(24.dp)
                 ) {
-                    // Header
+                    // --- HEADER ---
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // BAŞLIK (Dinamik)
                         val title = if (overlay == HomeScreen.OverlayType.HISTORY)
                             strings.scoresTitle
                         else
@@ -112,20 +116,20 @@ fun HomeOverlayPanel(
                         IconButton(onClick = onDismiss) {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = strings.close, // Erişilebilirlik metni
+                                contentDescription = strings.close,
                                 tint = colors.textSecondary,
                                 modifier = Modifier.size(32.dp)
                             )
                         }
                     }
-                    Divider(
+
+                    HorizontalDivider(
                         color = colors.divider,
                         modifier = Modifier.padding(vertical = 20.dp)
                     )
 
-                    // İçerik
+                    // --- İÇERİK ---
                     when (overlay) {
-                        // strings nesnesini alt componentlere de gönderiyoruz
                         HomeScreen.OverlayType.HISTORY -> HistoryList(
                             viewModel,
                             colors,
@@ -136,403 +140,11 @@ fun HomeOverlayPanel(
                         HomeScreen.OverlayType.SETTINGS -> SettingsList(
                             viewModel,
                             isDark,
-                            colors,
-                            onDismiss
+                            colors
                         )
                     }
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun HistoryList(
-    viewModel: HomeViewModel,
-    colors: EquatixDesignSystem.ThemeColors,
-    isDark: Boolean,
-    strings: AppStrings // Parametre olarak aldık
-) {
-    val scores by viewModel.scores.collectAsState()
-
-    if (scores.isEmpty()) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = strings.noHistory, // Dinamik: "Henüz oyun oynanmadı."
-                color = colors.textSecondary,
-                fontSize = 18.sp
-            )
-        }
-    } else {
-        LazyColumn(
-            modifier = Modifier.heightIn(max = 400.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(bottom = 12.dp)
-        ) {
-            items(items = scores, key = { it.id }) { score ->
-
-                val dismissState = rememberSwipeToDismissBoxState(
-                    confirmValueChange = {
-                        if (it == SwipeToDismissBoxValue.EndToStart) {
-                            viewModel.deleteScore(score.id)
-                            true
-                        } else {
-                            false
-                        }
-                    }
-                )
-                val itemBg = if (isDark) Color.White.copy(0.05f) else Color(0xFFF8FAFC)
-
-                SwipeToDismissBox(
-                    state = dismissState,
-                    enableDismissFromStartToEnd = false,
-                    backgroundContent = {
-                        val alignment = Alignment.CenterEnd
-                        val icon = Icons.Default.Delete
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(itemBg, RoundedCornerShape(16.dp))
-                                .padding(horizontal = 20.dp),
-                            contentAlignment = alignment
-                        ) {
-                            if (dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart) {
-                                Icon(
-                                    imageVector = icon,
-                                    contentDescription = strings.delete, // Dinamik: "Sil"
-                                    tint = Color.White
-                                )
-                            }
-                        }
-                    },
-                    content = {
-                        val borderColor = if (isDark) Color.Transparent else Color(0xFFE2E8F0)
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(itemBg, RoundedCornerShape(16.dp))
-                                .border(1.dp, borderColor, RoundedCornerShape(16.dp))
-                                .padding(20.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Column {
-                                Text(
-                                    text = score.date,
-                                    color = colors.textPrimary,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 18.sp
-                                )
-                                Spacer(modifier = Modifier.height(6.dp))
-                                Text(
-                                    text = "${strings.getDifficultyLabel(score.difficulty)} • ${score.gridSize.label}",
-                                    color = score.difficulty.color,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            }
-                            Column(horizontalAlignment = Alignment.End) {
-                                Text(
-                                    text = "${score.score} ${strings.scorePointSuffix}", // Dinamik: "P" veya "Pkt"
-                                    color = colors.success,
-                                    fontWeight = FontWeight.Black,
-                                    fontSize = 22.sp
-                                )
-                                Spacer(modifier = Modifier.height(6.dp))
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        imageVector = Icons.Default.History,
-                                        contentDescription = null,
-                                        tint = colors.textSecondary,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Text(
-                                        text = score.time,
-                                        color = colors.textSecondary,
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                            }
-                        }
-                    }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun SettingsList(
-    viewModel: HomeViewModel,
-    isDark: Boolean,
-    colors: EquatixDesignSystem.ThemeColors,
-    onStartClick: () -> Unit // Eğer panelden oyunu başlatmak istersen
-) {
-    val lifecycleOwner = LocalLifecycleOwner.current
-
-    val isSoundOn by viewModel.isSoundOn.collectAsState()
-    val isVibrationOn by viewModel.isVibrationOn.collectAsState()
-    val themeConfig by viewModel.themeConfig.collectAsState()
-    val isNotificationEnabled by viewModel.isNotificationEnabled.collectAsState()
-    val notificationTime by viewModel.notificationTime.collectAsState()
-    val isMusicOn by viewModel.isMusicOn.collectAsState()
-
-    // Metinleri dinliyoruz
-    val strings by viewModel.strings.collectAsState()
-    val currentLanguage by viewModel.currentLanguage.collectAsState()
-
-    LaunchedEffect(lifecycleOwner) {
-        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            viewModel.refreshPermissionStatus()
-        }
-    }
-
-    val permissionControl = rememberNotificationPermissionControl(
-        onPermissionResult = { isGranted ->
-            if (isGranted) viewModel.setNotificationSchedule(true)
-            else viewModel.openAppSettings()
-        }
-    )
-
-    Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
-
-        LanguageSelectorRow(
-            currentLanguage = currentLanguage,
-            onLanguageSelected = { viewModel.setLanguage(it) },
-            colors = colors,
-            isDark = isDark
-        )
-
-        HorizontalDivider(color = colors.divider)
-
-        // --- GÖRÜNÜM ---
-        SectionTitle(strings.appearance, colors)
-
-        AnimatedSegmentedControl(
-            items = AppThemeConfig.values().toList(),
-            selectedItem = themeConfig,
-            onItemSelected = { viewModel.setTheme(it) },
-            modifier = Modifier.fillMaxWidth().height(48.dp).background(Color.Transparent),
-            itemLabel = {
-                when (it) {
-                    AppThemeConfig.FOLLOW_SYSTEM -> strings.system
-                    AppThemeConfig.LIGHT -> strings.light
-                    AppThemeConfig.DARK -> strings.dark
-                }
-            }
-        )
-
-        HorizontalDivider(color = colors.divider)
-
-        // --- TERCİHLER ---
-        SectionTitle(strings.preferences, colors)
-
-        SettingItem(
-            title = strings.backgroundMusic,
-            subtitle = strings.musicSubtitle, // Dinamik: "Rahatlatıcı Piyano"
-            icon = if (isMusicOn) Icons.Rounded.MusicNote else Icons.Rounded.MusicOff,
-            isOn = isMusicOn,
-            isDark = isDark,
-            colors = colors,
-            onToggle = { viewModel.toggleMusic(it) }
-        )
-
-        SettingItem(
-            title = strings.vibration,
-            icon = if (isVibrationOn) Icons.Rounded.Vibration else Icons.Rounded.Smartphone,
-            isOn = isVibrationOn,
-            isDark = isDark,
-            colors = colors,
-            onToggle = { viewModel.toggleVibration() }
-        )
-
-        val timeString = "${
-            notificationTime.first.toString().padStart(2, '0')
-        }:${notificationTime.second.toString().padStart(2, '0')}"
-        // Dinamik Alt Metin: "Her gün 22:00" veya "Kapalı"
-        val subtitleText = if (isNotificationEnabled)
-            "${strings.reminderOnPrefix} $timeString"
-        else
-            strings.reminderOff
-
-        SettingItem(
-            title = strings.dailyReminder,
-            subtitle = subtitleText,
-            icon = if (isNotificationEnabled) Icons.Rounded.Notifications else Icons.Rounded.NotificationsOff,
-            isOn = isNotificationEnabled,
-            isDark = isDark,
-            colors = colors,
-            onToggle = { shouldEnable ->
-                if (shouldEnable) {
-                    if (permissionControl.hasPermission()) viewModel.setNotificationSchedule(true)
-                    else permissionControl.launchPermissionRequest()
-                } else {
-                    viewModel.setNotificationSchedule(false)
-                }
-            }
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "EQUATIX v${getAppVersion()}", // Sürüm
-            color = colors.textSecondary.copy(0.5f),
-            fontSize = 14.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
-}
-
-@Composable
-fun LanguageSelectorRow(
-    currentLanguage: AppLanguage,
-    onLanguageSelected: (AppLanguage) -> Unit,
-    colors: EquatixDesignSystem.ThemeColors,
-    isDark: Boolean
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp) // Boşluğu biraz kıstık, butonlara yer kalsın
-    ) {
-        AppLanguage.values().forEach { language ->
-            val isSelected = language == currentLanguage
-
-            // Animasyonlu renk geçişleri
-            val backgroundColor by animateColorAsState(
-                targetValue = if (isSelected) colors.accent else colors.cardBackground,
-                label = "bgColor"
-            )
-            val contentColor by animateColorAsState(
-                targetValue = if (isSelected) Color.White else colors.textPrimary,
-                label = "contentColor"
-            )
-            val borderColor = if (isSelected) colors.accent else colors.divider
-
-            // Seçili öğe hafifçe büyüsün veya öne çıksın
-            val elevation = if (isSelected && !isDark) 8.dp else 0.dp
-
-            Column(
-                modifier = Modifier
-                    .weight(1f) // Eşit genişlik
-                    .height(72.dp) // Yükseklik artırıldı (Rahat sığması için)
-                    .shadow(elevation, RoundedCornerShape(16.dp))
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(backgroundColor.copy(alpha = if (isSelected) 1f else 0.05f))
-                    .border(
-                        width = 1.dp,
-                        color = if (isSelected) Color.Transparent else borderColor,
-                        shape = RoundedCornerShape(16.dp)
-                    )
-                    .clickable { onLanguageSelected(language) }
-                    .padding(vertical = 8.dp, horizontal = 4.dp), // İç boşluk
-                verticalArrangement = Arrangement.Center, // Dikeyde ortala
-                horizontalAlignment = Alignment.CenterHorizontally // Yatayda ortala
-            ) {
-                // 1. Bayrak (Üstte)
-                Text(
-                    text = language.flagEmoji,
-                    fontSize = 24.sp, // Bayrak biraz büyütüldü
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                // 2. Dil İsmi (Altta)
-                Text(
-                    text = language.label,
-                    style = MaterialTheme.typography.labelMedium.copy( // Daha okunaklı, kompakt font
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                        letterSpacing = 0.5.sp
-                    ),
-                    color = contentColor,
-                    maxLines = 1,
-                    textAlign = TextAlign.Center, // Metni ortala
-                    softWrap = false, // Alt satıra geçmesin, sığdırmaya çalışsın
-                    // Eğer çok uzun olursa sığdır:
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun SectionTitle(text: String, colors: EquatixDesignSystem.ThemeColors) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.labelLarge,
-        fontWeight = FontWeight.Bold,
-        color = colors.accent,
-        letterSpacing = 1.5.sp
-    )
-}
-
-@Composable
-fun SettingItem(
-    title: String,
-    subtitle: String? = null,
-    icon: ImageVector,
-    isOn: Boolean,
-    isDark: Boolean,
-    colors: EquatixDesignSystem.ThemeColors,
-    onToggle: (Boolean) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onToggle(!isOn) }
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(colors.textSecondary.copy(0.1f), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(icon, null, tint = colors.textPrimary, modifier = Modifier.size(20.dp))
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = colors.textPrimary,
-                    fontWeight = FontWeight.SemiBold
-                )
-                if (subtitle != null) {
-                    Text(
-                        text = subtitle,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colors.textSecondary,
-                        fontSize = 12.sp
-                    )
-                }
-            }
-        }
-
-        Switch(
-            checked = isOn,
-            onCheckedChange = onToggle,
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = Color.White,
-                checkedTrackColor = colors.accent,
-                uncheckedThumbColor = colors.textSecondary,
-                uncheckedTrackColor = colors.cardBackground
-            )
-        )
     }
 }
