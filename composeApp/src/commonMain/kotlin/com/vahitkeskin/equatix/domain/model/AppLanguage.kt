@@ -7,6 +7,7 @@ enum class AppLanguage(
     val label: String,
     val flagEmoji: String
 ) {
+    SYSTEM("sys", "System", "📱"),
     TURKISH("tr", "Türkçe", "🇹🇷"),
     ENGLISH("en", "English", "🇺🇸"),
     GERMAN("de", "Deutsch", "🇩🇪"),
@@ -15,7 +16,8 @@ enum class AppLanguage(
     companion object {
         fun getDeviceLanguage(): AppLanguage {
             val systemCode = getSystemLanguageCode()
-            return entries.find { it.code == systemCode } ?: ENGLISH
+            return entries.filter { it != SYSTEM }
+                .find { it.code.equals(systemCode, ignoreCase = true) } ?: ENGLISH
         }
     }
 }

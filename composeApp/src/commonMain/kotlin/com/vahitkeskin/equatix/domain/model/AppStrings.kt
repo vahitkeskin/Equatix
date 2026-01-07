@@ -59,7 +59,8 @@ data class AppStrings(
     val pauseRestart: String, // "Yeniden"
     val pauseQuit: String,     // "Çıkış"
 
-    val btnSelect: String, // YENİ
+    val btnSelect: String,
+    val langSystem: String
 ) {
     // YARDIMCI FONKSİYON: Enum'ı alıp doğru metni döndürür
     fun getDifficultyLabel(difficulty: Difficulty): String {
@@ -109,7 +110,8 @@ object AppDictionary {
         pauseResume = "RESUME",
         pauseRestart = "Restart",
         pauseQuit = "Quit",
-        btnSelect = "SEÇ",
+        btnSelect = "SELECT",
+        langSystem = "System",
     )
 
     val tr = AppStrings(
@@ -147,7 +149,8 @@ object AppDictionary {
         pauseResume = "DEVAM ET",
         pauseRestart = "Yeniden",
         pauseQuit = "Çıkış",
-        btnSelect = "SELECT",
+        btnSelect = "SEÇ",
+        langSystem = "Sistem",
     )
 
     val de = AppStrings(
@@ -186,6 +189,7 @@ object AppDictionary {
         pauseRestart = "Neustart",
         pauseQuit = "Beenden",
         btnSelect = "WÄHLEN",
+        langSystem = "System",
     )
 
     val ar = AppStrings(
@@ -224,6 +228,7 @@ object AppDictionary {
         pauseRestart = "إعادة تشغيل",
         pauseQuit = "خروج",
         btnSelect = "اختيار",
+        langSystem = "نظام",
     )
 
     fun getStrings(language: AppLanguage): AppStrings {
