@@ -9,10 +9,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,10 +29,12 @@ import com.vahitkeskin.equatix.domain.model.Difficulty
 import com.vahitkeskin.equatix.domain.model.GridSize
 import com.vahitkeskin.equatix.ui.common.AnimatedSegmentedControl
 import com.vahitkeskin.equatix.ui.common.GlassBox
+import com.vahitkeskin.equatix.ui.home.HomeViewModel
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
 
 @Composable
 fun HomeSelectionPanel(
+    viewModel: HomeViewModel, // YENİ: Stringlere erişim için eklendi
     selectedDiff: Difficulty,
     onDiffSelect: (Difficulty) -> Unit,
     selectedSize: GridSize,
@@ -39,6 +42,9 @@ fun HomeSelectionPanel(
     isDark: Boolean,
     colors: EquatixDesignSystem.ThemeColors
 ) {
+    // ViewModel'den güncel dil paketini çekiyoruz
+    val strings by viewModel.strings.collectAsState()
+
     val borderColor = if (isDark) Color.Transparent else colors.gridLines.copy(alpha = 0.5f)
     val containerBg = if (isDark) Color.White.copy(0.03f) else colors.cardBackground
 
@@ -69,7 +75,7 @@ fun HomeSelectionPanel(
             Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
                 // Zorluk Seçimi
                 SelectionRow(
-                    label = "ZORLUK SEVİYESİ",
+                    label = strings.difficultyLevel, // "ZORLUK SEVİYESİ" -> Dinamik
                     labelColor = colors.accent,
                     content = {
                         AnimatedSegmentedControl(
@@ -77,16 +83,17 @@ fun HomeSelectionPanel(
                             selectedItem = selectedDiff,
                             onItemSelected = onDiffSelect,
                             modifier = Modifier.fillMaxWidth(),
-                            itemLabel = { it.label.split(" ")[0].uppercase() }
+                            itemLabel = { strings.getDifficultyLabel(it).uppercase() }
                         )
                     }
                 )
 
-                Divider(color = colors.divider)
+                // Divider -> HorizontalDivider Güncellemesi
+                HorizontalDivider(color = colors.divider)
 
                 // Boyut Seçimi
                 SelectionRow(
-                    label = "IZGARA BOYUTU",
+                    label = strings.gridSize, // "IZGARA BOYUTU" -> Dinamik
                     labelColor = colors.accent,
                     content = {
                         AnimatedSegmentedControl(
@@ -104,7 +111,14 @@ fun HomeSelectionPanel(
 }
 
 @Composable
-fun CyberStartButton(isDark: Boolean, onClick: () -> Unit) {
+fun CyberStartButton(
+    homeViewModel: HomeViewModel,
+    isDark: Boolean,
+    onClick: () -> Unit
+) {
+    // ViewModel'den güncel dil paketini çekiyoruz
+    val strings by homeViewModel.strings.collectAsState()
+
     val infiniteTransition = rememberInfiniteTransition(label = "ButtonPulse")
     val borderAlpha by infiniteTransition.animateFloat(
         initialValue = 0.5f, targetValue = 1f,
@@ -115,13 +129,12 @@ fun CyberStartButton(isDark: Boolean, onClick: () -> Unit) {
         label = "alpha"
     )
 
-    // Light Mod için butona da hafif bir gölge ekleyelim ki panel ile uyumlu olsun
+    // Light Mod için butona da hafif bir gölge ekleyelim
     val buttonShadow = if (isDark) 0.dp else 8.dp
 
     val bgGradient = if (isDark) {
         Brush.horizontalGradient(listOf(Color(0xFF34C759).copy(0.15f), Color(0xFF32ADE6).copy(0.15f)))
     } else {
-        // Light modda buton çok koyu kalıyordu, biraz daha soft ama dikkat çekici bir lacivert
         Brush.horizontalGradient(listOf(Color(0xFF0F172A), Color(0xFF1E293B)))
     }
 
@@ -135,7 +148,6 @@ fun CyberStartButton(isDark: Boolean, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .height(72.dp)
-            // Buton gölgesi (Sadece Light Mod)
             .shadow(
                 elevation = buttonShadow,
                 shape = RoundedCornerShape(24.dp),
@@ -164,7 +176,7 @@ fun CyberStartButton(isDark: Boolean, onClick: () -> Unit) {
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "OYUNU BAŞLAT",
+                text = strings.startGame, // "OYUNU BAŞLAT" -> Dinamik
                 color = Color.White,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,

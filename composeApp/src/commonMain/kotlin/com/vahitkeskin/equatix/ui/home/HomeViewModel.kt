@@ -3,9 +3,12 @@ package com.vahitkeskin.equatix.ui.home
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.vahitkeskin.equatix.di.AppModule
+import com.vahitkeskin.equatix.domain.model.AppDictionary
+import com.vahitkeskin.equatix.domain.model.AppLanguage
 import com.vahitkeskin.equatix.domain.model.AppThemeConfig
 import com.vahitkeskin.equatix.domain.model.Difficulty
 import com.vahitkeskin.equatix.domain.model.GridSize
+import com.vahitkeskin.equatix.platform.KeyValueStorage
 import com.vahitkeskin.equatix.ui.game.utils.formatTime
 import com.vahitkeskin.equatix.utils.NotificationContent
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -57,9 +60,50 @@ class HomeViewModel : ScreenModel {
     private val _isMusicOn = MutableStateFlow(false)
     val isMusicOn = _isMusicOn.asStateFlow()
 
+    private val storage = KeyValueStorage() // Platforma özel storage
+    private val LANGUAGE_KEY = "selected_language"
+
+    // 1. Dil State'i
+    private val _currentLanguage = MutableStateFlow(AppLanguage.ENGLISH)
+    val currentLanguage = _currentLanguage.asStateFlow()
+
+    // 2. String State'i (UI burayı dinleyecek)
+    private val _strings = MutableStateFlow(AppDictionary.en)
+    val strings = _strings.asStateFlow()
+
     // --- BAŞLANGIÇ KONTROLÜ ---
     init {
         checkInitialState()
+        loadSavedLanguage()
+    }
+
+    private fun loadSavedLanguage() {
+        // Kayıtlı kodu getir
+        val savedCode = storage.getString(LANGUAGE_KEY)
+
+        val language = if (savedCode != null) {
+            // Kayıt varsa ona uygun dili bul
+            AppLanguage.values().find { it.code == savedCode } ?: AppLanguage.ENGLISH
+        } else {
+            // Kayıt yoksa SİSTEM dilini kullan (önceki kodumuz)
+            AppLanguage.getDeviceLanguage()
+        }
+
+        // State'leri güncelle
+        updateLanguageState(language)
+    }
+
+    fun setLanguage(language: AppLanguage) {
+        // 1. Kaydet
+        storage.saveString(LANGUAGE_KEY, language.code)
+        // 2. State'i Güncelle
+        updateLanguageState(language)
+    }
+
+    private fun updateLanguageState(language: AppLanguage) {
+        _currentLanguage.value = language
+        // Dili değiştirdiğimiz an Stringler de değişir
+        _strings.value = AppDictionary.getStrings(language)
     }
 
     fun toggleMusic(enabled: Boolean) {
