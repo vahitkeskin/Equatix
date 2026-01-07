@@ -2,50 +2,70 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
+    // Kotlin Multiplatform (Android + iOS + Desktop)
     alias(libs.plugins.kotlinMultiplatform)
+    // Android Application plugin
     alias(libs.plugins.androidApplication)
+    // Compose Multiplatform
     alias(libs.plugins.composeMultiplatform)
+    // Compose Compiler (required for Kotlin 2.x)
     alias(libs.plugins.composeCompiler)
+    // Kotlin Symbol Processing (Room, etc.)
     alias(libs.plugins.ksp)
+    // Room Gradle Plugin (schema management)
     alias(libs.plugins.room)
 }
 
 kotlin {
-    // --- ANDROID TARGET ---
+
+    // =========================
+    // ANDROID TARGET
+    // =========================
     androidTarget {
         @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {
+            // JVM bytecode target for Android
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
 
-    // --- IOS TARGETS ---
+    // =========================
+    // IOS TARGETS
+    // =========================
     listOf(
-        iosArm64(),
-        iosSimulatorArm64()
+        iosArm64(),           // Physical devices
+        iosSimulatorArm64()   // Apple Silicon simulator
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
-            baseName = "ComposeApp"
-            isStatic = true
+            baseName = "ComposeApp" // iOS framework name
+            isStatic = true         // Recommended for SwiftUI integration
         }
     }
 
-    // --- DESKTOP TARGET ---
+    // =========================
+    // DESKTOP TARGET
+    // =========================
     jvm("desktop")
 
-    // --- DEPENDENCIES ---
+    // =========================
+    // SOURCE SETS & DEPENDENCIES
+    // =========================
     sourceSets {
+
+        // -------- ANDROID MAIN --------
         val androidMain by getting {
             dependencies {
-                implementation(compose.preview)
-                implementation(libs.androidx.activity.compose)
-                implementation(libs.android.material)
-                implementation(libs.androidx.work.runtime.ktx)
+                implementation(compose.preview)                 // Android Studio preview support
+                implementation(libs.androidx.activity.compose) // Activity + Compose integration
+                implementation(libs.android.material)          // Material Components
+                implementation(libs.androidx.work.runtime.ktx) // WorkManager
             }
         }
+
+        // -------- COMMON MAIN (KMP CORE) --------
         val commonMain by getting {
             dependencies {
-                // Compose Core
+                // --- Compose Core ---
                 implementation(compose.runtime)
                 implementation(compose.foundation)
                 implementation(compose.material3)
@@ -53,67 +73,76 @@ kotlin {
                 implementation(compose.components.resources)
                 implementation(compose.components.uiToolingPreview)
 
-                // Material Icons
+                // --- Material Icons ---
                 implementation(compose.materialIconsExtended)
 
-                // Lifecycle (ViewModel & Runtime)
+                // --- Lifecycle ---
                 implementation(libs.androidx.lifecycle.viewmodelCompose)
                 implementation(libs.androidx.lifecycle.runtimeCompose)
 
-                // Voyager (Navigation)
+                // --- Navigation (Voyager) ---
                 implementation(libs.voyager.navigator)
                 implementation(libs.voyager.screenmodel)
                 implementation(libs.voyager.koin)
                 implementation(libs.voyager.transitions)
 
-                // Koin (DI)
+                // --- Dependency Injection ---
                 implementation(libs.koin.core)
 
-                // DataStore (Basit veriler için)
+                // --- Data & IO ---
                 implementation(libs.androidx.datastore.preferences.core)
                 implementation(libs.squareup.okio)
 
-                // --- EKLENEN DATABASE DEPENDENCIES ---
-                // Room Runtime
-                implementation(libs.androidx.room.runtime)
-                // SQLite Bundled (Native Driver - iOS/Desktop için kritik)
-                implementation(libs.androidx.sqlite.bundled)
-                // Kotlinx DateTime (KMP zaman işlemleri için)
-                implementation(libs.kotlinx.datetime)
+                // --- Database (KMP-compatible) ---
+                implementation(libs.androidx.room.runtime)      // Room runtime
+                implementation(libs.androidx.sqlite.bundled)   // Native SQLite (iOS/Desktop)
+                implementation(libs.kotlinx.datetime)           // Cross-platform date & time
             }
         }
+
+        // -------- COMMON TEST --------
         val commonTest by getting {
             dependencies {
                 implementation(libs.kotlin.test)
             }
         }
+
+        // -------- DESKTOP MAIN --------
         val desktopMain by getting {
             dependencies {
-                implementation(compose.desktop.currentOs)
-                implementation(libs.kotlinx.coroutines.swing)
+                implementation(compose.desktop.currentOs)      // Desktop Compose runtime
+                implementation(libs.kotlinx.coroutines.swing)  // Swing dispatcher
             }
         }
     }
 }
 
-// --- ROOM SCHEMA CONFIGURATION ---
-// Room'un veritabanı şemasını nerede oluşturacağını belirtiyoruz
+// =========================
+// ROOM CONFIGURATION
+// =========================
+// Defines where Room database schemas will be generated
 room {
     schemaDirectory("$projectDir/schemas")
 }
 
-// --- KSP DEPENDENCIES (Code Generation) ---
-// Room Compiler'ı tüm platformlara bağlıyoruz
+// =========================
+// KSP CONFIGURATION
+// =========================
+// Room compiler must be attached to ALL targets explicitly
 dependencies {
-    // KSP, CommonMainMetadata ile tüm target'lara kod üretir
+    // Shared metadata for KMP (critical for code generation)
     add("kspCommonMainMetadata", libs.androidx.room.compiler)
-    // Her platform için ayrı ayrı eklemek en garantisidir
+
+    // Platform-specific KSP configurations (safest approach)
     add("kspAndroid", libs.androidx.room.compiler)
     add("kspDesktop", libs.androidx.room.compiler)
     add("kspIosArm64", libs.androidx.room.compiler)
     add("kspIosSimulatorArm64", libs.androidx.room.compiler)
 }
 
+// =========================
+// ANDROID CONFIGURATION
+// =========================
 android {
     namespace = "com.vahitkeskin.equatix"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
@@ -122,45 +151,67 @@ android {
         applicationId = "com.vahitkeskin.equatix"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
+
         versionCode = 2
         versionName = "1.0.2"
     }
+
+    // Exclude conflicting license files from packaging
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    // Release build configuration
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
         }
     }
+
+    // Java bytecode compatibility
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
 }
 
+// =========================
+// DEBUG DEPENDENCIES
+// =========================
 dependencies {
-    debugImplementation(compose.uiTooling)
+    debugImplementation(compose.uiTooling) // Layout inspector & preview tooling
 }
 
-// --- DESKTOP CONFIGURATION ---
+// =========================
+// DESKTOP DISTRIBUTION
+// =========================
 compose.desktop {
     application {
         mainClass = "com.vahitkeskin.equatix.MainKt"
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            targetFormats(
+                TargetFormat.Dmg, // macOS
+                TargetFormat.Msi, // Windows
+                TargetFormat.Deb  // Linux
+            )
+
             packageName = "com.vahitkeskin.equatix"
             packageVersion = "1.0.0"
+
             description = "Equatix: Matrix Math Puzzle"
-            copyright = "© 2025 Vahit Keskin. All rights reserved."
+            copyright =
+                "© 2025 Vahit Keskin. All rights reserved."
         }
     }
 }
 
-// Versiyon çakışmalarını önleme
+// =========================
+// DEPENDENCY CONFLICT RESOLUTION
+// =========================
+// Explicitly force critical transitive dependencies
 configurations.all {
     resolutionStrategy {
         force("androidx.datastore:datastore-preferences-core:1.1.1")

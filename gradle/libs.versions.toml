@@ -1,61 +1,117 @@
 [versions]
-agp = "8.7.3"
-kotlin = "2.1.0"
-composeMultiplatform = "1.7.1"
-android-compileSdk = "35"
-android-minSdk = "24"
-android-targetSdk = "35"
-androidx-activity = "1.9.3"  # 1.12.2 yok.
-androidx-appcompat = "1.7.0"
-androidx-core = "1.15.0"     # 1.17.0 yok.
-androidx-espresso = "3.6.1"
-androidx-testExt = "1.2.1"
-androidx-lifecycle = "2.8.4"
-voyager = "1.1.0-beta03"
-junit = "4.13.2"
-kotlinx-coroutines = "1.10.1"
-datastore = "1.1.1"
-okio = "3.9.1"
-android-material = "1.12.0"
-compose = "1.7.0" # Örnek
-room = "2.7.0-alpha12"
-ksp = "2.0.20-1.0.25" # DİKKAT: Bu sürüm, kullandığın Kotlin sürümüyle (libs.versions.kotlin) TAM UYUMLU olmalıdır.
-sqlite = "2.5.0-alpha12"
-datetime = "0.6.0"
-workRuntime = "2.9.1" # Güncel stabil sürüm 2.9.1'dir, 2.9.0 da kullanabilirsiniz.
+
+# =========================
+# Build & Language
+# =========================
+agp = "8.7.3"                # Android Gradle Plugin
+kotlin = "2.1.0"             # Kotlin compiler & stdlib
+
+# =========================
+# Android SDK
+# =========================
+android-compileSdk = "35"    # Derleme SDK
+android-minSdk = "24"        # Minimum desteklenen SDK
+android-targetSdk = "35"     # Hedef SDK
+
+# =========================
+# Compose & UI
+# =========================
+compose = "1.7.0"            # Jetpack Compose (örnek referans)
+composeMultiplatform = "1.7.1" # Compose Multiplatform plugin
+
+androidx-activity = "1.9.3"  # activity-compose
+androidx-appcompat = "1.7.0" # AppCompat
+androidx-core = "1.15.0"     # core-ktx
+android-material = "1.12.0"  # Material Components
+
+# =========================
+# Lifecycle & Architecture
+# =========================
+androidx-lifecycle = "2.8.4" # ViewModel, Runtime, Compose entegrasyonu
+workRuntime = "2.9.1"        # WorkManager (stabil)
+
+# =========================
+# Navigation
+# =========================
+voyager = "1.1.0-beta03"     # Voyager navigation (Compose)
+
+# =========================
+# Persistence & Storage
+# =========================
+room = "2.7.0-alpha12"       # Room (alpha – bilinçli tercih)
+sqlite = "2.5.0-alpha12"     # SQLite bundled (Room uyumlu)
+datastore = "1.1.1"          # DataStore Preferences
+
+# =========================
+# Async & Utilities
+# =========================
+kotlinx-coroutines = "1.10.1" # Coroutines
+okio = "3.9.1"                # IO utilities
+datetime = "0.6.0"            # kotlinx-datetime
+
+# =========================
+# Testing
+# =========================
+junit = "4.13.2"              # Unit test
+androidx-testExt = "1.2.1"    # AndroidX test ext
+androidx-espresso = "3.6.1"   # Espresso UI test
+
+# =========================
+# Annotation Processing
+# =========================
+ksp = "2.0.20-1.0.25"         # KSP (Kotlin sürümüyle TAM uyumlu)
+
 
 [libraries]
-# Kotlin & Test
+
+# -------- Kotlin & Core --------
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
-junit = { module = "junit:junit", version.ref = "junit" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
-androidx-testExt-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-testExt" }
-androidx-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "androidx-espresso" }
-androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
+
+# -------- UI & Compose --------
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
+android-material = { group = "com.google.android.material", name = "material", version.ref = "android-material" }
+
+# -------- Lifecycle --------
 androidx-lifecycle-viewmodelCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-runtimeCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
-kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
+
+# -------- Navigation (Voyager) --------
 voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyager" }
 voyager-screenmodel = { module = "cafe.adriel.voyager:voyager-screenmodel", version.ref = "voyager" }
 voyager-koin = { module = "cafe.adriel.voyager:voyager-koin", version.ref = "voyager" }
 voyager-transitions = { module = "cafe.adriel.voyager:voyager-transitions", version.ref = "voyager" }
-koin-core = { module = "io.insert-koin:koin-core", version = "4.0.0" } # Koin 4.0 KMP için daha stabil
-androidx-datastore-preferences-core = { group = "androidx.datastore", name = "datastore-preferences-core", version.ref = "datastore" }
-squareup-okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }
-android-material = { group = "com.google.android.material", name = "material", version.ref = "android-material" }
+
+# -------- Dependency Injection --------
+koin-core = { module = "io.insert-koin:koin-core", version = "4.0.0" } # KMP için stabil
+
+# -------- Persistence --------
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 androidx-sqlite-bundled = { group = "androidx.sqlite", name = "sqlite-bundled", version.ref = "sqlite" }
+androidx-datastore-preferences-core = { group = "androidx.datastore", name = "datastore-preferences-core", version.ref = "datastore" }
+
+# -------- Async / Utils --------
+kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
+squareup-okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "datetime" }
+
+# -------- Background Work --------
 androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workRuntime" }
 
 [plugins]
+
+# Android
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
+
+# Kotlin & Compose
+kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+
+# Code Generation
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 room = { id = "androidx.room", version.ref = "room" }
