@@ -3,9 +3,11 @@ package com.vahitkeskin.equatix
 import android.app.Application
 import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
-import androidx.work.Configuration // <-- BU EKLENDİ
+import androidx.work.Configuration
 import com.vahitkeskin.equatix.data.local.AppDatabase
 import com.vahitkeskin.equatix.di.AppModule
+// 1. BU IMPORT'U EKLE (Platform tarafındaki değişkene erişmek için)
+import com.vahitkeskin.equatix.platform.appContext
 import kotlinx.coroutines.Dispatchers
 
 class EquatixApp : Application(), Configuration.Provider {
@@ -19,10 +21,13 @@ class EquatixApp : Application(), Configuration.Provider {
         super.onCreate()
         instance = this
 
-        // 1. Veritabanı Yolu
+        // 2. BU SATIRI EKLE (Kritik olan kısım burası)
+        // KeyValueStorage'ın kullandığı değişkeni burada başlatıyoruz.
+        appContext = this
+
+        // --- Veritabanı İşlemleri ---
         val dbFile = applicationContext.getDatabasePath("equatix.db")
 
-        // 2. Veritabanı Kurulumu
         val db = Room.databaseBuilder<AppDatabase>(
             context = applicationContext,
             name = dbFile.absolutePath
@@ -31,12 +36,11 @@ class EquatixApp : Application(), Configuration.Provider {
             .setQueryCoroutineContext(Dispatchers.IO)
             .build()
 
-        // 3. Dependency Injection
         AppModule.database = db
     }
 
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
-            .setMinimumLoggingLevel(android.util.Log.INFO) // Log seviyesi
+            .setMinimumLoggingLevel(android.util.Log.INFO)
             .build()
 }

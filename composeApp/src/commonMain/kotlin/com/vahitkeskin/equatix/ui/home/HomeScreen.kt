@@ -95,6 +95,7 @@ class HomeScreen : Screen {
                 // Seçim Paneli
                 AnimatedSlideIn(visible = startAnimation, delay = 400) {
                     HomeSelectionPanel(
+                        viewModel = viewModel,
                         selectedDiff = selectedDiff,
                         onDiffSelect = { selectedDiff = it },
                         selectedSize = selectedSize,
@@ -109,6 +110,7 @@ class HomeScreen : Screen {
                 // Start Butonu
                 AnimatedSlideIn(visible = startAnimation, delay = 600) {
                     CyberStartButton(
+                        homeViewModel = viewModel,
                         isDark = isDark,
                         onClick = {
                             navigator.push(

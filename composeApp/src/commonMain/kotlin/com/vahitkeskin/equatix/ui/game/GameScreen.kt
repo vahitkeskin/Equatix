@@ -46,6 +46,7 @@ import com.vahitkeskin.equatix.ui.game.utils.calculateProgress
 import com.vahitkeskin.equatix.ui.game.visuals.CosmicBackground
 import com.vahitkeskin.equatix.ui.game.visuals.FireworkOverlay
 import com.vahitkeskin.equatix.ui.game.visuals.ProgressPath
+import com.vahitkeskin.equatix.ui.home.HomeViewModel
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -61,6 +62,7 @@ data class GameScreen(
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val viewModel = rememberScreenModel { GameViewModel() }
+        val homeViewModel = rememberScreenModel { HomeViewModel() }
 
         LaunchedEffect(Unit) {
             if (viewModel.gameState == null) viewModel.startGame(difficulty, gridSize)
@@ -70,6 +72,7 @@ data class GameScreen(
 
         GameContent(
             viewModel = viewModel,
+            homeViewModel = homeViewModel,
             onNavigateBack = { navigator.pop() },
             difficulty = difficulty,
             gridSize = gridSize,
@@ -82,6 +85,7 @@ data class GameScreen(
 @Composable
 private fun GameContent(
     viewModel: GameViewModel,
+    homeViewModel: HomeViewModel,
     onNavigateBack: () -> Unit,
     difficulty: Difficulty,
     gridSize: GridSize,
@@ -89,6 +93,7 @@ private fun GameContent(
     isDarkTheme: Boolean
 ) {
     val haptic = LocalHapticFeedback.current
+    val appSettings by homeViewModel.strings.collectAsState()
 
     var elapsedTime by remember { mutableStateOf(0L) }
     var isTimerRunning by remember { mutableStateOf(true) }
@@ -185,6 +190,7 @@ private fun GameContent(
                     gridSize = gridSize,
                     isSolved = viewModel.isSolved,
                     colors = colors,
+                    appStrings = appSettings,
                     onBack = onNavigateBack,
                     onAutoSolve = {
                         isTimerRunning = false
@@ -243,6 +249,7 @@ private fun GameContent(
                     // Input mantığı artık tamamen ViewModel içinde yönetiliyor
                     viewModel.onInput(key)
                 },
+                homeViewModel = homeViewModel,
                 onRestart = {
                     viewModel.startGame(difficulty, gridSize)
                     elapsedTime = 0
@@ -257,6 +264,7 @@ private fun GameContent(
             isVisible = isGamePaused,
             colors = colors,
             isDark = isDarkTheme,
+            appStrings = appSettings,
             onResume = {
                 isGamePaused = false
                 isTimerRunning = true
@@ -320,6 +328,7 @@ fun PreviewGameContentMaximized() {
     if (viewModel.gameState != null) {
         GameContent(
             viewModel = viewModel,
+            homeViewModel = HomeViewModel(),
             onNavigateBack = {},
             difficulty = Difficulty.EASY,
             gridSize = GridSize.SIZE_3x3,

@@ -17,14 +17,18 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vahitkeskin.equatix.domain.model.AppStrings
 import com.vahitkeskin.equatix.domain.model.Difficulty
 import com.vahitkeskin.equatix.domain.model.GridSize
+import com.vahitkeskin.equatix.ui.home.HomeViewModel
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -33,7 +37,8 @@ fun GameHeader(
     difficulty: Difficulty,
     gridSize: GridSize,
     isSolved: Boolean,
-    colors: EquatixDesignSystem.ThemeColors, // Tema renkleri
+    colors: EquatixDesignSystem.ThemeColors,
+    appStrings: AppStrings,
     onBack: () -> Unit,
     onAutoSolve: () -> Unit,
     onRefresh: () -> Unit
@@ -68,7 +73,7 @@ fun GameHeader(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = difficulty.label.uppercase(),
+                text = appStrings.getDifficultyLabel(difficulty).uppercase(),
                 color = difficulty.color,
                 fontWeight = FontWeight.Bold,
                 fontSize = 12.sp,
@@ -105,6 +110,7 @@ fun PreviewGameHeader() {
     // 1. Tema Renklerini Alıyoruz (Senior Dokunuş)
     val darkColors = EquatixDesignSystem.getColors(isDark = true)
     val lightColors = EquatixDesignSystem.getColors(isDark = false)
+    val appStrings by HomeViewModel().strings.collectAsState()
 
     Column(
         modifier = Modifier
@@ -124,7 +130,8 @@ fun PreviewGameHeader() {
                 difficulty = Difficulty.HARD,
                 gridSize = GridSize.SIZE_4x4,
                 isSolved = false,
-                colors = darkColors, // <--- YENİ EKLENEN PARAMETRE
+                colors = darkColors,
+                appStrings = appStrings,
                 onBack = {},
                 onAutoSolve = {},
                 onRefresh = {}
@@ -141,8 +148,9 @@ fun PreviewGameHeader() {
             GameHeader(
                 difficulty = Difficulty.EASY,
                 gridSize = GridSize.SIZE_3x3,
-                isSolved = true, // Çözüldüğü için 'Auto Solve' ikonu gizlenir
-                colors = lightColors, // <--- YENİ EKLENEN PARAMETRE
+                isSolved = true,
+                colors = lightColors,
+                appStrings = appStrings,
                 onBack = {},
                 onAutoSolve = {},
                 onRefresh = {}

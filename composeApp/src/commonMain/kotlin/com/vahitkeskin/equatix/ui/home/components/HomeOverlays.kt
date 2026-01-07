@@ -13,18 +13,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.rounded.MusicNote
-import androidx.compose.material.icons.rounded.MusicOff
-import androidx.compose.material.icons.rounded.Notifications
-import androidx.compose.material.icons.rounded.NotificationsOff
-import androidx.compose.material.icons.rounded.Smartphone
-import androidx.compose.material.icons.rounded.Vibration
-import androidx.compose.material.icons.rounded.VolumeOff
-import androidx.compose.material.icons.rounded.VolumeUp
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -35,6 +29,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
+import com.vahitkeskin.equatix.domain.model.AppLanguage
+import com.vahitkeskin.equatix.domain.model.AppStrings
 import com.vahitkeskin.equatix.domain.model.AppThemeConfig
 import com.vahitkeskin.equatix.platform.getAppVersion
 import com.vahitkeskin.equatix.ui.common.AnimatedSegmentedControl
@@ -53,6 +49,7 @@ fun HomeOverlayPanel(
     colors: EquatixDesignSystem.ThemeColors
 ) {
     val overlayDimColor = if (isDark) Color.Black.copy(0.85f) else Color.Black.copy(0.4f)
+    val strings by viewModel.strings.collectAsState()
 
     AnimatedVisibility(
         visible = overlayType != null,
@@ -98,8 +95,14 @@ fun HomeOverlayPanel(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        // BAŞLIK (Dinamik)
+                        val title = if (overlay == HomeScreen.OverlayType.HISTORY)
+                            strings.scoresTitle
+                        else
+                            strings.settingsTitle
+
                         Text(
-                            text = if (overlay == HomeScreen.OverlayType.HISTORY) "SKORLAR" else "AYARLAR",
+                            text = title,
                             style = MaterialTheme.typography.displaySmall.copy(
                                 fontWeight = FontWeight.Black,
                                 color = colors.textPrimary,
@@ -109,7 +112,7 @@ fun HomeOverlayPanel(
                         IconButton(onClick = onDismiss) {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = "Close",
+                                contentDescription = strings.close, // Erişilebilirlik metni
                                 tint = colors.textSecondary,
                                 modifier = Modifier.size(32.dp)
                             )
@@ -122,8 +125,20 @@ fun HomeOverlayPanel(
 
                     // İçerik
                     when (overlay) {
-                        HomeScreen.OverlayType.HISTORY -> HistoryList(viewModel, colors, isDark)
-                        HomeScreen.OverlayType.SETTINGS -> SettingsList(viewModel, isDark, colors)
+                        // strings nesnesini alt componentlere de gönderiyoruz
+                        HomeScreen.OverlayType.HISTORY -> HistoryList(
+                            viewModel,
+                            colors,
+                            isDark,
+                            strings
+                        )
+
+                        HomeScreen.OverlayType.SETTINGS -> SettingsList(
+                            viewModel,
+                            isDark,
+                            colors,
+                            onDismiss
+                        )
                     }
                 }
             }
@@ -135,7 +150,8 @@ fun HomeOverlayPanel(
 private fun HistoryList(
     viewModel: HomeViewModel,
     colors: EquatixDesignSystem.ThemeColors,
-    isDark: Boolean
+    isDark: Boolean,
+    strings: AppStrings // Parametre olarak aldık
 ) {
     val scores by viewModel.scores.collectAsState()
 
@@ -147,7 +163,7 @@ private fun HistoryList(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                "Henüz oyun oynanmadı.",
+                text = strings.noHistory, // Dinamik: "Henüz oyun oynanmadı."
                 color = colors.textSecondary,
                 fontSize = 18.sp
             )
@@ -189,7 +205,7 @@ private fun HistoryList(
                             if (dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart) {
                                 Icon(
                                     imageVector = icon,
-                                    contentDescription = "Delete",
+                                    contentDescription = strings.delete, // Dinamik: "Sil"
                                     tint = Color.White
                                 )
                             }
@@ -216,7 +232,7 @@ private fun HistoryList(
                                 )
                                 Spacer(modifier = Modifier.height(6.dp))
                                 Text(
-                                    text = "${score.difficulty.label} • ${score.gridSize.label}",
+                                    text = "${strings.getDifficultyLabel(score.difficulty)} • ${score.gridSize.label}",
                                     color = score.difficulty.color,
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Medium
@@ -224,7 +240,7 @@ private fun HistoryList(
                             }
                             Column(horizontalAlignment = Alignment.End) {
                                 Text(
-                                    text = "${score.score} P",
+                                    text = "${score.score} ${strings.scorePointSuffix}", // Dinamik: "P" veya "Pkt"
                                     color = colors.success,
                                     fontWeight = FontWeight.Black,
                                     fontSize = 22.sp
@@ -258,11 +274,11 @@ private fun HistoryList(
 private fun SettingsList(
     viewModel: HomeViewModel,
     isDark: Boolean,
-    colors: EquatixDesignSystem.ThemeColors
+    colors: EquatixDesignSystem.ThemeColors,
+    onStartClick: () -> Unit // Eğer panelden oyunu başlatmak istersen
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    // State Takipleri
     val isSoundOn by viewModel.isSoundOn.collectAsState()
     val isVibrationOn by viewModel.isVibrationOn.collectAsState()
     val themeConfig by viewModel.themeConfig.collectAsState()
@@ -270,48 +286,59 @@ private fun SettingsList(
     val notificationTime by viewModel.notificationTime.collectAsState()
     val isMusicOn by viewModel.isMusicOn.collectAsState()
 
-    // 1. LIFECYCLE TAKİBİ (İzin durumu için)
+    // Metinleri dinliyoruz
+    val strings by viewModel.strings.collectAsState()
+    val currentLanguage by viewModel.currentLanguage.collectAsState()
+
     LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
             viewModel.refreshPermissionStatus()
         }
     }
 
-    // 2. İZİN KONTROLCÜSÜ
     val permissionControl = rememberNotificationPermissionControl(
         onPermissionResult = { isGranted ->
-            if (isGranted) {
-                // İzin Verildi -> Planla
-                viewModel.setNotificationSchedule(true)
-            } else {
-                // Reddedildi -> Ayarlara Gönder
-                viewModel.openAppSettings()
-            }
+            if (isGranted) viewModel.setNotificationSchedule(true)
+            else viewModel.openAppSettings()
         }
     )
 
     Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
 
+        LanguageSelectorRow(
+            currentLanguage = currentLanguage,
+            onLanguageSelected = { viewModel.setLanguage(it) },
+            colors = colors,
+            isDark = isDark
+        )
+
+        HorizontalDivider(color = colors.divider)
+
         // --- GÖRÜNÜM ---
-        SectionTitle("GÖRÜNÜM", colors)
+        SectionTitle(strings.appearance, colors)
 
         AnimatedSegmentedControl(
             items = AppThemeConfig.values().toList(),
             selectedItem = themeConfig,
             onItemSelected = { viewModel.setTheme(it) },
             modifier = Modifier.fillMaxWidth().height(48.dp).background(Color.Transparent),
-            itemLabel = { if (it == AppThemeConfig.FOLLOW_SYSTEM) "Sistem" else if (it == AppThemeConfig.LIGHT) "Açık" else "Koyu" }
+            itemLabel = {
+                when (it) {
+                    AppThemeConfig.FOLLOW_SYSTEM -> strings.system
+                    AppThemeConfig.LIGHT -> strings.light
+                    AppThemeConfig.DARK -> strings.dark
+                }
+            }
         )
 
-        Divider(color = colors.divider)
+        HorizontalDivider(color = colors.divider)
 
         // --- TERCİHLER ---
-        SectionTitle("TERCİHLER", colors)
+        SectionTitle(strings.preferences, colors)
 
-        // 1. YENİ: Arka Plan Müziği
         SettingItem(
-            title = "Arka Plan Müziği",
-            subtitle = "Rahatlatıcı Piyano", // Kullanıcı ne çalacağını bilsin
+            title = strings.backgroundMusic,
+            subtitle = strings.musicSubtitle, // Dinamik: "Rahatlatıcı Piyano"
             icon = if (isMusicOn) Icons.Rounded.MusicNote else Icons.Rounded.MusicOff,
             isOn = isMusicOn,
             isDark = isDark,
@@ -320,7 +347,7 @@ private fun SettingsList(
         )
 
         SettingItem(
-            title = "Titreşim",
+            title = strings.vibration,
             icon = if (isVibrationOn) Icons.Rounded.Vibration else Icons.Rounded.Smartphone,
             isOn = isVibrationOn,
             isDark = isDark,
@@ -328,25 +355,26 @@ private fun SettingsList(
             onToggle = { viewModel.toggleVibration() }
         )
 
-        // Dinamik Zaman Metni (Örn: "Her gece 22:00'de")
-        val timeString = "${notificationTime.first.toString().padStart(2, '0')}:${notificationTime.second.toString().padStart(2, '0')}"
-        val subtitleText = if (isNotificationEnabled) "Her gün $timeString'da" else "Kapalı"
+        val timeString = "${
+            notificationTime.first.toString().padStart(2, '0')
+        }:${notificationTime.second.toString().padStart(2, '0')}"
+        // Dinamik Alt Metin: "Her gün 22:00" veya "Kapalı"
+        val subtitleText = if (isNotificationEnabled)
+            "${strings.reminderOnPrefix} $timeString"
+        else
+            strings.reminderOff
 
-        // 3. GÜNLÜK HATIRLATICI
         SettingItem(
-            title = "Günlük Hatırlatıcı",
-            subtitle = subtitleText, // Dinamik metin
+            title = strings.dailyReminder,
+            subtitle = subtitleText,
             icon = if (isNotificationEnabled) Icons.Rounded.Notifications else Icons.Rounded.NotificationsOff,
             isOn = isNotificationEnabled,
             isDark = isDark,
             colors = colors,
             onToggle = { shouldEnable ->
                 if (shouldEnable) {
-                    if (permissionControl.hasPermission()) {
-                        viewModel.setNotificationSchedule(true)
-                    } else {
-                        permissionControl.launchPermissionRequest()
-                    }
+                    if (permissionControl.hasPermission()) viewModel.setNotificationSchedule(true)
+                    else permissionControl.launchPermissionRequest()
                 } else {
                     viewModel.setNotificationSchedule(false)
                 }
@@ -356,12 +384,85 @@ private fun SettingsList(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "EQUATIX v${getAppVersion()}", // Dinamik Sürüm
+            text = "EQUATIX v${getAppVersion()}", // Sürüm
             color = colors.textSecondary.copy(0.5f),
             fontSize = 14.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
+    }
+}
+
+@Composable
+fun LanguageSelectorRow(
+    currentLanguage: AppLanguage,
+    onLanguageSelected: (AppLanguage) -> Unit,
+    colors: EquatixDesignSystem.ThemeColors,
+    isDark: Boolean
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp) // Boşluğu biraz kıstık, butonlara yer kalsın
+    ) {
+        AppLanguage.values().forEach { language ->
+            val isSelected = language == currentLanguage
+
+            // Animasyonlu renk geçişleri
+            val backgroundColor by animateColorAsState(
+                targetValue = if (isSelected) colors.accent else colors.cardBackground,
+                label = "bgColor"
+            )
+            val contentColor by animateColorAsState(
+                targetValue = if (isSelected) Color.White else colors.textPrimary,
+                label = "contentColor"
+            )
+            val borderColor = if (isSelected) colors.accent else colors.divider
+
+            // Seçili öğe hafifçe büyüsün veya öne çıksın
+            val elevation = if (isSelected && !isDark) 8.dp else 0.dp
+
+            Column(
+                modifier = Modifier
+                    .weight(1f) // Eşit genişlik
+                    .height(72.dp) // Yükseklik artırıldı (Rahat sığması için)
+                    .shadow(elevation, RoundedCornerShape(16.dp))
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(backgroundColor.copy(alpha = if (isSelected) 1f else 0.05f))
+                    .border(
+                        width = 1.dp,
+                        color = if (isSelected) Color.Transparent else borderColor,
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    .clickable { onLanguageSelected(language) }
+                    .padding(vertical = 8.dp, horizontal = 4.dp), // İç boşluk
+                verticalArrangement = Arrangement.Center, // Dikeyde ortala
+                horizontalAlignment = Alignment.CenterHorizontally // Yatayda ortala
+            ) {
+                // 1. Bayrak (Üstte)
+                Text(
+                    text = language.flagEmoji,
+                    fontSize = 24.sp, // Bayrak biraz büyütüldü
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // 2. Dil İsmi (Altta)
+                Text(
+                    text = language.label,
+                    style = MaterialTheme.typography.labelMedium.copy( // Daha okunaklı, kompakt font
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                        letterSpacing = 0.5.sp
+                    ),
+                    color = contentColor,
+                    maxLines = 1,
+                    textAlign = TextAlign.Center, // Metni ortala
+                    softWrap = false, // Alt satıra geçmesin, sığdırmaya çalışsın
+                    // Eğer çok uzun olursa sığdır:
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
     }
 }
 
