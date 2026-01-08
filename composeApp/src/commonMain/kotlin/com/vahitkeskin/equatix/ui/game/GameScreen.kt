@@ -133,7 +133,7 @@ private fun GameContent(
 
     // Oyun Bittiğinde Kazanma Titreşimi
     LaunchedEffect(viewModel.isSolved) {
-        if (viewModel.isSolved && !viewModel.isSurrendered && viewModel.isVibrationEnabled) {
+        if (viewModel.isSolved && !viewModel.isSurrendered && viewModel.isVibrationEnabled.value) {
             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
         }
     }
@@ -290,7 +290,7 @@ private fun GameContent(
     LaunchedEffect(viewModel.isSolved) {
         if (viewModel.isSolved && !viewModel.isSurrendered) {
             viewModel.onGameFinished(elapsedTime)
-            if (viewModel.isVibrationEnabled) {
+            if (viewModel.isVibrationEnabled.value) {
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             }
         }
