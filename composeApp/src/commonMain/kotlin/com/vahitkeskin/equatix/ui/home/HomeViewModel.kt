@@ -78,36 +78,45 @@ class HomeViewModel : ScreenModel {
     }
 
     private fun loadSavedLanguage() {
-        // Kayıtlı kodu getir
+        // 1. Kayıtlı kodu doğru KEY ile getir
         val savedCode = storage.getString(LANGUAGE_KEY)
 
-        val language = if (savedCode != null) {
-            // Kayıt varsa ona uygun dili bul
-            AppLanguage.values().find { it.code == savedCode } ?: AppLanguage.ENGLISH
+        // 2. Kayıtlı kod varsa enum'a çevir, yoksa varsayılan SYSTEM olsun
+        val savedLanguage = if (savedCode != null) {
+            AppLanguage.values().find { it.code == savedCode } ?: AppLanguage.SYSTEM
         } else {
-            // Kayıt yoksa SİSTEM dilini kullan (önceki kodumuz)
-            AppLanguage.getDeviceLanguage()
+            AppLanguage.SYSTEM
         }
 
-        // State'leri güncelle
-        updateLanguageState(language)
+        // 3. UI'daki seçili butonu güncelle
+        _currentLanguage.value = savedLanguage
+
+        // 4. Metinleri güncelle (Eğer SYSTEM seçiliyse cihaz dilini bulmalı)
+        val realLanguageToLoad = if (savedLanguage == AppLanguage.SYSTEM) {
+            AppLanguage.getDeviceLanguage()
+        } else {
+            savedLanguage
+        }
+
+        _strings.value = AppDictionary.getStrings(realLanguageToLoad)
     }
 
     fun setLanguage(selectedLanguage: AppLanguage) {
+        // 1. UI'daki seçili butonu güncelle (Anında tepki için)
         _currentLanguage.value = selectedLanguage
-        storage.saveString("KEY_LANGUAGE", selectedLanguage.code)
+
+        // 2. Shared/DataStore'a kaydet (DÜZELTİLEN KISIM: LANGUAGE_KEY kullanıldı)
+        storage.saveString(LANGUAGE_KEY, selectedLanguage.code)
+
+        // 3. Gerçekte yüklenecek sözlüğü belirle
         val languageToLoad = if (selectedLanguage == AppLanguage.SYSTEM) {
             AppLanguage.getDeviceLanguage()
         } else {
             selectedLanguage
         }
-        _strings.value = AppDictionary.getStrings(languageToLoad)
-    }
 
-    private fun updateLanguageState(language: AppLanguage) {
-        _currentLanguage.value = language
-        // Dili değiştirdiğimiz an Stringler de değişir
-        _strings.value = AppDictionary.getStrings(language)
+        // 4. Metinleri güncelle
+        _strings.value = AppDictionary.getStrings(languageToLoad)
     }
 
     fun toggleMusic(enabled: Boolean) {
