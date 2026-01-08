@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -25,6 +26,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -48,6 +52,23 @@ class HomeScreen : Screen {
         val navigator = LocalNavigator.currentOrThrow
         val viewModel = rememberScreenModel { HomeViewModel() }
 
+        val lifecycleOwner = LocalLifecycleOwner.current
+        DisposableEffect(lifecycleOwner) {
+            val observer = LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_RESUME) {
+                    // Uygulamaya dönüldüğünde: Ayarı kontrol et, açıksa çal.
+                    viewModel.checkMusicOnResume()
+                } else if (event == Lifecycle.Event.ON_PAUSE) {
+                    // Uygulama alta atıldığında: Müziği durdur.
+                    viewModel.pauseMusicOnBackground()
+                }
+            }
+            lifecycleOwner.lifecycle.addObserver(observer)
+            onDispose {
+                lifecycleOwner.lifecycle.removeObserver(observer)
+            }
+        }
+
         // State'ler
         var selectedDiff by remember { mutableStateOf(Difficulty.EASY) }
         var selectedSize by remember { mutableStateOf(GridSize.SIZE_3x3) }
@@ -65,10 +86,8 @@ class HomeScreen : Screen {
             AppThemeConfig.LIGHT -> false
         }
 
-        // Merkezi Renk Paletini Getir
         val themeColors = EquatixDesignSystem.getColors(isDark)
 
-        // Arka Plan Animasyonu
         val animatedBgColor by animateColorAsState(
             targetValue = themeColors.background,
             animationSpec = tween(500)
@@ -79,14 +98,12 @@ class HomeScreen : Screen {
                 .fillMaxSize()
                 .background(animatedBgColor)
         ) {
-            // 1. Arka Plan Katmanı (YENİLENDİ)
             HomeBackgroundLayer(
                 isDark = isDark,
                 gridColor = themeColors.gridLines,
                 bgColor = animatedBgColor
             )
 
-            // 2. Ana İçerik Katmanı
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -94,7 +111,6 @@ class HomeScreen : Screen {
                     .padding(horizontal = 24.dp, vertical = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Header
                 AnimatedSlideIn(visible = startAnimation, delay = 0) {
                     HomeHeader(
                         isDark = isDark,
@@ -106,14 +122,12 @@ class HomeScreen : Screen {
 
                 Spacer(modifier = Modifier.weight(0.1f))
 
-                // Branding
                 AnimatedSlideIn(visible = startAnimation, delay = 200) {
                     HomeBranding(isDark = isDark, colors = themeColors)
                 }
 
                 Spacer(modifier = Modifier.height(48.dp))
 
-                // Seçim Paneli
                 AnimatedSlideIn(visible = startAnimation, delay = 400) {
                     HomeSelectionPanel(
                         viewModel = viewModel,
@@ -128,7 +142,6 @@ class HomeScreen : Screen {
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Start Butonu
                 AnimatedSlideIn(visible = startAnimation, delay = 600) {
                     CyberStartButton(
                         homeViewModel = viewModel,
@@ -148,7 +161,6 @@ class HomeScreen : Screen {
                 Spacer(modifier = Modifier.weight(1f))
             }
 
-            // 3. Overlay Katmanı
             HomeOverlayPanel(
                 overlayType = activeOverlay,
                 onDismiss = { activeOverlay = null },
@@ -162,7 +174,6 @@ class HomeScreen : Screen {
     enum class OverlayType { HISTORY, SETTINGS }
 }
 
-// Yardımcı Animasyon Fonksiyonu
 @Composable
 fun AnimatedSlideIn(visible: Boolean, delay: Int, content: @Composable () -> Unit) {
     AnimatedVisibility(

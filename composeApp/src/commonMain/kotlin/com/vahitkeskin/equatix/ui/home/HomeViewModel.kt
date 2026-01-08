@@ -39,35 +39,32 @@ class HomeViewModel : ScreenModel {
     private val settingsRepo = AppModule.settingsRepository
     private val scoreRepo = AppModule.scoreRepository
     private val notificationManager = AppModule.notificationManager
+    private val musicManager = AppModule.musicManager
+    private val storage = KeyValueStorage()
+
+    // --- KEYS ---
+    private val LANGUAGE_KEY = "selected_language"
+    private val MUSIC_KEY = "is_music_on"
 
     // --- State: Bildirim İzni ve Durumu ---
     private val _isNotificationEnabled = MutableStateFlow(false)
     val isNotificationEnabled = _isNotificationEnabled.asStateFlow()
 
-    // --- State: Seçilen Saat (UI'da göstermek için) ---
-    // Varsayılan olarak 09:00 başlatıyoruz.
-    // (İsterseniz NotificationManager'a getAlarmHour() ekleyip oradan da okuyabilirsiniz)
+    // --- State: Seçilen Saat ---
     private var savedHour = 9
     private var savedMinute = 0
 
     private val _notificationTime = MutableStateFlow(savedHour to savedMinute)
     val notificationTime = _notificationTime.asStateFlow()
 
-    private val musicManager = AppModule.musicManager
-
-    // Müzik Açık/Kapalı durumu (Varsayılan olarak kapalı başlasın isteyebilirsin)
-    // Bunu da DataStore'a kaydedebilirsin ama şimdilik hafızada tutalım.
-    private val _isMusicOn = MutableStateFlow(false)
+    // --- State: Müzik ---
+    private val _isMusicOn = MutableStateFlow(true)
     val isMusicOn = _isMusicOn.asStateFlow()
 
-    private val storage = KeyValueStorage() // Platforma özel storage
-    private val LANGUAGE_KEY = "selected_language"
-
-    // 1. Dil State'i
+    // --- State: Dil ---
     private val _currentLanguage = MutableStateFlow(AppLanguage.ENGLISH)
     val currentLanguage = _currentLanguage.asStateFlow()
 
-    // 2. String State'i (UI burayı dinleyecek)
     private val _strings = MutableStateFlow(AppDictionary.en)
     val strings = _strings.asStateFlow()
 
@@ -75,23 +72,22 @@ class HomeViewModel : ScreenModel {
     init {
         checkInitialState()
         loadSavedLanguage()
+        // NOT: loadMusicState() buraya KOYMUYORUZ.
+        // Çünkü müziği HomeScreen'deki Lifecycle (Resume) yönetecek.
     }
 
+    // --- DİL YÖNETİMİ ---
     private fun loadSavedLanguage() {
-        // 1. Kayıtlı kodu doğru KEY ile getir
         val savedCode = storage.getString(LANGUAGE_KEY)
 
-        // 2. Kayıtlı kod varsa enum'a çevir, yoksa varsayılan SYSTEM olsun
         val savedLanguage = if (savedCode != null) {
             AppLanguage.values().find { it.code == savedCode } ?: AppLanguage.SYSTEM
         } else {
             AppLanguage.SYSTEM
         }
 
-        // 3. UI'daki seçili butonu güncelle
         _currentLanguage.value = savedLanguage
 
-        // 4. Metinleri güncelle (Eğer SYSTEM seçiliyse cihaz dilini bulmalı)
         val realLanguageToLoad = if (savedLanguage == AppLanguage.SYSTEM) {
             AppLanguage.getDeviceLanguage()
         } else {
@@ -102,55 +98,69 @@ class HomeViewModel : ScreenModel {
     }
 
     fun setLanguage(selectedLanguage: AppLanguage) {
-        // 1. UI'daki seçili butonu güncelle (Anında tepki için)
         _currentLanguage.value = selectedLanguage
-
-        // 2. Shared/DataStore'a kaydet (DÜZELTİLEN KISIM: LANGUAGE_KEY kullanıldı)
         storage.saveString(LANGUAGE_KEY, selectedLanguage.code)
 
-        // 3. Gerçekte yüklenecek sözlüğü belirle
         val languageToLoad = if (selectedLanguage == AppLanguage.SYSTEM) {
             AppLanguage.getDeviceLanguage()
         } else {
             selectedLanguage
         }
 
-        // 4. Metinleri güncelle
         _strings.value = AppDictionary.getStrings(languageToLoad)
     }
 
+    // --- MÜZİK YÖNETİMİ (Lifecycle ve Ayarlar) ---
+
+    // 1. Ekran açıldığında (Resume) çağrılır
+    fun checkMusicOnResume() {
+        // Kayıtlı ayarı oku, yoksa varsayılan TRUE olsun
+        val isMusicEnabled = storage.getBoolean(MUSIC_KEY, defaultValue = true)
+
+        // UI State'i güncelle
+        _isMusicOn.value = isMusicEnabled
+
+        // Sadece ayar açıksa çal
+        if (isMusicEnabled) {
+            musicManager.playLooping(volume = 0.2f)
+        }
+    }
+
+    // 2. Ekran kapandığında (Pause) çağrılır
+    fun pauseMusicOnBackground() {
+        musicManager.stop()
+    }
+
+    // 3. Kullanıcı Switch'e bastığında çağrılır
     fun toggleMusic(enabled: Boolean) {
         _isMusicOn.value = enabled
+        // Ayarı kalıcı olarak kaydet
+        storage.saveBoolean(MUSIC_KEY, enabled)
+
         if (enabled) {
-            // 0.2f -> Çok kısık, rahatsız etmeyen (Loş) bir ses seviyesi
             musicManager.playLooping(volume = 0.2f)
         } else {
             musicManager.stop()
         }
     }
 
-    // Uygulama alta atılınca müzik dursun istersen onDispose/onCleared içinde stop çağırmalısın.
     override fun onDispose() {
         musicManager.stop()
         super.onDispose()
     }
 
-    // Uygulama açıldığında veya Resume olduğunda durumu kontrol et
+    // --- BİLDİRİM YÖNETİMİ ---
     private fun checkInitialState() {
         val hasPerm = notificationManager.hasPermission()
-        // Kullanıcı daha önce switch'i açık bıraktı mı? (Varsayılan true)
         val isUserEnabled = notificationManager.isReminderEnabled()
 
-        // Hem izin verilmeli HEM DE kullanıcı sistemi aktif etmiş olmalı
         if (hasPerm && isUserEnabled) {
             _isNotificationEnabled.value = true
         } else {
-            // İzin yoksa veya kullanıcı kapattıysa kapalı göster
             _isNotificationEnabled.value = false
         }
     }
 
-    // UI'dan çağrılan izin kontrolü tazeleme (Örn: Ayarlardan dönünce)
     fun refreshPermissionStatus() {
         checkInitialState()
     }
@@ -159,44 +169,29 @@ class HomeViewModel : ScreenModel {
         notificationManager.openSystemSettings()
     }
 
-    // --- ALARM KURMA / İPTAL ETME ---
     fun setNotificationSchedule(enable: Boolean) {
-
         val nowInstant = Clock.System.now()
-
-        //TODO time test
         val targetInstant = nowInstant.plus(2.minutes)
-        val targetTime = targetInstant.toLocalDateTime(TimeZone.currentSystemDefault())
-        //savedHour = targetTime.hour
-        //savedMinute = targetTime.minute
+        // val targetTime = targetInstant.toLocalDateTime(TimeZone.currentSystemDefault())
 
-        // UI'daki saati güncelle (StateFlow)
         _notificationTime.value = savedHour to savedMinute
 
         if (enable) {
-            // Rastgele, ilgi çekici bir mesaj seç
             val message = NotificationContent.getRandomMessage()
-
-            // Alarmı Kur (Manager bunu hafızaya da kaydeder)
             notificationManager.scheduleDailyReminder(
                 hour = savedHour,
                 minute = savedMinute,
                 title = message.title,
                 body = message.body
             )
-
-            // Switch'i aç
             _isNotificationEnabled.value = true
         } else {
-            // İptal Et (Manager hafızada is_enabled = false yapar)
             notificationManager.cancelDailyReminder()
-
-            // Switch'i kapat
             _isNotificationEnabled.value = false
         }
     }
 
-    // --- UI State (Scores & Settings) ---
+    // --- SKORLAR VE AYARLAR ---
 
     val scores: StateFlow<List<ScoreRecord>> = scoreRepo.recentScores
         .map { entities ->
