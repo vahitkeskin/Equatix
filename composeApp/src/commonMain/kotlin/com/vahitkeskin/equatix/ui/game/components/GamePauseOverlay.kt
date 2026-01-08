@@ -43,7 +43,7 @@ fun GamePauseOverlay(
     isVisible: Boolean,
     colors: EquatixDesignSystem.ThemeColors,
     isDark: Boolean,
-    appStrings: AppStrings, // YENİ: Dil Paketi
+    appStrings: AppStrings,
     onResume: () -> Unit,
     onRestart: () -> Unit,
     onQuit: () -> Unit
@@ -86,7 +86,7 @@ fun PauseMenuContent(
     onQuit: () -> Unit,
     colors: EquatixDesignSystem.ThemeColors,
     textColor: Color,
-    appStrings: AppStrings // YENİ
+    appStrings: AppStrings
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
