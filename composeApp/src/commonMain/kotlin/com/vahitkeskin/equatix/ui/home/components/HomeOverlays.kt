@@ -38,6 +38,11 @@ import com.vahitkeskin.equatix.ui.common.GlassBox
 import com.vahitkeskin.equatix.ui.home.HomeScreen
 import com.vahitkeskin.equatix.ui.home.HomeViewModel
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 
 @Composable
 fun HomeOverlayPanel(
@@ -50,7 +55,31 @@ fun HomeOverlayPanel(
     val overlayDimColor = if (isDark) Color.Black.copy(0.85f) else Color.Black.copy(0.4f)
     val strings by viewModel.strings.collectAsState()
 
-    // 1. Kapsayıcı Box (Implicit Receiver hatasını önler ve katmanları yönetir)
+    // 1. Kapanış animasyonu için son görünen tipi hafızada tutuyoruz.
+    // Çünkü 'overlayType' null olduğunda (kapanırken) yönü hatırlamamız lazım.
+    var lastActiveOverlay by remember { mutableStateOf(overlayType) }
+
+    if (overlayType != null) {
+        lastActiveOverlay = overlayType
+    }
+
+    // 2. Yön Belirleme Mantığı
+    val isSettings = lastActiveOverlay == HomeScreen.OverlayType.SETTINGS
+
+    // Settings ise Sağdan (+it), History ise Soldan (-it)
+    val enterTransition = if (isSettings) {
+        slideInHorizontally(initialOffsetX = { it }) + fadeIn()
+    } else {
+        slideInHorizontally(initialOffsetX = { -it }) + fadeIn()
+    }
+
+    val exitTransition = if (isSettings) {
+        slideOutHorizontally(targetOffsetX = { it }) + fadeOut()
+    } else {
+        slideOutHorizontally(targetOffsetX = { -it }) + fadeOut()
+    }
+
+    // 3. Kapsayıcı Box
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
 
         // Katman 1: Karartma Arka Planı
@@ -69,11 +98,11 @@ fun HomeOverlayPanel(
             )
         }
 
-        // Katman 2: Panel İçeriği
+        // Katman 2: Panel İçeriği (Yönlü Animasyon Burada)
         AnimatedVisibility(
             visible = overlayType != null,
-            enter = slideInVertically { it } + fadeIn(),
-            exit = slideOutVertically { it } + fadeOut(),
+            enter = enterTransition,
+            exit = exitTransition,
             modifier = Modifier.align(Alignment.Center)
         ) {
             val overlay = overlayType ?: return@AnimatedVisibility

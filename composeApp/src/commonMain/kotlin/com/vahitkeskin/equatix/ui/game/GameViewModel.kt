@@ -6,14 +6,19 @@ import androidx.compose.runtime.setValue
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.vahitkeskin.equatix.di.AppModule
+import com.vahitkeskin.equatix.domain.model.AppDictionary
+import com.vahitkeskin.equatix.domain.model.AppLanguage
 import com.vahitkeskin.equatix.domain.model.CellData
 import com.vahitkeskin.equatix.domain.model.Difficulty
 import com.vahitkeskin.equatix.domain.model.GameState
 import com.vahitkeskin.equatix.domain.model.GridSize
 import com.vahitkeskin.equatix.domain.model.Operation
+import com.vahitkeskin.equatix.platform.KeyValueStorage
 import com.vahitkeskin.equatix.ui.game.utils.GameUiEvent
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -21,10 +26,19 @@ import kotlin.random.Random
 
 class GameViewModel : ScreenModel {
 
-    // --- REPOSITORIES ---
+    // --- REPOSITORIES & STORAGE ---
     private val settingsRepo = AppModule.settingsRepository
     private val scoreRepo = AppModule.scoreRepository
+    private val storage = KeyValueStorage()
 
+    // Dil anahtarı HomeViewModel ile aynı olmalı
+    private val LANGUAGE_KEY = "selected_language"
+
+    // --- DİL DESTEĞİ (YENİ) ---
+    private val _strings = MutableStateFlow(AppDictionary.en)
+    val strings = _strings.asStateFlow()
+
+    // --- TUTORIAL & VIBRATION STATE ---
     val isTutorialSeen = settingsRepo.isTutorialSeen
         .stateIn(
             scope = screenModelScope,
@@ -32,7 +46,15 @@ class GameViewModel : ScreenModel {
             initialValue = true
         )
 
-    // --- UI EVENTS (Haptic Feedback vb.) ---
+    // Titreşim ayarını repo'dan dinliyoruz (StateFlow olarak)
+    val isVibrationEnabled = settingsRepo.isVibrationOn
+        .stateIn(
+            scope = screenModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = true
+        )
+
+    // --- UI EVENTS ---
     private val _uiEvent = Channel<GameUiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
 
@@ -45,8 +67,6 @@ class GameViewModel : ScreenModel {
         private set
     var selectedCellIndex by mutableStateOf<Int?>(null)
         private set
-    var isVibrationEnabled by mutableStateOf(true)
-        private set
 
     // --- DIALOG STATES ---
     var showWinDialog by mutableStateOf(false)
@@ -54,11 +74,35 @@ class GameViewModel : ScreenModel {
     var lastGameScore by mutableStateOf(0)
         private set
 
-    // Restart için mevcut ayarları tutmak faydalı olabilir
+    // Restart için mevcut ayarlar
     var currentDifficulty: Difficulty = Difficulty.EASY
         private set
     var currentSize: GridSize = GridSize.SIZE_3x3
         private set
+
+    init {
+        // ViewModel oluştuğunda doğru dili yükle
+        loadSavedLanguage()
+    }
+
+    // HomeViewModel'deki mantığın aynısı: Kaydedilen dili bul ve stringleri güncelle
+    private fun loadSavedLanguage() {
+        val savedCode = storage.getString(LANGUAGE_KEY)
+
+        val savedLanguage = if (savedCode != null) {
+            AppLanguage.values().find { it.code == savedCode } ?: AppLanguage.SYSTEM
+        } else {
+            AppLanguage.SYSTEM
+        }
+
+        val languageToLoad = if (savedLanguage == AppLanguage.SYSTEM) {
+            AppLanguage.getDeviceLanguage()
+        } else {
+            savedLanguage
+        }
+
+        _strings.value = AppDictionary.getStrings(languageToLoad)
+    }
 
     // Tutorial bittiğinde çağıracağız
     fun markTutorialAsSeen() {
@@ -69,8 +113,11 @@ class GameViewModel : ScreenModel {
 
     // --- ACTIONS ---
 
+    // Artık global ayarı değiştiriyor (Sadece bu ekranı değil)
     fun toggleVibration() {
-        isVibrationEnabled = !isVibrationEnabled
+        screenModelScope.launch {
+            settingsRepo.setVibration(!isVibrationEnabled.value)
+        }
     }
 
     fun startGame(difficulty: Difficulty, size: GridSize) {
@@ -78,7 +125,7 @@ class GameViewModel : ScreenModel {
         currentSize = size
         isSolved = false
         isSurrendered = false
-        showWinDialog = false // Yeni oyun başlarken diyaloğu kapat
+        showWinDialog = false
         selectedCellIndex = null
         gameState = generateSolvableLevel(difficulty, size.value)
     }
@@ -101,32 +148,24 @@ class GameViewModel : ScreenModel {
         showWinDialog = false
     }
 
-    // --- INPUT LOGIC (GÜNCELLENDİ: Prefix Check & Haptic) ---
+    // --- INPUT LOGIC ---
 
     fun onCellSelected(index: Int) {
         if (gameState?.grid?.get(index)?.isLocked == false && !isSolved) selectedCellIndex = index
     }
 
-    /**
-     * UI'dan gelen tuş girişlerini yönetir.
-     * @param key: Girilen karakter (Rakam veya "DEL")
-     */
     fun onInput(key: String) {
         val currentIndex = selectedCellIndex ?: return
         val currentGameState = gameState ?: return
 
-        // Oyun bitmişse veya pes edilmişse işlem yapma
         if (isSolved || isSurrendered) return
 
         val currentGrid = currentGameState.grid.toMutableList()
         val currentCell = currentGrid[currentIndex]
 
-        // Hücre kilitliyse işlem yapma
         if (currentCell.isLocked) return
 
         if (key == "DEL") {
-            // --- SİLME MANTIĞI ---
-            // Silme işleminde prefix kontrolüne gerek yok, sadece son karakteri sileriz.
             if (currentCell.userInput.isNotEmpty()) {
                 val newVal = currentCell.userInput.dropLast(1)
                 val updatedCell = currentCell.copy(userInput = newVal)
@@ -134,9 +173,8 @@ class GameViewModel : ScreenModel {
                 gameState = currentGameState.copy(grid = currentGrid)
             }
         } else {
-            // --- SAYI GİRME MANTIĞI (Prefix Check) ---
             val currentInput = currentCell.userInput
-            // Kullanıcı max 3 hane girebilsin (opsiyonel sınır)
+            // Max 3 hane sınırı
             if (currentInput.length >= 3) {
                 triggerErrorHaptic()
                 return
@@ -145,28 +183,23 @@ class GameViewModel : ScreenModel {
             val candidateInput = currentInput + key
             val correctValueStr = currentCell.correctValue.toString()
 
-            // Eğer girilen yeni değer, doğru cevabın başlangıcıysa kabul et.
-            // Örn: Cevap 45, Girdi "4" -> Kabul.
-            // Örn: Cevap 45, Girdi "46" -> Reddet.
             if (correctValueStr.startsWith(candidateInput)) {
                 val updatedCell = currentCell.copy(userInput = candidateInput)
                 currentGrid[currentIndex] = updatedCell
                 gameState = currentGameState.copy(grid = currentGrid)
 
-                // Eğer tam eşleşme sağlandıysa tüm oyunu kontrol et
                 if (candidateInput == correctValueStr) {
                     checkWin()
                 }
             } else {
-                // Girdi yanlış yola saptı, state güncelleme ve titret
                 triggerErrorHaptic()
             }
         }
     }
 
     private fun triggerErrorHaptic() {
-        // Eğer titreşim ayarı açıksas UI'a sinyal gönder
-        if (isVibrationEnabled) {
+        // Repo'dan gelen değeri kontrol et
+        if (isVibrationEnabled.value) {
             screenModelScope.launch {
                 _uiEvent.send(GameUiEvent.VibrateError)
             }
@@ -174,34 +207,26 @@ class GameViewModel : ScreenModel {
     }
 
     private fun checkWin() {
-        val allCorrect =
-            gameState?.grid?.all { if (!it.isHidden) true else it.userInput.toIntOrNull() == it.correctValue }
-                ?: false
+        val allCorrect = gameState?.grid?.all {
+            if (!it.isHidden) true else it.userInput.toIntOrNull() == it.correctValue
+        } ?: false
+
         if (allCorrect) {
             isSolved = true
             selectedCellIndex = null
-            // Not: Kaydetme işlemi onGameFinished içinde yapılıyor
         }
     }
 
-    /**
-     * Oyun bittiğinde GameScreen'den bu fonksiyon çağrılır.
-     */
     fun onGameFinished(finalTimeSeconds: Long) {
-        // Eğer pes edildiyse veya oyun durumu yoksa kaydetme
         if (isSurrendered || gameState == null) return
 
         screenModelScope.launch {
             val state = gameState!!
-
-            // Puanı Hesapla
             val finalScore = calculateScore(state.difficulty, state.size, finalTimeSeconds)
 
-            // Diyaloğu Göster
             lastGameScore = finalScore
             showWinDialog = true
 
-            // GridSize Enum'ına çevir
             val gridSizeEnum = when(state.size) {
                 3 -> GridSize.SIZE_3x3
                 4 -> GridSize.SIZE_4x4
@@ -209,7 +234,6 @@ class GameViewModel : ScreenModel {
                 else -> GridSize.SIZE_3x3
             }
 
-            // Repository üzerinden kaydet
             scoreRepo.saveScore(
                 score = finalScore,
                 timeSeconds = finalTimeSeconds,
@@ -220,6 +244,7 @@ class GameViewModel : ScreenModel {
     }
 
     // --- GAME GENERATION LOGIC ---
+    // (Bu kısımlar değişmedi, aynen korundu)
 
     private fun generateSolvableLevel(diff: Difficulty, n: Int): GameState {
         while (true) {
@@ -241,7 +266,7 @@ class GameViewModel : ScreenModel {
             val colResults = mutableListOf<Int>()
             var isValidLevel = true
 
-            // 1. Satır Hesapla
+            // Satır
             for (row in 0 until n) {
                 val rowNums = nums.subList(row * n, (row + 1) * n)
                 val rowOpList = rOps.subList(row * (n - 1), (row + 1) * (n - 1))
@@ -256,7 +281,7 @@ class GameViewModel : ScreenModel {
 
             if (!isValidLevel) continue
 
-            // 2. Sütun Hesapla
+            // Sütun
             for (col in 0 until n) {
                 val colNums = (0 until n).map { row -> nums[row * n + col] }
                 val colOpList = (0 until n - 1).map { k -> cOps[col * (n - 1) + k] }
@@ -324,8 +349,6 @@ class GameViewModel : ScreenModel {
         }
         return finalResult
     }
-
-    // --- HELPERS ---
 
     private fun determineHiddenCells(diff: Difficulty, n: Int): BooleanArray {
         val totalCells = n * n
