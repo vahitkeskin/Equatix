@@ -1,4 +1,5 @@
 # Equatix
+
 ### Cross-Platform Math Matrix Puzzle — Built with Kotlin Multiplatform
 
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.1.0-purple?logo=kotlin)](https://kotlinlang.org/)
@@ -40,6 +41,7 @@ Equatix’in temel amacı:
 - “Cross-platform ama native olmayan” çözümlerden **bilinçli şekilde uzak durmak**
 
 Flutter veya React Native gibi çözümlerin aksine:
+
 - JavaScript bridge kullanılmaz
 - WebView tabanlı render yoktur
 - Android tarafında JVM bytecode
@@ -77,27 +79,32 @@ Asıl odak **iş kuralları**, **algoritmalar** ve **mimari tutarlılıktır**.
 ## Kullanılan Teknolojiler
 
 ### Dil & Platform
+
 - **Kotlin 2.1.0**
 - **Kotlin Multiplatform**
 - **Gradle Kotlin DSL**
 
 ### UI
+
 - **Compose Multiplatform**
 - Declarative UI yaklaşımı
 - StateFlow tabanlı state yönetimi
 
 ### Mimari
+
 - **Clean Architecture**
 - **MVVM**
 - Platform bağımsız domain katmanı
 
 ### Veri & Eşzamanlılık
+
 - **Room (KMP uyumlu)**
 - **SQLite**
 - **Kotlin Coroutines**
 - **Flow**
 
 ### Bağımlılık Yönetimi
+
 - Manual DI / Koin (platform bağımsız olacak şekilde)
 
 ---
@@ -113,6 +120,7 @@ Proje **Clean Architecture** prensiplerine uygun olarak üç ana katmana ayrılm
 - Tüm iş kuralları burada yer alır
 
 İçerik:
+
 - UseCase’ler
 - Entity / Model sınıfları
 - Repository arayüzleri
@@ -127,6 +135,7 @@ Bu katman **en stabil** katmandır ve kolay kolay değişmez.
 - Veri kaynağı detaylarını izole eder
 
 İçerik:
+
 - Room database
 - DAO’lar
 - Repository implementasyonları
@@ -142,6 +151,7 @@ UI bu katmanı **asla doğrudan bilmez**.
 - StateFlow ile state yönetimi
 
 Bu katman:
+
 - Domain use-case’lerini çağırır
 - UI state üretir
 - Platformdan bağımsızdır
@@ -159,6 +169,7 @@ Oyun tahtası rastgele üretilmez.
 - Zorluk seviyesine göre hücreler gizlenir
 
 Bu yaklaşım sayesinde:
+
 - “İmkânsız” oyun senaryoları oluşmaz
 - Oyuncu hatası ile algoritma hatası ayrılır
 
@@ -169,11 +180,13 @@ Bu yaklaşım sayesinde:
 Gerçek zamanlı blur efektleri mobil cihazlarda maliyetlidir.
 
 Bu nedenle:
+
 - Gerçek blur yerine katmanlı yarı saydam yüzeyler
 - Gradient ve noise kombinasyonları
 - Canvas tabanlı özel çizimler kullanılmıştır
 
 Sonuç:
+
 - Görsel olarak tatmin edici
 - Performans olarak stabil
 - 60 FPS hedefi korunur
