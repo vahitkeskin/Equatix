@@ -21,9 +21,6 @@ private const val PARTICLE_COUNT = 80
 fun FireworkOverlay() {
     val particles = remember { mutableListOf<FireworkParticle>() }
 
-    // Hardcoded renkler yerine Tematik + Canlı renkler karması
-    // Not: ThemeColors'a erişim olmadığı için manuel eşleştirme yapıyoruz
-    // ama EquatixDesignSystem'den bildiğimiz tonları kullanıyoruz.
     val colors = remember {
         listOf(
             Color(0xFFFF453A), // Error Red (Tema)

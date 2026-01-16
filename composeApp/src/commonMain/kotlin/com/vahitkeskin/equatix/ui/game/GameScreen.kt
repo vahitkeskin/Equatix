@@ -317,11 +317,26 @@ fun PreviewGameContentMaximized() {
                 isLocked = false
             )
         }
-        val rowOps = listOf(Operation.ADD, Operation.MUL, Operation.ADD, Operation.DIV, Operation.SUB, Operation.MUL)
-        val colOps = listOf(Operation.ADD, Operation.ADD, Operation.MUL, Operation.ADD, Operation.MUL, Operation.ADD)
+        val rowOps = listOf(
+            Operation.ADD,
+            Operation.MUL,
+            Operation.ADD,
+            Operation.DIV,
+            Operation.SUB,
+            Operation.MUL
+        )
+        val colOps = listOf(
+            Operation.ADD,
+            Operation.ADD,
+            Operation.MUL,
+            Operation.ADD,
+            Operation.MUL,
+            Operation.ADD
+        )
         val rowResults = listOf(16, 14, 0)
         val colResults = listOf(120, 65, 14)
-        val validState = GameState(3, customCells, rowOps, colOps, rowResults, colResults, Difficulty.EASY)
+        val validState =
+            GameState(3, customCells, rowOps, colOps, rowResults, colResults, Difficulty.EASY)
         viewModel.loadPreviewState(validState)
     }
 
