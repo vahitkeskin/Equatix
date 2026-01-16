@@ -227,7 +227,7 @@ class GameViewModel : ScreenModel {
             lastGameScore = finalScore
             showWinDialog = true
 
-            val gridSizeEnum = when(state.size) {
+            val gridSizeEnum = when (state.size) {
                 3 -> GridSize.SIZE_3x3
                 4 -> GridSize.SIZE_4x4
                 5 -> GridSize.SIZE_5x5
@@ -253,10 +253,15 @@ class GameViewModel : ScreenModel {
 
             val opCountPerDim = n * (n - 1)
 
-            val availableOps = when(diff) {
+            val availableOps = when (diff) {
                 Difficulty.EASY -> listOf(Operation.ADD, Operation.SUB)
                 Difficulty.MEDIUM -> listOf(Operation.ADD, Operation.SUB, Operation.MUL)
-                Difficulty.HARD -> listOf(Operation.ADD, Operation.SUB, Operation.MUL, Operation.DIV)
+                Difficulty.HARD -> listOf(
+                    Operation.ADD,
+                    Operation.SUB,
+                    Operation.MUL,
+                    Operation.DIV
+                )
             }
 
             val rOps = List(opCountPerDim) { availableOps.random() }
@@ -393,7 +398,7 @@ class GameViewModel : ScreenModel {
     }
 
     private fun calculateScore(difficulty: Difficulty, gridSize: Int, timeSeconds: Long): Int {
-        val diffMultiplier = when(difficulty) {
+        val diffMultiplier = when (difficulty) {
             Difficulty.EASY -> 1
             Difficulty.MEDIUM -> 2
             Difficulty.HARD -> 3
