@@ -22,13 +22,13 @@ import com.vahitkeskin.equatix.R
 class AlarmReceiver : BroadcastReceiver() {
 
     // KULLANICIYI ÇEKECEK MESAJ HAVUZU
-    private val engagingMessages = listOf(
-        "🧠 Zihin Egzersizi Zamanı!" to "Sadece %5'lik dilim bu matrisi hatasız çözebiliyor. Kendini test etmeye var mısın?",
-        "🔥 Zinciri Kırma!" to "Beynin de kasların gibidir, çalışmazsa paslanır. Bugünkü dozunu almak için tıkla.",
-        "⏳ 60 Saniyen Var mı?" to "Günün stresinden uzaklaşmak ve odaklanmak için kısa bir Equatix molası ver.",
-        "🚀 Sınırları Zorla" to "Bugünkü bulmaca dünkünden biraz daha zor. Bakalım rekorunu geliştirebilecek misin?",
-        "👀 Gözden Kaçırma" to "Matematik, görmeyi bilenler için bir sanattır. Bugünkü sanat eserini keşfet.",
-        "🌙 Gece Kuşu musun?" to "Uyumadan önce zihnini sayılarla arındır. İyi bir uyku için son egzersiz!"
+    private val morningMessages = listOf(
+        "☀️ Güne Zinde Başla" to "Kahvenden bile daha etkili! Güne tam odaklanmış bir zihinle başlamak için bugünkü bulmacanı çöz.",
+        "🧠 Sabah Sporu Zamanı" to "Vücudun uyandı, peki ya beynin? Nöronlarını ateşlemek ve güne %100 kapasiteyle başlamak için tıkla.",
+        "☕ Kahvenin En İyi Eşlikçisi" to "Sabah kahvenden aldığın keyfi ikiye katla. Bir yudum kahve, bir doz zeka egzersizi!",
+        "🚀 Günün İlk Zaferi" to "Küçük bir galibiyetle güne başlamak tüm gününü değiştirir. Bugünkü matrisi çöz ve motive ol.",
+        "🚌 Yolda veya Masanda" to "İşe ya da okula başlamadan önce zihninin pasını sil. 60 saniyede sabah mahmurluğunu üzerinden at.",
+        "🌅 Potansiyelini Açığa Çıkar" to "Bugün harika bir gün olacak, özellikle de zihnin açıkken. Equatix ile sınırlarını zorlamaya başla."
     )
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -59,7 +59,7 @@ class AlarmReceiver : BroadcastReceiver() {
 
         // A. Mesaj Seçimi
         // Eğer test amaçlı özel bir başlık gelmediyse havuzdan seç
-        val (randomTitle, randomBody) = engagingMessages.random()
+        val (randomTitle, randomBody) = morningMessages.random()
         val title = intent.getStringExtra("TITLE") ?: randomTitle
         val body = intent.getStringExtra("BODY") ?: randomBody
 
