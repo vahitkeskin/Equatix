@@ -7,7 +7,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoFixHigh
+import com.vahitkeskin.equatix.ui.components.EquatixIcons_Answer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -82,7 +82,7 @@ fun RewardedAdOfferDialog(
             ) {
                 // Professional Animated Icon
                 Icon(
-                    imageVector = Icons.Default.AutoFixHigh,
+                    imageVector = EquatixIcons_Answer,
                     contentDescription = null,
                     tint = colors.error, // Canlı kırmızıyı temadan alıyoruz
                     modifier = Modifier

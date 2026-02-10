@@ -51,7 +51,7 @@ import com.vahitkeskin.equatix.ui.game.visuals.FireworkOverlay
 import com.vahitkeskin.equatix.ui.game.visuals.ProgressPath
 import com.vahitkeskin.equatix.ui.home.HomeViewModel
 import com.vahitkeskin.equatix.ui.components.AdBanner
-import com.vahitkeskin.equatix.ui.utils.bannerSystemPadding
+import com.vahitkeskin.equatix.ui.utils.systemNavBarPadding
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -207,7 +207,7 @@ private fun GameContent(
                         isTimerRunning = true
                     },
                     onHint = {
-                        viewModel.onHintClick()
+                        showHintDialog = true
                     }
                 )
             }
@@ -289,7 +289,11 @@ private fun GameContent(
         )
 
         if (showHintDialog) {
-            HintDialog(onDismiss = { showHintDialog = false })
+            HintDialog(
+                appStrings = appSettings,
+                colors = colors,
+                onDismiss = { showHintDialog = false }
+            )
         }
 
         if (showRewardedAdDialog) {
@@ -317,7 +321,7 @@ private fun GameContent(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .bannerSystemPadding()
+                .systemNavBarPadding()
         )
     }
 

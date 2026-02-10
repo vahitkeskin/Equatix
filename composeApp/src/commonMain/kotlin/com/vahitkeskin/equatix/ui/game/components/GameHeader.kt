@@ -11,9 +11,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Refresh
+import com.vahitkeskin.equatix.ui.components.EquatixIcons_Answer
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -98,7 +98,7 @@ fun GameHeader(
                     Icon(Icons.Default.Lightbulb, "Hint", tint = Color(0xFFEAB308))
                 }
                 IconButton(onClick = onAutoSolve) {
-                    Icon(Icons.Default.AutoFixHigh, "Auto Solve", tint = Color(0xFFFF3B30))
+                    Icon(EquatixIcons_Answer, "Auto Solve", tint = Color(0xFFFF3B30))
                 }
             }
             IconButton(onClick = onRefresh) {

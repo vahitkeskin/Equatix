@@ -45,7 +45,7 @@ import com.vahitkeskin.equatix.ui.home.components.HomeHeader
 import com.vahitkeskin.equatix.ui.home.components.HomeOverlayPanel
 import com.vahitkeskin.equatix.ui.home.components.HomeSelectionPanel
 import com.vahitkeskin.equatix.ui.components.AdBanner
-import com.vahitkeskin.equatix.ui.utils.bannerSystemPadding
+import com.vahitkeskin.equatix.ui.utils.systemNavBarPadding
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
 
 import com.vahitkeskin.equatix.platform.BackHandler
@@ -178,7 +178,7 @@ class HomeScreen : Screen {
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .bannerSystemPadding()
+                    .systemNavBarPadding()
             )
 
             HomeOverlayPanel(
