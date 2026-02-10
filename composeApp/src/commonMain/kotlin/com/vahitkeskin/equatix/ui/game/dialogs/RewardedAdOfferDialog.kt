@@ -18,7 +18,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.vahitkeskin.equatix.domain.model.AppStrings
+import com.vahitkeskin.equatix.platform.AdBlockerManager
 import com.vahitkeskin.equatix.ui.common.GlassBox
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
 
@@ -29,6 +33,22 @@ fun RewardedAdOfferDialog(
     onDismiss: () -> Unit,
     onWatchAd: () -> Unit
 ) {
+    var isDnsActive by remember { mutableStateOf(AdBlockerManager.isPrivateDnsActive()) }
+    
+    // Lifecycle observer to re-check DNS status when user returns to app
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                isDnsActive = AdBlockerManager.isPrivateDnsActive()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     val infiniteTransition = rememberInfiniteTransition()
     val scale by infiniteTransition.animateFloat(
         initialValue = 1f,
@@ -73,17 +93,18 @@ fun RewardedAdOfferDialog(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = appStrings.rewardAdTitle,
+                    text = if (isDnsActive) appStrings.dnsBlockTitle else appStrings.rewardAdTitle,
                     color = colors.textPrimary,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    letterSpacing = 2.sp
+                    letterSpacing = 2.sp,
+                    textAlign = TextAlign.Center
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = appStrings.rewardAdDescription,
+                    text = if (isDnsActive) appStrings.dnsBlockDescription else appStrings.rewardAdDescription,
                     color = colors.textSecondary,
                     textAlign = TextAlign.Center,
                     fontSize = 15.sp,
@@ -92,9 +113,15 @@ fun RewardedAdOfferDialog(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Watch Ad Button
+                // Action Button (Watch Ad or Open DNS Settings)
                 Button(
-                    onClick = onWatchAd,
+                    onClick = {
+                        if (isDnsActive) {
+                            AdBlockerManager.openDnsSettings()
+                        } else {
+                            onWatchAd()
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = colors.error,
@@ -104,7 +131,7 @@ fun RewardedAdOfferDialog(
                     contentPadding = PaddingValues(vertical = 12.dp)
                 ) {
                     Text(
-                        appStrings.rewardAdWatchButton,
+                        if (isDnsActive) appStrings.dnsBlockButton else appStrings.rewardAdWatchButton,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.sp
                     )
