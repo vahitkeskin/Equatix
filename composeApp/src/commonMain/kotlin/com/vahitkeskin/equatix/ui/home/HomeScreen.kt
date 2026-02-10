@@ -48,6 +48,8 @@ import com.vahitkeskin.equatix.ui.components.AdBanner
 import com.vahitkeskin.equatix.ui.utils.bannerSystemPadding
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
 
+import com.vahitkeskin.equatix.platform.BackHandler
+
 class HomeScreen : Screen {
 
     @Composable
@@ -79,6 +81,11 @@ class HomeScreen : Screen {
 
         var startAnimation by remember { mutableStateOf(false) }
         LaunchedEffect(Unit) { startAnimation = true }
+
+        // Geri butonu kontrolü: Eğer bir overlay (Skorlar/Ayarlar) açıksa önce onu kapat.
+        BackHandler(enabled = activeOverlay != null) {
+            activeOverlay = null
+        }
 
         // Tema Hesaplama
         val themeConfig by viewModel.themeConfig.collectAsState()
