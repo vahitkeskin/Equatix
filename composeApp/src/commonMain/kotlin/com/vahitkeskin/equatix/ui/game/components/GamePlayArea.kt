@@ -1,6 +1,7 @@
 package com.vahitkeskin.equatix.ui.game.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -20,21 +21,25 @@ import androidx.compose.ui.unit.sp
 import com.vahitkeskin.equatix.domain.model.CellData
 import com.vahitkeskin.equatix.domain.model.Difficulty
 import com.vahitkeskin.equatix.domain.model.GameState
+import com.vahitkeskin.equatix.domain.model.GridSize
 import com.vahitkeskin.equatix.domain.model.Operation
 import com.vahitkeskin.equatix.ui.common.GlassBox
 import com.vahitkeskin.equatix.ui.components.GameGrid
+import com.vahitkeskin.equatix.ui.utils.PreviewContainer
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import com.vahitkeskin.equatix.ui.game.GameViewModel
 import com.vahitkeskin.equatix.ui.game.components.tutorial.TutorialGridLayer
 import com.vahitkeskin.equatix.ui.game.components.tutorial.TutorialState
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.math.min
 
 @Composable
 fun GamePlayArea(
     modifier: Modifier = Modifier,
-    viewModel: GameViewModel,
-    n: Int,
+    gameState: GameState,
+    selectedCellIndex: Int?,
+    isSolved: Boolean,
+    onCellClick: (Int) -> Unit,
     tutorialState: TutorialState = TutorialState.IDLE,
     colors: EquatixDesignSystem.ThemeColors,
     isDark: Boolean
@@ -43,6 +48,7 @@ fun GamePlayArea(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
+        val n = gameState.size
         // --- PADDING & SAFE MARGINS ---
         // GlassBox padding (16dp) + Column padding (16dp) + Shadow margin
         val horizontalPadding = 32.dp
@@ -102,12 +108,14 @@ fun GamePlayArea(
                             )
                         ) {
                             GameGrid(
-                                state = viewModel.gameState!!,
-                                viewModel = viewModel,
+                                state = gameState,
+                                selectedCellIndex = selectedCellIndex,
+                                isSolved = isSolved,
                                 cellSize = cellSize,
                                 opWidth = opWidth,
                                 fontSize = fontSize,
-                                colors = colors
+                                colors = colors,
+                                onCellClick = onCellClick
                             )
                         }
                     }
@@ -123,59 +131,50 @@ fun GamePlayArea(
     }
 }
 
-@Preview
-@Composable
-fun PreviewGamePlayAreaValid() {
-    val viewModel = remember { GameViewModel() }
-    val isDark = true
-    val colors = EquatixDesignSystem.getColors(isDark)
-
-    LaunchedEffect(Unit) {
-        val fixedNumbers = listOf(8, 4, 2, 12, 10, 5, 100, 25, 4)
-        val customCells = fixedNumbers.mapIndexed { index, value ->
+private fun Difficulty.generateBoard(size: GridSize): GameState {
+    val s = size.value
+    return GameState(
+        size = s,
+        grid = List(s * s) { index ->
             CellData(
                 id = index,
-                correctValue = value,
-                isHidden = true,
-                userInput = value.toString(),
-                isRevealedBySystem = false,
-                isLocked = false
+                correctValue = 1,
+                isHidden = false
+            )
+        },
+        rowOps = emptyList(),
+        colOps = emptyList(),
+        rowResults = emptyList(),
+        colResults = emptyList(),
+        difficulty = this
+    )
+}
+
+@Preview
+@Composable
+fun PreviewGamePlayArea() {
+    val mockState = Difficulty.EASY.generateBoard(GridSize.SIZE_3x3)
+    
+    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(32.dp)) {
+        PreviewContainer(isDark = true) { colors, _ ->
+            GamePlayArea(
+                gameState = mockState,
+                selectedCellIndex = 0,
+                isSolved = false,
+                onCellClick = {},
+                colors = colors,
+                isDark = true
             )
         }
-        val rowOps = listOf(
-            Operation.ADD,
-            Operation.MUL,
-            Operation.ADD,
-            Operation.DIV,
-            Operation.SUB,
-            Operation.MUL
-        )
-        val colOps = listOf(
-            Operation.ADD,
-            Operation.ADD,
-            Operation.MUL,
-            Operation.ADD,
-            Operation.MUL,
-            Operation.ADD
-        )
-        val rowResults = listOf(16, 14, 0)
-        val colResults = listOf(120, 65, 14)
-        val validState =
-            GameState(3, customCells, rowOps, colOps, rowResults, colResults, Difficulty.HARD)
-        viewModel.loadPreviewState(validState)
-    }
-
-    Box(
-        modifier = Modifier.fillMaxSize().background(colors.background),
-        contentAlignment = Alignment.Center
-    ) {
-        if (viewModel.gameState != null) {
+        
+        PreviewContainer(isDark = false) { colors, _ ->
             GamePlayArea(
-                modifier = Modifier.fillMaxSize(),
-                viewModel = viewModel,
-                n = 3,
+                gameState = mockState,
+                selectedCellIndex = null,
+                isSolved = true,
+                onCellClick = {},
                 colors = colors,
-                isDark = isDark
+                isDark = false
             )
         }
     }

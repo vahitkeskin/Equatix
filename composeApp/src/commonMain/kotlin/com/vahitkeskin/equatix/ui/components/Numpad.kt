@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
+import com.vahitkeskin.equatix.ui.utils.PreviewContainer
 
 @Composable
 fun TransparentNumpad(
@@ -80,5 +81,22 @@ fun GlassKeyButton(
             color = baseColor, // İkon/Yazı rengi
             fontWeight = FontWeight.Thin
         )
+    }
+}
+
+@org.jetbrains.compose.ui.tooling.preview.Preview
+@Composable
+fun PreviewTransparentNumpad() {
+    androidx.compose.foundation.layout.Column(
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        com.vahitkeskin.equatix.ui.utils.PreviewContainer(isDark = true) { colors, _ ->
+            TransparentNumpad(colors = colors, onInput = {})
+        }
+        
+        com.vahitkeskin.equatix.ui.utils.PreviewContainer(isDark = false) { colors, _ ->
+            TransparentNumpad(colors = colors, onInput = {})
+        }
     }
 }

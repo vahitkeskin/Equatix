@@ -12,6 +12,7 @@ import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import com.vahitkeskin.equatix.ui.utils.PreviewContainer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -31,20 +32,20 @@ import com.vahitkeskin.equatix.ui.common.AnimatedSegmentedControl
 import com.vahitkeskin.equatix.ui.common.GlassBox
 import com.vahitkeskin.equatix.ui.home.HomeViewModel
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 
 @Composable
 fun HomeSelectionPanel(
-    viewModel: HomeViewModel, // YENİ: Stringlere erişim için eklendi
     selectedDiff: Difficulty,
     onDiffSelect: (Difficulty) -> Unit,
     selectedSize: GridSize,
     onSizeSelect: (GridSize) -> Unit,
     isDark: Boolean,
-    colors: EquatixDesignSystem.ThemeColors
+    colors: EquatixDesignSystem.ThemeColors,
+    appStrings: com.vahitkeskin.equatix.domain.model.AppStrings
 ) {
-    // ViewModel'den güncel dil paketini çekiyoruz
-    val strings by viewModel.strings.collectAsState()
-
     val borderColor = if (isDark) Color.Transparent else colors.gridLines.copy(alpha = 0.5f)
     val containerBg = if (isDark) Color.White.copy(0.03f) else colors.cardBackground
 
@@ -75,7 +76,7 @@ fun HomeSelectionPanel(
             Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
                 // Zorluk Seçimi
                 SelectionRow(
-                    label = strings.difficultyLevel, // "ZORLUK SEVİYESİ" -> Dinamik
+                    label = appStrings.difficultyLevel, // "ZORLUK SEVİYESİ" -> Dinamik
                     labelColor = colors.accent,
                     content = {
                         AnimatedSegmentedControl(
@@ -83,7 +84,7 @@ fun HomeSelectionPanel(
                             selectedItem = selectedDiff,
                             onItemSelected = onDiffSelect,
                             modifier = Modifier.fillMaxWidth(),
-                            itemLabel = { strings.getDifficultyLabel(it).uppercase() }
+                            itemLabel = { appStrings.getDifficultyLabel(it).uppercase() }
                         )
                     }
                 )
@@ -93,7 +94,7 @@ fun HomeSelectionPanel(
 
                 // Boyut Seçimi
                 SelectionRow(
-                    label = strings.gridSize, // "IZGARA BOYUTU" -> Dinamik
+                    label = appStrings.gridSize, // "IZGARA BOYUTU" -> Dinamik
                     labelColor = colors.accent,
                     content = {
                         AnimatedSegmentedControl(
@@ -112,13 +113,11 @@ fun HomeSelectionPanel(
 
 @Composable
 fun CyberStartButton(
-    homeViewModel: HomeViewModel,
     isDark: Boolean,
+    appStrings: com.vahitkeskin.equatix.domain.model.AppStrings,
     onClick: () -> Unit
 ) {
-    // ViewModel'den güncel dil paketini çekiyoruz
-    val strings by homeViewModel.strings.collectAsState()
-
+    val colors = EquatixDesignSystem.getColors(isDark)
     val infiniteTransition = rememberInfiniteTransition(label = "ButtonPulse")
     val borderAlpha by infiniteTransition.animateFloat(
         initialValue = 0.5f, targetValue = 1f,
@@ -128,6 +127,9 @@ fun CyberStartButton(
         ),
         label = "alpha"
     )
+    
+    // Click Debounce
+    var lastClickTime by remember { androidx.compose.runtime.mutableStateOf(0L) }
 
     // Light Mod için butona da hafif bir gölge ekleyelim
     val buttonShadow = if (isDark) 0.dp else 8.dp
@@ -155,7 +157,13 @@ fun CyberStartButton(
             )
             .clip(RoundedCornerShape(24.dp))
             .background(bgGradient)
-            .clickable { onClick() }
+            .clickable {
+                val currentTime = kotlinx.datetime.Clock.System.now().toEpochMilliseconds()
+                if (currentTime - lastClickTime > 1000) {
+                    lastClickTime = currentTime
+                    onClick()
+                }
+            }
             .border(
                 width = if(isDark) 2.dp else 0.dp,
                 brush = borderBrush,
@@ -176,7 +184,7 @@ fun CyberStartButton(
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = strings.startGame, // "OYUNU BAŞLAT" -> Dinamik
+                text = appStrings.startGame, // "OYUNU BAŞLAT" -> Dinamik
                 color = Color.White,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
@@ -205,5 +213,44 @@ private fun SelectionRow(label: String, labelColor: Color, content: @Composable 
         )
         Spacer(modifier = Modifier.height(12.dp))
         content()
+    }
+}
+
+@org.jetbrains.compose.ui.tooling.preview.Preview
+@Composable
+fun PreviewHomeControls() {
+    Column(
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        com.vahitkeskin.equatix.ui.utils.PreviewContainer(isDark = true) { colors, strings ->
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                HomeSelectionPanel(
+                    selectedDiff = Difficulty.MEDIUM,
+                    onDiffSelect = {},
+                    selectedSize = GridSize.SIZE_4x4,
+                    onSizeSelect = {},
+                    isDark = true,
+                    colors = colors,
+                    appStrings = strings
+                )
+                CyberStartButton(isDark = true, appStrings = strings, onClick = {})
+            }
+        }
+        
+        com.vahitkeskin.equatix.ui.utils.PreviewContainer(isDark = false) { colors, strings ->
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                HomeSelectionPanel(
+                    selectedDiff = Difficulty.EASY,
+                    onDiffSelect = {},
+                    selectedSize = GridSize.SIZE_3x3,
+                    onSizeSelect = {},
+                    isDark = false,
+                    colors = colors,
+                    appStrings = strings
+                )
+                CyberStartButton(isDark = false, appStrings = strings, onClick = {})
+            }
+        }
     }
 }

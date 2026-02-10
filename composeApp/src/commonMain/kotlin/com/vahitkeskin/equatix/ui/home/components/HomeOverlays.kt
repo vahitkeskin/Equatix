@@ -33,6 +33,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.vahitkeskin.equatix.ui.utils.PreviewContainer
 import androidx.compose.ui.unit.sp
 import com.vahitkeskin.equatix.ui.common.GlassBox
 import com.vahitkeskin.equatix.ui.home.HomeScreen
@@ -159,21 +160,64 @@ fun HomeOverlayPanel(
 
                     // --- İÇERİK ---
                     when (overlay) {
-                        HomeScreen.OverlayType.HISTORY -> HistoryList(
-                            viewModel,
-                            colors,
-                            isDark,
-                            strings
-                        )
+                        HomeScreen.OverlayType.HISTORY -> {
+                            val scores by viewModel.scores.collectAsState()
+                            HistoryList(
+                                scores = scores,
+                                onDelete = { viewModel.deleteScore(it) },
+                                colors = colors,
+                                isDark = isDark,
+                                strings = strings
+                            )
+                        }
 
-                        HomeScreen.OverlayType.SETTINGS -> SettingsList(
-                            viewModel,
-                            isDark,
-                            colors
-                        )
+                        HomeScreen.OverlayType.SETTINGS -> {
+                            val isSoundOn by viewModel.isSoundOn.collectAsState()
+                            val isVibrationOn by viewModel.isVibrationOn.collectAsState()
+                            val themeConfig by viewModel.themeConfig.collectAsState()
+                            val isNotificationEnabled by viewModel.isNotificationEnabled.collectAsState()
+                            val notificationTime by viewModel.notificationTime.collectAsState()
+                            val isMusicOn by viewModel.isMusicOn.collectAsState()
+                            val currentLanguage by viewModel.currentLanguage.collectAsState()
+
+                            SettingsList(
+                                isSoundOn = isSoundOn,
+                                isVibrationOn = isVibrationOn,
+                                themeConfig = themeConfig,
+                                isNotificationEnabled = isNotificationEnabled,
+                                notificationTime = notificationTime,
+                                isMusicOn = isMusicOn,
+                                currentLanguage = currentLanguage,
+                                onSoundToggle = { /* handled in ViewModel */ },
+                                onVibrationToggle = { viewModel.toggleVibration() },
+                                onThemeSelect = { viewModel.setTheme(it) },
+                                onNotificationToggle = { viewModel.setNotificationSchedule(it) },
+                                onMusicToggle = { viewModel.toggleMusic(it) },
+                                onLanguageSelect = { viewModel.setLanguage(it) },
+                                onRefreshPermission = { viewModel.refreshPermissionStatus() },
+                                onOpenAppSettings = { viewModel.openAppSettings() },
+                                isDark = isDark,
+                                colors = colors,
+                                appStrings = strings
+                            )
+                        }
                     }
                 }
             }
         }
+    }
+}
+
+@org.jetbrains.compose.ui.tooling.preview.Preview
+@Composable
+fun PreviewHomeOverlayPanel() {
+    com.vahitkeskin.equatix.ui.utils.PreviewContainer(isDark = true) { colors, _ ->
+        HomeOverlayPanel(
+            overlayType = com.vahitkeskin.equatix.ui.home.HomeScreen.OverlayType.SETTINGS,
+            onDismiss = {},
+            viewModel = com.vahitkeskin.equatix.ui.home.HomeViewModel(),
+            isDark = true,
+            colors = colors
+        )
     }
 }

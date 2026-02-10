@@ -31,6 +31,7 @@ import com.vahitkeskin.equatix.domain.model.Difficulty
 import com.vahitkeskin.equatix.domain.model.GridSize
 import com.vahitkeskin.equatix.ui.home.HomeViewModel
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
+import com.vahitkeskin.equatix.ui.utils.PreviewContainer
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -112,56 +113,45 @@ fun GameHeader(
 @Preview
 @Composable
 fun PreviewGameHeader() {
-    // 1. Tema Renklerini Alıyoruz (Senior Dokunuş)
-    val darkColors = EquatixDesignSystem.getColors(isDark = true)
-    val lightColors = EquatixDesignSystem.getColors(isDark = false)
-    val appStrings by HomeViewModel().strings.collectAsState()
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.Gray) // Zemin gri olsun ki Light/Dark kutuları belli olsun
+            .background(Color.Gray)
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        // --- 1. DARK MODE PREVIEW ---
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(darkColors.background) // Arka planı temanın rengi yapıyoruz
-                .padding(16.dp)
-        ) {
-            GameHeader(
-                difficulty = Difficulty.HARD,
-                gridSize = GridSize.SIZE_4x4,
-                isSolved = false,
-                colors = darkColors,
-                appStrings = appStrings,
-                onBack = {},
-                onAutoSolve = {},
-                onRefresh = {},
-                onHint = {}
-            )
+        // --- Dark Mode / TR ---
+        PreviewContainer(isDark = true, language = com.vahitkeskin.equatix.domain.model.AppLanguage.TURKISH) { colors, strings ->
+            Box(modifier = Modifier.padding(16.dp)) {
+                GameHeader(
+                    difficulty = Difficulty.HARD,
+                    gridSize = GridSize.SIZE_4x4,
+                    isSolved = false,
+                    colors = colors,
+                    appStrings = strings,
+                    onBack = {},
+                    onAutoSolve = {},
+                    onRefresh = {},
+                    onHint = {}
+                )
+            }
         }
 
-        // --- 2. LIGHT MODE PREVIEW ---
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(lightColors.background) // Light arka plan
-                .padding(16.dp)
-        ) {
-            GameHeader(
-                difficulty = Difficulty.EASY,
-                gridSize = GridSize.SIZE_3x3,
-                isSolved = true,
-                colors = lightColors,
-                appStrings = appStrings,
-                onBack = {},
-                onAutoSolve = {},
-                onRefresh = {},
-                onHint = {}
-            )
+        // --- Light Mode / EN ---
+        PreviewContainer(isDark = false, language = com.vahitkeskin.equatix.domain.model.AppLanguage.ENGLISH) { colors, strings ->
+            Box(modifier = Modifier.padding(16.dp)) {
+                GameHeader(
+                    difficulty = Difficulty.EASY,
+                    gridSize = GridSize.SIZE_3x3,
+                    isSolved = true,
+                    colors = colors,
+                    appStrings = strings,
+                    onBack = {},
+                    onAutoSolve = {},
+                    onRefresh = {},
+                    onHint = {}
+                )
+            }
         }
     }
 }

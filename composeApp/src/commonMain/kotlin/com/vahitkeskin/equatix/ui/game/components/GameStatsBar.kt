@@ -24,6 +24,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.vahitkeskin.equatix.ui.utils.PreviewContainer
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -32,7 +34,6 @@ import com.vahitkeskin.equatix.ui.common.GlassBox
 import com.vahitkeskin.equatix.ui.components.AnimatedCounter
 import com.vahitkeskin.equatix.ui.game.utils.formatTime
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
-import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 fun GameStatsBar(
@@ -192,8 +193,24 @@ fun ControlButton(icon: ImageVector, color: Color, size: Dp, onClick: () -> Unit
 @Preview
 @Composable
 fun PreviewGameStatsBar() {
-    val darkColors = EquatixDesignSystem.getColors(false)
-    Box(modifier = Modifier.fillMaxWidth().background(darkColors.background).padding(16.dp)) {
-        GameStatsBar(65, true, false, true, darkColors, true, {}, {})
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Dark Mode
+        PreviewContainer(isDark = true) { colors, _ ->
+            Box(modifier = Modifier.padding(16.dp)) {
+                GameStatsBar(65, true, false, true, colors, true, {}, {})
+            }
+        }
+        
+        // Light Mode
+        PreviewContainer(isDark = false) { colors, _ ->
+            Box(modifier = Modifier.padding(16.dp)) {
+                GameStatsBar(125, true, false, true, colors, false, {}, {})
+            }
+        }
     }
 }

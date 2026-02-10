@@ -17,6 +17,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.vahitkeskin.equatix.ui.utils.PreviewContainer
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -28,27 +30,13 @@ import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
 
 @Composable
 fun RewardedAdOfferDialog(
+    isDnsActive: Boolean,
     appStrings: AppStrings,
     colors: EquatixDesignSystem.ThemeColors,
     onDismiss: () -> Unit,
-    onWatchAd: () -> Unit
+    onWatchAd: () -> Unit,
+    onOpenDnsSettings: () -> Unit
 ) {
-    var isDnsActive by remember { mutableStateOf(AdBlockerManager.isPrivateDnsActive()) }
-    
-    // Lifecycle observer to re-check DNS status when user returns to app
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                isDnsActive = AdBlockerManager.isPrivateDnsActive()
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
-    }
-
     val infiniteTransition = rememberInfiniteTransition()
     val scale by infiniteTransition.animateFloat(
         initialValue = 1f,
@@ -84,7 +72,7 @@ fun RewardedAdOfferDialog(
                 Icon(
                     imageVector = EquatixIcons_Answer,
                     contentDescription = null,
-                    tint = colors.error, // Canlı kırmızıyı temadan alıyoruz
+                    tint = colors.error,
                     modifier = Modifier
                         .size(64.dp)
                         .scale(scale)
@@ -113,11 +101,11 @@ fun RewardedAdOfferDialog(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Action Button (Watch Ad or Open DNS Settings)
+                // Action Button
                 Button(
                     onClick = {
                         if (isDnsActive) {
-                            AdBlockerManager.openDnsSettings()
+                            onOpenDnsSettings()
                         } else {
                             onWatchAd()
                         }
@@ -150,6 +138,45 @@ fun RewardedAdOfferDialog(
                         fontWeight = FontWeight.Medium
                     )
                 }
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+fun PreviewRewardedAdOfferDialog() {
+    androidx.compose.foundation.layout.Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Dark Mode / EN / Active DNS
+        com.vahitkeskin.equatix.ui.utils.PreviewContainer(isDark = true, language = com.vahitkeskin.equatix.domain.model.AppLanguage.ENGLISH) { colors, strings ->
+            Box(modifier = Modifier.height(400.dp)) {
+                RewardedAdOfferDialog(
+                    isDnsActive = true,
+                    appStrings = strings,
+                    colors = colors,
+                    onDismiss = {},
+                    onWatchAd = {},
+                    onOpenDnsSettings = {}
+                )
+            }
+        }
+
+        // Light Mode / TR / No DNS
+        com.vahitkeskin.equatix.ui.utils.PreviewContainer(isDark = false, language = com.vahitkeskin.equatix.domain.model.AppLanguage.TURKISH) { colors, strings ->
+            Box(modifier = Modifier.height(400.dp)) {
+                RewardedAdOfferDialog(
+                    isDnsActive = false,
+                    appStrings = strings,
+                    colors = colors,
+                    onDismiss = {},
+                    onWatchAd = {},
+                    onOpenDnsSettings = {}
+                )
             }
         }
     }

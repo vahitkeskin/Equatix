@@ -23,6 +23,9 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import com.vahitkeskin.equatix.domain.model.AppLanguage
+import com.vahitkeskin.equatix.ui.utils.PreviewContainer
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vahitkeskin.equatix.domain.model.AppStrings
@@ -30,7 +33,6 @@ import com.vahitkeskin.equatix.ui.game.utils.formatTime
 import com.vahitkeskin.equatix.ui.home.HomeViewModel
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
 import kotlinx.coroutines.delay
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.math.max
 
 @Composable
@@ -171,24 +173,33 @@ fun ResultPanel(
 
 @Preview
 @Composable
-fun PreviewResultPanelWinScore() {
-    val isDark = true
-    val colors = EquatixDesignSystem.getColors(isDark)
-    val strings by HomeViewModel().strings.collectAsState()
-
-    Box(
+fun PreviewResultPanel() {
+    Column(
         modifier = Modifier
-            .fillMaxSize()
-            .background(colors.background)
+            .fillMaxWidth()
             .padding(16.dp),
-        contentAlignment = Alignment.Center
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        ResultPanel(
-            isSurrendered = false,
-            elapsedTime = 45,
-            colors = colors,
-            appStrings = strings,
-            onRestart = {}
-        )
+        // --- Dark Mode / EN / Win ---
+        PreviewContainer(isDark = true, language = AppLanguage.ENGLISH) { colors, strings ->
+            ResultPanel(
+                isSurrendered = false,
+                elapsedTime = 45,
+                colors = colors,
+                appStrings = strings,
+                onRestart = {}
+            )
+        }
+
+        // --- Light Mode / TR / Surrender ---
+        PreviewContainer(isDark = false, language = AppLanguage.TURKISH) { colors, strings ->
+            ResultPanel(
+                isSurrendered = true,
+                elapsedTime = 120,
+                colors = colors,
+                appStrings = strings,
+                onRestart = {}
+            )
+        }
     }
 }

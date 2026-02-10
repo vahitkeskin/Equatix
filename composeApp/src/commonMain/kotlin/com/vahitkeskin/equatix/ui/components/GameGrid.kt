@@ -21,31 +21,32 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.vahitkeskin.equatix.domain.model.CellData
+import com.vahitkeskin.equatix.domain.model.Difficulty
 import com.vahitkeskin.equatix.domain.model.GameState
+import com.vahitkeskin.equatix.domain.model.GridSize
 import com.vahitkeskin.equatix.domain.model.Operation
 import com.vahitkeskin.equatix.ui.game.GameViewModel
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
+import com.vahitkeskin.equatix.ui.utils.PreviewContainer
+import org.jetbrains.compose.ui.tooling.preview.Preview
+import com.vahitkeskin.equatix.ui.utils.PreviewContainer
 
 @Composable
 fun GameGrid(
     state: GameState,
-    viewModel: GameViewModel,
+    selectedCellIndex: Int?,
+    isSolved: Boolean,
     cellSize: Dp,
     opWidth: Dp,
     fontSize: TextUnit,
-    colors: EquatixDesignSystem.ThemeColors
+    colors: EquatixDesignSystem.ThemeColors,
+    onCellClick: (Int) -> Unit
 ) {
 
     val n = state.size
     val gapHeight = cellSize * 0.7f
-    val puzzleIdentity = remember(state.grid) {
-        state.grid.map { it.correctValue }
-    }
-
-    LaunchedEffect(puzzleIdentity) {
-        printBoardLog(state)
-    }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -56,15 +57,16 @@ fun GameGrid(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 for (j in 0 until n) {
                     val cell = state.grid[i * n + j]
-                    val isSelected = viewModel.selectedCellIndex == cell.id
+                    val isSelected = selectedCellIndex == cell.id
 
                     GridCell(
                         data = cell,
                         isSelected = isSelected,
-                        cellSize = cellSize,
+                        isSolved = isSolved,
+                        size = cellSize,
                         fontSize = fontSize,
                         colors = colors,
-                        onClick = { viewModel.onCellSelected(cell.id) }
+                        onClick = { onCellClick(cell.id) }
                     )
 
                     if (j < n - 1) {
@@ -72,7 +74,7 @@ fun GameGrid(
                     }
                 }
                 OpText("=", opWidth, fontSize, colors)
-                GameGridResultCell(state.rowResults[i], cellSize, fontSize)
+                GameGridResultCell(state.rowResults[i], cellSize, fontSize, colors)
             }
 
             // --- ARA SATIRLAR (Dikey Operatörler) ---
@@ -96,18 +98,37 @@ fun GameGrid(
                 VerticalEquals(cellSize, fontSize, colors)
                 if (j < n - 1) Spacer(modifier = Modifier.width(opWidth))
             }
-            Spacer(modifier = Modifier.width(opWidth + cellSize))
+            Spacer(modifier = Modifier.width(opWidth + cellSize)) // Adjusted to match the OpText width
         }
 
         // --- EN ALT SONUÇLAR ---
         Row(verticalAlignment = Alignment.CenterVertically) {
             for (j in 0 until n) {
-                GameGridResultCell(state.colResults[j], cellSize, fontSize)
+                GameGridResultCell(state.colResults[j], cellSize, fontSize, colors)
                 if (j < n - 1) Spacer(modifier = Modifier.width(opWidth))
             }
             Spacer(modifier = Modifier.width(opWidth + cellSize))
         }
     }
+}
+
+private fun Difficulty.generateBoard(size: GridSize): GameState {
+    val s = size.value
+    return GameState(
+        size = s,
+        grid = List(s * s) { index ->
+            CellData(
+                id = index,
+                correctValue = 1,
+                isHidden = false
+            )
+        },
+        rowOps = emptyList(),
+        colOps = emptyList(),
+        rowResults = emptyList(),
+        colResults = emptyList(),
+        difficulty = this
+    )
 }
 
 private fun printBoardLog(state: GameState) {
@@ -175,58 +196,18 @@ private fun printBoardLog(state: GameState) {
 // ALT BİLEŞENLER
 // ----------------------------------------------------------------
 
-@Composable
-fun GridCell(
-    data: CellData,
-    isSelected: Boolean,
-    cellSize: Dp,
-    fontSize: TextUnit,
-    colors: EquatixDesignSystem.ThemeColors,
-    onClick: () -> Unit
-) {
-    val targetBg = when {
-        data.isLocked -> colors.cardBackground
-        isSelected -> colors.accent.copy(alpha = 0.2f)
-        else -> colors.gridLines.copy(alpha = 0.1f)
-    }
 
-    val backgroundColor by animateColorAsState(targetValue = targetBg, animationSpec = tween(200))
-    val borderColor by animateColorAsState(targetValue = if (isSelected) colors.accent else Color.Transparent)
-
-    Box(
-        modifier = Modifier
-            .size(cellSize)
-            .padding(2.dp)
-            .border(1.5.dp, borderColor, CircleShape)
-            .background(backgroundColor, CircleShape)
-            .clickable(enabled = !data.isLocked) { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        val textColor = if (data.isLocked) colors.textPrimary else colors.accent
-        val displayText = if (data.isLocked) data.correctValue.toString() else data.userInput
-
-        Text(
-            text = displayText,
-            color = textColor,
-            fontSize = fontSize,
-            fontWeight = FontWeight.Bold,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-        )
-    }
-}
 
 @Composable
 fun GameGridResultCell(
     result: Int,
     cellSize: Dp,
     baseFontSize: TextUnit,
+    colors: EquatixDesignSystem.ThemeColors
 ) {
-    // Rakam sayısını al
     val text = result.toString()
     val length = text.length
 
-    // Yazı boyutunu uzunluğa göre ölçekle
-    // 3 basamak ise %70, 4 ve üzeri ise %60 boyuta indir.
     val dynamicFontSize = when {
         length >= 4 -> baseFontSize * 0.6f
         length == 3 -> baseFontSize * 0.7f
@@ -237,14 +218,14 @@ fun GameGridResultCell(
         modifier = Modifier
             .size(cellSize)
             .padding(2.dp)
-            .background(Color(0xFF34C759).copy(alpha = 0.2f), CircleShape),
+            .background(colors.success.copy(alpha = 0.2f), CircleShape),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = text,
-            color = Color(0xFF34C759),
+            color = colors.success,
             fontWeight = FontWeight.Bold,
-            fontSize = dynamicFontSize, // Dinamik font
+            fontSize = dynamicFontSize,
             maxLines = 1,
             softWrap = false,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -293,5 +274,39 @@ fun OpText(text: String, width: Dp, fontSize: TextUnit, colors: EquatixDesignSys
             fontWeight = FontWeight.Light,
             fontSize = fontSize
         )
+    }
+}
+
+@Preview
+@Composable
+fun PreviewGameGrid() {
+    val mockState = Difficulty.EASY.generateBoard(GridSize.SIZE_3x3)
+    
+    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(32.dp)) {
+        PreviewContainer(isDark = true) { colors, _ ->
+            GameGrid(
+                state = mockState,
+                selectedCellIndex = 0,
+                isSolved = false,
+                cellSize = 50.dp,
+                opWidth = 30.dp,
+                fontSize = 18.sp,
+                colors = colors,
+                onCellClick = {}
+            )
+        }
+        
+        PreviewContainer(isDark = false) { colors, _ ->
+            GameGrid(
+                state = mockState,
+                selectedCellIndex = null,
+                isSolved = true,
+                cellSize = 50.dp,
+                opWidth = 30.dp,
+                fontSize = 18.sp,
+                colors = colors,
+                onCellClick = {}
+            )
+        }
     }
 }

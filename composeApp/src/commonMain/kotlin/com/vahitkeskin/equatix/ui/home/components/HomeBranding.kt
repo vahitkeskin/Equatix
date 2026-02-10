@@ -1,8 +1,16 @@
 package com.vahitkeskin.equatix.ui.home.components
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import com.vahitkeskin.equatix.ui.utils.PreviewContainer
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,5 +50,26 @@ fun HomeBranding(isDark: Boolean, colors: EquatixDesignSystem.ThemeColors) {
             letterSpacing = 6.sp,
             fontWeight = FontWeight.Bold
         )
+    }
+}
+
+@Preview
+@Composable
+fun PreviewHomeBranding() {
+    Column(
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        PreviewContainer(isDark = true) { colors, _ ->
+            Box(modifier = Modifier.padding(16.dp)) {
+                HomeBranding(isDark = true, colors = colors)
+            }
+        }
+        
+        PreviewContainer(isDark = false) { colors, _ ->
+            Box(modifier = Modifier.padding(16.dp)) {
+                HomeBranding(isDark = false, colors = colors)
+            }
+        }
     }
 }
