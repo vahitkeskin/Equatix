@@ -131,7 +131,7 @@ object AppDictionary {
         dnsBlockTitle = "AD BLOCKER DETECTED",
         dnsBlockDescription = "Ads are our primary way to keep the game free and continue development. You also need to disable Private DNS or Ad Blocker to see the solution.",
         dnsBlockButton = "OPEN DNS SETTINGS",
-        dnsBannerMessage = "Ads support us. Please disable DNS / AdBlocker."
+        dnsBannerMessage = "Ads support us. Click to disable DNS / AdBlocker."
     )
 
     val tr = AppStrings(
@@ -178,7 +178,7 @@ object AppDictionary {
         dnsBlockTitle = "REKLAM ENGELLEYİCİ TESPİT EDİLDİ",
         dnsBlockDescription = "Oyunu ücretsiz tutabilmemiz ve geliştirmeye devam edebilmemiz için reklamlar temel gelir kaynağımızdır. Çözümü görebilmek için de reklam engelleyiciyi veya özel DNS'yi devre dışı bırakmanız gerekmektedir.",
         dnsBlockButton = "DNS AYARLARINI AÇ",
-        dnsBannerMessage = "Reklamlar bizi destekler. Lütfen DNS veya Engelleyiciyi kapatın."
+        dnsBannerMessage = "Reklamlar bizi destekler. Kapatmak için tıklayın."
     )
 
     val de = AppStrings(
@@ -225,7 +225,7 @@ object AppDictionary {
         dnsBlockTitle = "WERBEBLOCKER ERKANNT",
         dnsBlockDescription = "Werbung ist unsere Haupteinnahmequelle, um das Spiel kostenlos zu halten. Sie müssen auch den Werbeblocker oder das private DNS deaktivieren, um die Lösung zu sehen.",
         dnsBlockButton = "DNS-EINSTELLUNGEN ÖFFNEN",
-        dnsBannerMessage = "Werbung unterstützt uns. Bitte deaktivieren Sie den DNS / Blocker."
+        dnsBannerMessage = "Werbung unterstützt uns. Hier klicken, um DNS zu deaktivieren."
     )
 
     val ar = AppStrings(
@@ -272,7 +272,7 @@ object AppDictionary {
         dnsBlockTitle = "تم اكتشاف مانع الإعلانات",
         dnsBlockDescription = "الإعلانات هي وسيلتنا الأساسية للحفاظ على اللعبة مجانية ومواصلة التطوير. تحتاج أيضًا إلى تعطيل نظام DNS الخاص أو مانع الإعلانات لرؤية الحل.",
         dnsBlockButton = "فتح إعدادات DNS",
-        dnsBannerMessage = "الإعلانات تدعمنا. يرجى إيقاف تشغيل نظام DNS أو مانع الإعلانات."
+        dnsBannerMessage = "الإعلانات تدعمنا. انقر لتعطيل نظام DNS / مانع الإعلانات."
     )
 
     fun getStrings(language: AppLanguage): AppStrings {

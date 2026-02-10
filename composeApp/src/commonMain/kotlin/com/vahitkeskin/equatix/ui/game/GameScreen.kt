@@ -318,6 +318,7 @@ private fun GameContent(
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .bannerSystemPadding()
+                .padding(bottom = 8.dp)
         )
     }
 
