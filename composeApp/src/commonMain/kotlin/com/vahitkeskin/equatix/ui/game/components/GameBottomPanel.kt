@@ -50,8 +50,8 @@ fun GameBottomPanel(
                 enter = slideInVertically { it } + fadeIn(),
                 exit = fadeOut()
             ) {
-                // DÜZELTME: Scale 0.9f -> 0.85f
-                Box(modifier = Modifier.scale(0.85f)) {
+                // DÜZELTME: Scale kaldırıldı (Layout ölçümünü bozuyordu)
+                Box {
                     MaterialTheme(
                         colorScheme = MaterialTheme.colorScheme.copy(
                             onSurface = colors.numpadText,

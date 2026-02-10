@@ -265,7 +265,7 @@ private fun GameContent(
                 }
             )
 
-            Spacer(modifier = Modifier.height(80.dp))
+            Spacer(modifier = Modifier.height(100.dp))
         }
 
         // --- OVERLAYS ---

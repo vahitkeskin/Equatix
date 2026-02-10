@@ -40,25 +40,30 @@ fun GamePlayArea(
     isDark: Boolean
 ) {
     BoxWithConstraints(
-        modifier = modifier.fillMaxSize(), // Mevcut alanın tamamını kullan
+        modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        val availableW = maxWidth.value
-        val availableH = maxHeight.value
+        // --- PADDING & SAFE MARGINS ---
+        // GlassBox padding (16dp) + Column padding (16dp) + Shadow margin
+        val horizontalPadding = 32.dp
+        val verticalPadding = 32.dp
+
+        val availableW = (maxWidth - horizontalPadding).value
+        val availableH = (maxHeight - verticalPadding).value
 
         if (availableW <= 0 || availableH <= 0) return@BoxWithConstraints
 
         // --- GRID HESAPLAMA MOTORU ---
-        // 5x5'te sıkışmayı önlemek için matematiksel oranlar
-        val opRatio = 0.65f
+        val opRatio = 0.70f 
 
         // YATAY BİRİM SAYISI
-        // N sayı + (N-1) işlem + Eşittir + Sonuç
-        val totalUnitsX = n + ((n - 1) * opRatio) + 0.5f + 1.0f
+        // (N+1) hücre + N işlem (opRatio)
+        val totalUnitsX = (1.7f * n) + 1.2f 
 
-        // DİKEY BİRİM SAYISI (Alttaki yeşil toplar sığsın diye)
-        // N sayı + (N-1) işlem + Eşittir + Sonuç
-        val totalUnitsY = n + ((n - 1) * opRatio) + 0.5f + 1.0f
+        // DİKEY BİRİM SAYISI
+        // N hücre + (N-1) ara işlem (0.7) + dikey eşittir (0.7) + sonuç (1.0)
+        // N + (N-1)*0.7 + 0.7 + 1.0 = 1.7N + 1.0
+        val totalUnitsY = (1.7f * n) + 1.2f // 0.2f emniyet payı
 
         // Ekranın en ve boyuna göre, bir birimin maksimum pixel değeri
         val unitSizeX = availableW / totalUnitsX
@@ -71,7 +76,7 @@ fun GamePlayArea(
         val cellSize = unitSizeValue.dp
         val opWidth = (unitSizeValue * opRatio).dp
 
-        // Font boyutu: Biraz daha büyüttük (0.45 -> 0.50) ki okunabilsin
+        // Font boyutu
         val fontSize = (unitSizeValue * 0.50f).sp
 
         Box {

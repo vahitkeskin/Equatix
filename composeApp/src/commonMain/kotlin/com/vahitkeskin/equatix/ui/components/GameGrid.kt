@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,7 +38,7 @@ fun GameGrid(
 ) {
 
     val n = state.size
-    val gapHeight = cellSize * 0.5f
+    val gapHeight = cellSize * 0.7f
     val puzzleIdentity = remember(state.grid) {
         state.grid.map { it.correctValue }
     }
@@ -196,8 +197,8 @@ fun GridCell(
         modifier = Modifier
             .size(cellSize)
             .padding(2.dp)
-            .border(1.5.dp, borderColor, RoundedCornerShape(12.dp))
-            .background(backgroundColor, RoundedCornerShape(12.dp))
+            .border(1.5.dp, borderColor, CircleShape)
+            .background(backgroundColor, CircleShape)
             .clickable(enabled = !data.isLocked) { onClick() },
         contentAlignment = Alignment.Center
     ) {
@@ -208,7 +209,8 @@ fun GridCell(
             text = displayText,
             color = textColor,
             fontSize = fontSize,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
     }
 }
@@ -235,7 +237,7 @@ fun GameGridResultCell(
         modifier = Modifier
             .size(cellSize)
             .padding(2.dp)
-            .background(Color(0xFF34C759).copy(alpha = 0.2f), RoundedCornerShape(12.dp)),
+            .background(Color(0xFF34C759).copy(alpha = 0.2f), CircleShape),
         contentAlignment = Alignment.Center
     ) {
         Text(
@@ -244,7 +246,8 @@ fun GameGridResultCell(
             fontWeight = FontWeight.Bold,
             fontSize = dynamicFontSize, // Dinamik font
             maxLines = 1,
-            softWrap = false
+            softWrap = false,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
     }
 }
@@ -268,8 +271,9 @@ fun VerticalOp(op: Operation, width: Dp, fontSize: TextUnit, colors: EquatixDesi
 }
 
 @Composable
-fun VerticalEquals(width: Dp, fontSize: TextUnit, colors: EquatixDesignSystem.ThemeColors) {
-    Box(modifier = Modifier.width(width).height(20.dp), contentAlignment = Alignment.Center) {
+fun VerticalEquals(cellSize: Dp, fontSize: TextUnit, colors: EquatixDesignSystem.ThemeColors) {
+    val height = cellSize * 0.7f
+    Box(modifier = Modifier.width(cellSize).height(height), contentAlignment = Alignment.Center) {
         Text(
             text = "=",
             modifier = Modifier.rotate(90f),
