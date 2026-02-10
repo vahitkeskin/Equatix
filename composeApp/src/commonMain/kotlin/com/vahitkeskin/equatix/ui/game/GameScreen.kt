@@ -7,8 +7,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.runtime.Composable
@@ -47,6 +49,8 @@ import com.vahitkeskin.equatix.ui.game.visuals.CosmicBackground
 import com.vahitkeskin.equatix.ui.game.visuals.FireworkOverlay
 import com.vahitkeskin.equatix.ui.game.visuals.ProgressPath
 import com.vahitkeskin.equatix.ui.home.HomeViewModel
+import com.vahitkeskin.equatix.ui.components.AdBanner
+import com.vahitkeskin.equatix.ui.utils.bannerSystemPadding
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -200,6 +204,9 @@ private fun GameContent(
                         viewModel.startGame(difficulty, gridSize)
                         elapsedTime = 0
                         isTimerRunning = true
+                    },
+                    onHint = {
+                        viewModel.onHintClick()
                     }
                 )
             }
@@ -256,6 +263,8 @@ private fun GameContent(
                     isTimerRunning = true
                 }
             )
+
+            Spacer(modifier = Modifier.height(50.dp))
         }
 
         // --- OVERLAYS ---
@@ -285,6 +294,13 @@ private fun GameContent(
         if (viewModel.isSolved && !viewModel.isSurrendered) {
             FireworkOverlay()
         }
+
+        AdBanner(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .bannerSystemPadding()
+        )
     }
 
     LaunchedEffect(viewModel.isSolved) {

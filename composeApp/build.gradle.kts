@@ -1,5 +1,6 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     // Kotlin Multiplatform (Android + iOS + Desktop)
@@ -59,6 +60,8 @@ kotlin {
                 implementation(libs.androidx.activity.compose) // Activity + Compose integration
                 implementation(libs.android.material)          // Material Components
                 implementation(libs.androidx.work.runtime.ktx) // WorkManager
+                implementation(libs.google.ads)
+                implementation(libs.androidx.lifecycle.process)
             }
         }
 
@@ -152,8 +155,16 @@ android {
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
 
-        versionCode = 2
-        versionName = "1.0.2"
+        versionCode = 3
+        versionName = "1.0.3"
+
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localProperties.load(localPropertiesFile.inputStream())
+        }
+        val adMobAppId = localProperties.getProperty("admob.app.id") ?: "ca-app-pub-3940256099942544~3347511713"
+        manifestPlaceholders["adMobAppId"] = adMobAppId
     }
 
     // Exclude conflicting license files from packaging

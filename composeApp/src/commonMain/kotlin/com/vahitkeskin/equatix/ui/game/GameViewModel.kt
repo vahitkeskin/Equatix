@@ -13,6 +13,7 @@ import com.vahitkeskin.equatix.domain.model.Difficulty
 import com.vahitkeskin.equatix.domain.model.GameState
 import com.vahitkeskin.equatix.domain.model.GridSize
 import com.vahitkeskin.equatix.domain.model.Operation
+import com.vahitkeskin.equatix.platform.AdActions
 import com.vahitkeskin.equatix.platform.KeyValueStorage
 import com.vahitkeskin.equatix.ui.game.utils.GameUiEvent
 import kotlinx.coroutines.channels.Channel
@@ -142,6 +143,30 @@ class GameViewModel : ScreenModel {
         isSolved = true
         isSurrendered = true
         selectedCellIndex = null
+        
+        // Give up sonrası reklam (Opsiyonel ama gelir için ekledik)
+        AdActions.showInterstitial { }
+    }
+
+    fun revealOneHint() {
+        val currentState = gameState ?: return
+        val hiddenCells = currentState.grid.filter { it.isHidden && it.userInput != it.correctValue.toString() }
+        if (hiddenCells.isEmpty()) return
+
+        val cellToReveal = hiddenCells.random()
+        val updatedGrid = currentState.grid.map { cell ->
+            if (cell.id == cellToReveal.id) {
+                cell.copy(userInput = cell.correctValue.toString(), isRevealedBySystem = true)
+            } else cell
+        }
+        gameState = currentState.copy(grid = updatedGrid)
+        checkWin()
+    }
+
+    fun onHintClick() {
+        AdActions.showRewarded {
+            revealOneHint()
+        }
     }
 
     fun dismissWinDialog() {
@@ -214,6 +239,9 @@ class GameViewModel : ScreenModel {
         if (allCorrect) {
             isSolved = true
             selectedCellIndex = null
+            
+            // Kazanma durumunda Interstitial reklam göster
+            AdActions.showInterstitial { }
         }
     }
 
