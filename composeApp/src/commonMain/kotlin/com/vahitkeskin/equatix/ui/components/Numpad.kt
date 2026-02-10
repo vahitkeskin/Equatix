@@ -26,7 +26,7 @@ fun TransparentNumpad(
         listOf("1", "2", "3"),
         listOf("", "0", "DEL")
     )
-    Box(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
+    Box(modifier = Modifier.fillMaxWidth().padding(bottom = 0.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             rows.forEach { row ->
                 Row(
@@ -35,7 +35,7 @@ fun TransparentNumpad(
                 ) {
                     row.forEach { key ->
                         if (key.isEmpty()) {
-                            Spacer(modifier = Modifier.size(70.dp))
+                            Spacer(modifier = Modifier.size(68.dp))
                         } else {
                             GlassKeyButton(
                                 key = key,
@@ -68,7 +68,7 @@ fun GlassKeyButton(
 
     Box(
         modifier = Modifier
-            .size(75.dp)
+            .size(73.dp)
             .clip(CircleShape)
             .background(bgColor)
             .clickable { onClick(key) },
