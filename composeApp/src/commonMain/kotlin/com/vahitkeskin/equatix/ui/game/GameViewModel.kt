@@ -143,9 +143,6 @@ class GameViewModel : ScreenModel {
         isSolved = true
         isSurrendered = true
         selectedCellIndex = null
-        
-        // Give up sonrası reklam (Opsiyonel ama gelir için ekledik)
-        AdActions.showInterstitial { }
     }
 
     fun revealOneHint() {

@@ -8,14 +8,15 @@ import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import android.app.Activity
+import com.vahitkeskin.equatix.BuildConfig
 
 object AdManager {
     private var interstitialAd: InterstitialAd? = null
     private var rewardedAd: RewardedAd? = null
 
-    // Test IDs
-    private const val INTERSTITIAL_ID = "ca-app-pub-3940256099942544/1033173712"
-    private const val REWARDED_ID = "ca-app-pub-3940256099942544/5224354917"
+    // Production Ad Unit IDs (Loaded from local.properties via BuildConfig)
+    private val INTERSTITIAL_ID = BuildConfig.ADMOB_INTERSTITIAL_ID
+    private val REWARDED_ID = BuildConfig.ADMOB_REWARDED_ID
 
     fun loadInterstitial(context: Context) {
         val adRequest = AdRequest.Builder().build()

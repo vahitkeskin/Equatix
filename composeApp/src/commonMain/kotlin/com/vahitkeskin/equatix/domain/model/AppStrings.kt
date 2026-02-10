@@ -60,7 +60,13 @@ data class AppStrings(
     val pauseQuit: String,     // "Çıkış"
 
     val btnSelect: String,
-    val langSystem: String
+    val langSystem: String,
+
+    // Reward Ad
+    val rewardAdTitle: String,
+    val rewardAdDescription: String,
+    val rewardAdWatchButton: String,
+    val rewardAdCancelButton: String
 ) {
     // YARDIMCI FONKSİYON: Enum'ı alıp doğru metni döndürür
     fun getDifficultyLabel(difficulty: Difficulty): String {
@@ -112,6 +118,10 @@ object AppDictionary {
         pauseQuit = "Quit",
         btnSelect = "SELECT",
         langSystem = "System",
+        rewardAdTitle = "AUTO SOLVE",
+        rewardAdDescription = "Watch a short ad to automatically solve the current level.",
+        rewardAdWatchButton = "WATCH AD & SOLVE",
+        rewardAdCancelButton = "CANCEL",
     )
 
     val tr = AppStrings(
@@ -151,6 +161,10 @@ object AppDictionary {
         pauseQuit = "Çıkış",
         btnSelect = "SEÇ",
         langSystem = "Sistem",
+        rewardAdTitle = "OTOMATİK ÇÖZÜM",
+        rewardAdDescription = "Mevcut seviyeyi otomatik olarak çözmek için kısa bir reklam izleyin.",
+        rewardAdWatchButton = "REKLAM İZLE VE ÇÖZ",
+        rewardAdCancelButton = "İPTAL",
     )
 
     val de = AppStrings(
@@ -190,6 +204,10 @@ object AppDictionary {
         pauseQuit = "Beenden",
         btnSelect = "WÄHLEN",
         langSystem = "System",
+        rewardAdTitle = "AUTOMATISCH LÖSEN",
+        rewardAdDescription = "Sehen Sie sich eine kurze Anzeige an, um das aktuelle Level automatisch zu lösen.",
+        rewardAdWatchButton = "ANZEIGE ANSEHEN & LÖSEN",
+        rewardAdCancelButton = "ABBRECHEN",
     )
 
     val ar = AppStrings(
@@ -229,6 +247,10 @@ object AppDictionary {
         pauseQuit = "خروج",
         btnSelect = "اختيار",
         langSystem = "نظام",
+        rewardAdTitle = "حل تلقائي",
+        rewardAdDescription = "شاهد إعلانًا قصيرًا لحل المستوى الحالي تلقائيًا.",
+        rewardAdWatchButton = "شاهد الإعلان والحل",
+        rewardAdCancelButton = "إلغاء",
     )
 
     fun getStrings(language: AppLanguage): AppStrings {

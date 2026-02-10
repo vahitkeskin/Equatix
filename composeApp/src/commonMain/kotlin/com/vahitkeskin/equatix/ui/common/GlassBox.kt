@@ -24,15 +24,17 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun GlassBox(
     modifier: Modifier = Modifier,
     cornerRadius: Dp = 24.dp,
+    backgroundColor: Color = Color.White.copy(alpha = 0.15f),
     content: @Composable BoxScope.() -> Unit
 ) {
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(cornerRadius))
+            .background(backgroundColor)
             .background(
                 Brush.linearGradient(
                     colors = listOf(
-                        Color.White.copy(alpha = 0.15f),
+                        Color.White.copy(alpha = 0.1f),
                         Color.White.copy(alpha = 0.05f)
                     )
                 )

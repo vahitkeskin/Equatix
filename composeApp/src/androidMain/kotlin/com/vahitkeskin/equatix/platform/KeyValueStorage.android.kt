@@ -1,10 +1,12 @@
 package com.vahitkeskin.equatix.platform
 
 import android.content.Context
+import android.app.Activity
 import android.preference.PreferenceManager
 
 // Application sınıfında atandığı varsayılan Context
 lateinit var appContext: Context
+var currentActivity: Activity? = null
 
 actual class KeyValueStorage {
     // PreferenceManager deprecated olsa da projenin mevcut yapısını bozmamak için korudum.

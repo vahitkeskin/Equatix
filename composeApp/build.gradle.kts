@@ -164,7 +164,18 @@ android {
             localProperties.load(localPropertiesFile.inputStream())
         }
         val adMobAppId = localProperties.getProperty("admob.app.id") ?: "ca-app-pub-3940256099942544~3347511713"
+        val adMobBannerId = localProperties.getProperty("admob.banner.id") ?: "ca-app-pub-3940256099942544/6300978111"
+        val adMobRewardedId = localProperties.getProperty("admob.rewarded.id") ?: "ca-app-pub-3940256099942544/5224354917"
+        val adMobInterstitialId = localProperties.getProperty("admob.interstitial.id") ?: "ca-app-pub-3940256099942544/1033173712"
+
         manifestPlaceholders["adMobAppId"] = adMobAppId
+        buildConfigField("String", "ADMOB_BANNER_ID", "\"$adMobBannerId\"")
+        buildConfigField("String", "ADMOB_REWARDED_ID", "\"$adMobRewardedId\"")
+        buildConfigField("String", "ADMOB_INTERSTITIAL_ID", "\"$adMobInterstitialId\"")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     // Exclude conflicting license files from packaging

@@ -7,6 +7,9 @@ import androidx.work.Configuration
 import com.vahitkeskin.equatix.data.local.AppDatabase
 import com.vahitkeskin.equatix.di.AppModule
 // 1. BU IMPORT'U EKLE (Platform tarafındaki değişkene erişmek için)
+import android.app.Activity
+import android.os.Bundle
+import com.vahitkeskin.equatix.platform.currentActivity
 import com.google.android.gms.ads.MobileAds
 import com.vahitkeskin.equatix.platform.AdManager
 import com.vahitkeskin.equatix.platform.AppOpenAdManager
@@ -27,6 +30,27 @@ class EquatixApp : Application(), Configuration.Provider {
         // 2. BU SATIRI EKLE (Kritik olan kısım burası)
         // KeyValueStorage'ın kullandığı değişkeni burada başlatıyoruz.
         appContext = this
+
+        // Activity Lifecycle Takibi
+        registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
+            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+                currentActivity = activity
+            }
+            override fun onActivityStarted(activity: Activity) {
+                currentActivity = activity
+            }
+            override fun onActivityResumed(activity: Activity) {
+                currentActivity = activity
+            }
+            override fun onActivityPaused(activity: Activity) {}
+            override fun onActivityStopped(activity: Activity) {}
+            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+            override fun onActivityDestroyed(activity: Activity) {
+                if (currentActivity == activity) {
+                    currentActivity = null
+                }
+            }
+        })
 
         // --- Veritabanı İşlemleri ---
         val dbFile = applicationContext.getDatabasePath("equatix.db")

@@ -43,6 +43,7 @@ import com.vahitkeskin.equatix.ui.game.components.GamePlayArea
 import com.vahitkeskin.equatix.ui.game.components.GameStatsBar
 import com.vahitkeskin.equatix.ui.game.components.tutorial.TutorialState
 import com.vahitkeskin.equatix.ui.game.dialogs.HintDialog
+import com.vahitkeskin.equatix.ui.game.dialogs.RewardedAdOfferDialog
 import com.vahitkeskin.equatix.ui.game.utils.GameUiEvent
 import com.vahitkeskin.equatix.ui.game.utils.calculateProgress
 import com.vahitkeskin.equatix.ui.game.visuals.CosmicBackground
@@ -105,6 +106,7 @@ private fun GameContent(
     var isTimerVisible by remember { mutableStateOf(true) }
     var isGamePaused by remember { mutableStateOf(false) }
     var tutorialState by remember { mutableStateOf(TutorialState.IDLE) }
+    var showRewardedAdDialog by remember { mutableStateOf(false) }
 
     val colors = remember(isDarkTheme) { EquatixDesignSystem.getColors(isDarkTheme) }
 
@@ -197,8 +199,7 @@ private fun GameContent(
                     appStrings = appSettings,
                     onBack = onNavigateBack,
                     onAutoSolve = {
-                        isTimerRunning = false
-                        viewModel.giveUpAndSolve()
+                        showRewardedAdDialog = true
                     },
                     onRefresh = {
                         viewModel.startGame(difficulty, gridSize)
@@ -289,6 +290,21 @@ private fun GameContent(
 
         if (showHintDialog) {
             HintDialog(onDismiss = { showHintDialog = false })
+        }
+
+        if (showRewardedAdDialog) {
+            RewardedAdOfferDialog(
+                appStrings = appSettings,
+                colors = colors,
+                onDismiss = { showRewardedAdDialog = false },
+                onWatchAd = {
+                    showRewardedAdDialog = false
+                    com.vahitkeskin.equatix.platform.AdActions.showRewarded {
+                        isTimerRunning = false
+                        viewModel.giveUpAndSolve()
+                    }
+                }
+            )
         }
 
         if (viewModel.isSolved && !viewModel.isSurrendered) {
