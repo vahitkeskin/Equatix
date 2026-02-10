@@ -10,11 +10,12 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
+import com.vahitkeskin.equatix.BuildConfig
 
 @Composable
 fun AdBannerView(
     modifier: Modifier = Modifier,
-    adUnitId: String = "ca-app-pub-8239858607263742/4633310035" // Production ID
+    adUnitId: String = BuildConfig.ADMOB_BANNER_ID
 ) {
     val context = LocalContext.current
 
