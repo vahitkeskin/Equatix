@@ -312,10 +312,13 @@ private fun GameContent(
         }
 
         AdBanner(
+            strings = appSettings,
+            colors = colors,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .bannerSystemPadding()
+                .padding(bottom = 8.dp)
         )
     }
 

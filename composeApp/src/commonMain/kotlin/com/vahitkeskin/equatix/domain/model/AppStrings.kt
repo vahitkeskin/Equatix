@@ -66,7 +66,13 @@ data class AppStrings(
     val rewardAdTitle: String,
     val rewardAdDescription: String,
     val rewardAdWatchButton: String,
-    val rewardAdCancelButton: String
+    val rewardAdCancelButton: String,
+
+    // DNS / Adblock (NEW)
+    val dnsBlockTitle: String,
+    val dnsBlockDescription: String,
+    val dnsBlockButton: String,
+    val dnsBannerMessage: String
 ) {
     // YARDIMCI FONKSİYON: Enum'ı alıp doğru metni döndürür
     fun getDifficultyLabel(difficulty: Difficulty): String {
@@ -122,6 +128,10 @@ object AppDictionary {
         rewardAdDescription = "Watch a short ad to automatically solve the current level.",
         rewardAdWatchButton = "WATCH AD & SOLVE",
         rewardAdCancelButton = "CANCEL",
+        dnsBlockTitle = "AD BLOCKER DETECTED",
+        dnsBlockDescription = "Ads are our primary way to keep the game free and continue development. You also need to disable Private DNS or Ad Blocker to see the solution.",
+        dnsBlockButton = "OPEN DNS SETTINGS",
+        dnsBannerMessage = "Ads support us. Click to disable DNS / AdBlocker."
     )
 
     val tr = AppStrings(
@@ -165,6 +175,10 @@ object AppDictionary {
         rewardAdDescription = "Mevcut seviyeyi otomatik olarak çözmek için kısa bir reklam izleyin.",
         rewardAdWatchButton = "REKLAM İZLE VE ÇÖZ",
         rewardAdCancelButton = "İPTAL",
+        dnsBlockTitle = "REKLAM ENGELLEYİCİ TESPİT EDİLDİ",
+        dnsBlockDescription = "Oyunu ücretsiz tutabilmemiz ve geliştirmeye devam edebilmemiz için reklamlar temel gelir kaynağımızdır. Çözümü görebilmek için de reklam engelleyiciyi veya özel DNS'yi devre dışı bırakmanız gerekmektedir.",
+        dnsBlockButton = "DNS AYARLARINI AÇ",
+        dnsBannerMessage = "Reklamlar bizi destekler. Kapatmak için tıklayın."
     )
 
     val de = AppStrings(
@@ -208,6 +222,10 @@ object AppDictionary {
         rewardAdDescription = "Sehen Sie sich eine kurze Anzeige an, um das aktuelle Level automatisch zu lösen.",
         rewardAdWatchButton = "ANZEIGE ANSEHEN & LÖSEN",
         rewardAdCancelButton = "ABBRECHEN",
+        dnsBlockTitle = "WERBEBLOCKER ERKANNT",
+        dnsBlockDescription = "Werbung ist unsere Haupteinnahmequelle, um das Spiel kostenlos zu halten. Sie müssen auch den Werbeblocker oder das private DNS deaktivieren, um die Lösung zu sehen.",
+        dnsBlockButton = "DNS-EINSTELLUNGEN ÖFFNEN",
+        dnsBannerMessage = "Werbung unterstützt uns. Hier klicken, um DNS zu deaktivieren."
     )
 
     val ar = AppStrings(
@@ -251,6 +269,10 @@ object AppDictionary {
         rewardAdDescription = "شاهد إعلانًا قصيرًا لحل المستوى الحالي تلقائيًا.",
         rewardAdWatchButton = "شاهد الإعلان والحل",
         rewardAdCancelButton = "إلغاء",
+        dnsBlockTitle = "تم اكتشاف مانع الإعلانات",
+        dnsBlockDescription = "الإعلانات هي وسيلتنا الأساسية للحفاظ على اللعبة مجانية ومواصلة التطوير. تحتاج أيضًا إلى تعطيل نظام DNS الخاص أو مانع الإعلانات لرؤية الحل.",
+        dnsBlockButton = "فتح إعدادات DNS",
+        dnsBannerMessage = "الإعلانات تدعمنا. انقر لتعطيل نظام DNS / مانع الإعلانات."
     )
 
     fun getStrings(language: AppLanguage): AppStrings {
