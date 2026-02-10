@@ -4,6 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
 @Composable
-actual fun AdBanner(modifier: Modifier) {
-    // AdBanner is not implemented for Desktop yet.
+actual fun InternalAdBanner(modifier: Modifier) {
+    // No-op for Desktop
 }
