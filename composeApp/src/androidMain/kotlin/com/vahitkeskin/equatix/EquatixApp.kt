@@ -7,6 +7,9 @@ import androidx.work.Configuration
 import com.vahitkeskin.equatix.data.local.AppDatabase
 import com.vahitkeskin.equatix.di.AppModule
 // 1. BU IMPORT'U EKLE (Platform tarafındaki değişkene erişmek için)
+import com.google.android.gms.ads.MobileAds
+import com.vahitkeskin.equatix.platform.AdManager
+import com.vahitkeskin.equatix.platform.AppOpenAdManager
 import com.vahitkeskin.equatix.platform.appContext
 import kotlinx.coroutines.Dispatchers
 
@@ -37,6 +40,16 @@ class EquatixApp : Application(), Configuration.Provider {
             .build()
 
         AppModule.database = db
+
+        // MobileAds SDK Başlatma
+        MobileAds.initialize(this) { }
+        
+        // App Open Ad Başlatma
+        AppOpenAdManager(this).fetchAd()
+        
+        // Interstitial ve Rewarded ön yükleme
+        AdManager.loadInterstitial(this)
+        AdManager.loadRewarded(this)
     }
 
     override val workManagerConfiguration: Configuration

@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoFixHigh
+import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,7 +42,8 @@ fun GameHeader(
     appStrings: AppStrings,
     onBack: () -> Unit,
     onAutoSolve: () -> Unit,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
+    onHint: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -92,6 +94,9 @@ fun GameHeader(
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (!isSolved) {
+                IconButton(onClick = onHint) {
+                    Icon(Icons.Default.Lightbulb, "Hint", tint = Color(0xFFEAB308))
+                }
                 IconButton(onClick = onAutoSolve) {
                     Icon(Icons.Default.AutoFixHigh, "Auto Solve", tint = Color(0xFFFF3B30))
                 }
@@ -134,7 +139,8 @@ fun PreviewGameHeader() {
                 appStrings = appStrings,
                 onBack = {},
                 onAutoSolve = {},
-                onRefresh = {}
+                onRefresh = {},
+                onHint = {}
             )
         }
 
@@ -153,7 +159,8 @@ fun PreviewGameHeader() {
                 appStrings = appStrings,
                 onBack = {},
                 onAutoSolve = {},
-                onRefresh = {}
+                onRefresh = {},
+                onHint = {}
             )
         }
     }

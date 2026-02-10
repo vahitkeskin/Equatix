@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
@@ -43,6 +44,8 @@ import com.vahitkeskin.equatix.ui.home.components.HomeBranding
 import com.vahitkeskin.equatix.ui.home.components.HomeHeader
 import com.vahitkeskin.equatix.ui.home.components.HomeOverlayPanel
 import com.vahitkeskin.equatix.ui.home.components.HomeSelectionPanel
+import com.vahitkeskin.equatix.ui.components.AdBanner
+import com.vahitkeskin.equatix.ui.utils.bannerSystemPadding
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
 
 class HomeScreen : Screen {
@@ -159,6 +162,8 @@ class HomeScreen : Screen {
                 }
 
                 Spacer(modifier = Modifier.weight(1f))
+
+                AdBanner(modifier = Modifier.fillMaxWidth())
             }
 
             HomeOverlayPanel(
