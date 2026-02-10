@@ -170,7 +170,12 @@ class HomeScreen : Screen {
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                AdBanner(modifier = Modifier.fillMaxWidth())
+                val strings by viewModel.strings.collectAsState()
+                AdBanner(
+                    strings = strings,
+                    colors = themeColors,
+                    modifier = Modifier.fillMaxWidth().bannerSystemPadding()
+                )
             }
 
             HomeOverlayPanel(

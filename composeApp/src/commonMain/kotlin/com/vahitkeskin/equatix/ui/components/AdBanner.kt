@@ -1,31 +1,30 @@
 package com.vahitkeskin.equatix.ui.components
 
-import androidx.compose.runtime.*
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import cafe.adriel.voyager.core.model.rememberScreenModel
+import com.vahitkeskin.equatix.domain.model.AppStrings
+import com.vahitkeskin.equatix.domain.model.AppThemeConfig
 import com.vahitkeskin.equatix.platform.AdBlockerManager
 import com.vahitkeskin.equatix.ui.home.HomeViewModel
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
-import cafe.adriel.voyager.core.model.rememberScreenModel
-import androidx.compose.foundation.isSystemInDarkTheme
-import com.vahitkeskin.equatix.domain.model.AppThemeConfig
 
 @Composable
-fun AdBanner(modifier: Modifier = Modifier) {
-    val homeViewModel = rememberScreenModel { HomeViewModel() }
-    val strings by homeViewModel.strings.collectAsState()
-    val themeConfig by homeViewModel.themeConfig.collectAsState()
-    
-    val isSystemDark = isSystemInDarkTheme()
-    val isDark = when (themeConfig) {
-        AppThemeConfig.FOLLOW_SYSTEM -> isSystemDark
-        AppThemeConfig.DARK -> true
-        AppThemeConfig.LIGHT -> false
-    }
-    val colors = EquatixDesignSystem.getColors(isDark)
-
+fun AdBanner(
+    strings: AppStrings,
+    colors: EquatixDesignSystem.ThemeColors,
+    modifier: Modifier = Modifier
+) {
     var isDnsActive by remember { mutableStateOf(AdBlockerManager.isPrivateDnsActive()) }
 
     // Re-check DNS status when app resumes
