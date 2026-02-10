@@ -179,7 +179,6 @@ class HomeScreen : Screen {
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
                     .bannerSystemPadding()
-                    .padding(bottom = 8.dp) // Extra aesthetic padding
             )
 
             HomeOverlayPanel(

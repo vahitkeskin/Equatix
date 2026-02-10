@@ -265,7 +265,7 @@ private fun GameContent(
                 }
             )
 
-            Spacer(modifier = Modifier.height(50.dp))
+            Spacer(modifier = Modifier.height(80.dp))
         }
 
         // --- OVERLAYS ---
@@ -318,7 +318,6 @@ private fun GameContent(
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .bannerSystemPadding()
-                .padding(bottom = 8.dp)
         )
     }
 
