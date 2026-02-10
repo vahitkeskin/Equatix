@@ -43,6 +43,7 @@ import androidx.compose.ui.util.lerp
 import com.vahitkeskin.equatix.domain.model.AppLanguage
 import com.vahitkeskin.equatix.ui.home.HomeViewModel
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
+import com.vahitkeskin.equatix.ui.utils.PreviewContainer
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 
@@ -50,7 +51,8 @@ import kotlin.math.absoluteValue
 fun LanguageSelectionCarousel(
     currentLanguage: AppLanguage,
     onLanguageSelected: (AppLanguage) -> Unit,
-    colors: EquatixDesignSystem.ThemeColors
+    colors: EquatixDesignSystem.ThemeColors,
+    appStrings: com.vahitkeskin.equatix.domain.model.AppStrings
 ) {
     val items = AppLanguage.values().toList()
     val infinitePageCount = Int.MAX_VALUE
@@ -64,19 +66,17 @@ fun LanguageSelectionCarousel(
 
     val scope = rememberCoroutineScope()
 
-    // Renk Tanımları
-    val selectedColor = Color(0xFF4CAF50) // Yeşil (Onay)
-    val unselectedIconColor = colors.textSecondary.copy(alpha = 0.6f) // Gri (Boş kutu)
+    val selectedColor = Color(0xFF4CAF50)
+    val unselectedIconColor = colors.textSecondary.copy(alpha = 0.6f)
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth()
     ) {
-        // --- CAROUSEL ALANI ---
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(100.dp), // Kart yüksekliği + Animasyon payı
+                .height(100.dp),
             contentAlignment = Alignment.Center
         ) {
             val cardWidth = maxWidth / 3.2f
@@ -93,23 +93,19 @@ fun LanguageSelectionCarousel(
                 val language = items[actualIndex]
                 val isSelected = language == currentLanguage
 
-                val appStrings by HomeViewModel().strings.collectAsState()
                 val labelText = if (language == AppLanguage.SYSTEM) {
                     appStrings.langSystem
                 } else {
                     language.label
                 }
 
-                // --- Animasyon Hesaplamaları ---
                 val pageOffset = (
                         (pagerState.currentPage - globalIndex) + pagerState.currentPageOffsetFraction
                         ).absoluteValue
 
-                // Ortadaki 1f, kenardakiler 0.85f
                 val scale = lerp(0.85f, 1f, 1f - pageOffset.coerceIn(0f, 1f))
                 val alpha = lerp(0.5f, 1f, 1f - pageOffset.coerceIn(0f, 1f))
 
-                // --- Stil Değişkenleri ---
                 val backgroundColor by animateColorAsState(
                     targetValue = if (isSelected) selectedColor.copy(alpha = 0.1f) else colors.cardBackground,
                     label = "bgColor"
@@ -141,9 +137,6 @@ fun LanguageSelectionCarousel(
                                 shape = RoundedCornerShape(16.dp)
                             )
                             .clickable {
-                                // Tıklama Mantığı:
-                                // Eğer yandaki karta tıklandıysa -> Oraya kaydır
-                                // Eğer ortadaki karta tıklandıysa -> Seçimi yap
                                 if (globalIndex != pagerState.currentPage) {
                                     scope.launch { pagerState.animateScrollToPage(globalIndex) }
                                 } else {
@@ -154,13 +147,11 @@ fun LanguageSelectionCarousel(
                         colors = CardDefaults.cardColors(containerColor = backgroundColor),
                         elevation = CardDefaults.cardElevation(0.dp)
                     ) {
-                        // KART İÇERİĞİ (Box kullanarak üst üste bindirme)
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(8.dp)
                         ) {
-                            // 1. ORTA İÇERİK: Bayrak ve İsim
                             Column(
                                 modifier = Modifier.align(Alignment.Center),
                                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -184,8 +175,6 @@ fun LanguageSelectionCarousel(
                                 )
                             }
 
-                            // 2. SAĞ ÜST KÖŞE: Checkbox / Tik
-                            // Seçiliyse dolu tik, değilse boş kutucuk
                             Icon(
                                 imageVector = if (isSelected) Icons.Rounded.CheckCircle else Icons.Rounded.CheckBoxOutlineBlank,
                                 contentDescription = if (isSelected) "Selected" else "Select",
@@ -198,6 +187,33 @@ fun LanguageSelectionCarousel(
                     }
                 }
             }
+        }
+    }
+}
+
+@org.jetbrains.compose.ui.tooling.preview.Preview
+@Composable
+fun PreviewLanguageSelectionCarousel() {
+    androidx.compose.foundation.layout.Column(
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        com.vahitkeskin.equatix.ui.utils.PreviewContainer(isDark = true) { colors, strings ->
+            LanguageSelectionCarousel(
+                currentLanguage = AppLanguage.TURKISH,
+                onLanguageSelected = {},
+                colors = colors,
+                appStrings = strings
+            )
+        }
+        
+        com.vahitkeskin.equatix.ui.utils.PreviewContainer(isDark = false) { colors, strings ->
+            LanguageSelectionCarousel(
+                currentLanguage = AppLanguage.ENGLISH,
+                onLanguageSelected = {},
+                colors = colors,
+                appStrings = strings
+            )
         }
     }
 }

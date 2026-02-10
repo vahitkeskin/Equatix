@@ -45,7 +45,7 @@ import com.vahitkeskin.equatix.ui.home.components.HomeHeader
 import com.vahitkeskin.equatix.ui.home.components.HomeOverlayPanel
 import com.vahitkeskin.equatix.ui.home.components.HomeSelectionPanel
 import com.vahitkeskin.equatix.ui.components.AdBanner
-import com.vahitkeskin.equatix.ui.utils.bannerSystemPadding
+import com.vahitkeskin.equatix.ui.utils.systemNavBarPadding
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
 
 import com.vahitkeskin.equatix.platform.BackHandler
@@ -89,6 +89,7 @@ class HomeScreen : Screen {
 
         // Tema Hesaplama
         val themeConfig by viewModel.themeConfig.collectAsState()
+        val strings by viewModel.strings.collectAsState()
         val isSystemDark = isSystemInDarkTheme()
         val isDark = when (themeConfig) {
             AppThemeConfig.FOLLOW_SYSTEM -> isSystemDark
@@ -138,15 +139,17 @@ class HomeScreen : Screen {
 
                 Spacer(modifier = Modifier.height(48.dp))
 
+                val strings by viewModel.strings.collectAsState()
+
                 AnimatedSlideIn(visible = startAnimation, delay = 400) {
                     HomeSelectionPanel(
-                        viewModel = viewModel,
                         selectedDiff = selectedDiff,
                         onDiffSelect = { selectedDiff = it },
                         selectedSize = selectedSize,
                         onSizeSelect = { selectedSize = it },
                         isDark = isDark,
-                        colors = themeColors
+                        colors = themeColors,
+                        appStrings = strings
                     )
                 }
 
@@ -154,8 +157,8 @@ class HomeScreen : Screen {
 
                 AnimatedSlideIn(visible = startAnimation, delay = 600) {
                     CyberStartButton(
-                        homeViewModel = viewModel,
                         isDark = isDark,
+                        appStrings = strings,
                         onClick = {
                             navigator.push(
                                 GameScreen(
@@ -171,15 +174,13 @@ class HomeScreen : Screen {
                 Spacer(modifier = Modifier.weight(1f))
             }
 
-            val strings by viewModel.strings.collectAsState()
             AdBanner(
                 strings = strings,
                 colors = themeColors,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .bannerSystemPadding()
-                    .padding(bottom = 8.dp) // Extra aesthetic padding
+                    .systemNavBarPadding()
             )
 
             HomeOverlayPanel(

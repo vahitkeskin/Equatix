@@ -3,6 +3,7 @@ package com.vahitkeskin.equatix.ui.game.visuals
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -133,6 +134,25 @@ fun ProgressPath(
 
                 drawText(textLayoutResult = textLayoutResult, topLeft = textTopLeft)
             }
+        }
+    }
+}
+
+@org.jetbrains.compose.ui.tooling.preview.Preview
+@Composable
+fun PreviewProgressPath() {
+    androidx.compose.foundation.layout.Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp)
+    ) {
+        com.vahitkeskin.equatix.ui.utils.PreviewContainer(isDark = true) { colors, _ ->
+            ProgressPath(progress = 0.35f, colors = colors)
+        }
+        
+        com.vahitkeskin.equatix.ui.utils.PreviewContainer(isDark = false) { colors, _ ->
+            ProgressPath(progress = 0.75f, colors = colors)
         }
     }
 }

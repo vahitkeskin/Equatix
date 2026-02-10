@@ -72,7 +72,10 @@ data class AppStrings(
     val dnsBlockTitle: String,
     val dnsBlockDescription: String,
     val dnsBlockButton: String,
-    val dnsBannerMessage: String
+    val dnsBannerMessage: String,
+    val hintDialogTitle: String,
+    val hintDialogDescription: String,
+    val hintDialogButton: String
 ) {
     // YARDIMCI FONKSİYON: Enum'ı alıp doğru metni döndürür
     fun getDifficultyLabel(difficulty: Difficulty): String {
@@ -131,7 +134,10 @@ object AppDictionary {
         dnsBlockTitle = "AD BLOCKER DETECTED",
         dnsBlockDescription = "Ads are our primary way to keep the game free and continue development. You also need to disable Private DNS or Ad Blocker to see the solution.",
         dnsBlockButton = "OPEN DNS SETTINGS",
-        dnsBannerMessage = "Ads support us. Click to disable DNS / AdBlocker."
+        dnsBannerMessage = "Ads support us. Click to disable.",
+        hintDialogTitle = "HOW TO PLAY",
+        hintDialogDescription = "Equatix is a math puzzle game. Your goal is to fill in the missing numbers so that all horizontal and vertical equations are correct. Fill the circles to match the green result values!",
+        hintDialogButton = "GOT IT"
     )
 
     val tr = AppStrings(
@@ -178,7 +184,10 @@ object AppDictionary {
         dnsBlockTitle = "REKLAM ENGELLEYİCİ TESPİT EDİLDİ",
         dnsBlockDescription = "Oyunu ücretsiz tutabilmemiz ve geliştirmeye devam edebilmemiz için reklamlar temel gelir kaynağımızdır. Çözümü görebilmek için de reklam engelleyiciyi veya özel DNS'yi devre dışı bırakmanız gerekmektedir.",
         dnsBlockButton = "DNS AYARLARINI AÇ",
-        dnsBannerMessage = "Reklamlar bizi destekler. Kapatmak için tıklayın."
+        dnsBannerMessage = "Reklamlar bizi destekler. Kapatmak için tıklayın.",
+        hintDialogTitle = "NASIL OYNANIR?",
+        hintDialogDescription = "Equatix bir matematik bulmaca oyunudur. Amacınız, eksik sayıları doldurarak tüm yatay ve dikey denklemlerin doğru olmasını sağlamaktır. Yeşil sonuç kutularına ulaşmak için boşlukları doldurun!",
+        hintDialogButton = "ANLADIM"
     )
 
     val de = AppStrings(
@@ -225,7 +234,10 @@ object AppDictionary {
         dnsBlockTitle = "WERBEBLOCKER ERKANNT",
         dnsBlockDescription = "Werbung ist unsere Haupteinnahmequelle, um das Spiel kostenlos zu halten. Sie müssen auch den Werbeblocker oder das private DNS deaktivieren, um die Lösung zu sehen.",
         dnsBlockButton = "DNS-EINSTELLUNGEN ÖFFNEN",
-        dnsBannerMessage = "Werbung unterstützt uns. Hier klicken, um DNS zu deaktivieren."
+        dnsBannerMessage = "Werbung unterstützt uns. Hier klicken, um DNS zu deaktivieren.",
+        hintDialogTitle = "SPIELANLEITUNG",
+        hintDialogDescription = "Equatix ist ein Mathe-Puzzlespiel. Ihr Ziel ist es, die fehlenden Zahlen so einzutragen, dass alle horizontalen und vertikalen Gleichungen korrekt sind. Füllen Sie die Kreise aus, um die grünen Ergebniswerte zu erreichen!",
+        hintDialogButton = "VERSTANDEN"
     )
 
     val ar = AppStrings(
@@ -272,7 +284,10 @@ object AppDictionary {
         dnsBlockTitle = "تم اكتشاف مانع الإعلانات",
         dnsBlockDescription = "الإعلانات هي وسيلتنا الأساسية للحفاظ على اللعبة مجانية ومواصلة التطوير. تحتاج أيضًا إلى تعطيل نظام DNS الخاص أو مانع الإعلانات لرؤية الحل.",
         dnsBlockButton = "فتح إعدادات DNS",
-        dnsBannerMessage = "الإعلانات تدعمنا. انقر لتعطيل نظام DNS / مانع الإعلانات."
+        dnsBannerMessage = "الإعلانات تدعمنا. انقر لتعطيل DNS.",
+        hintDialogTitle = "كيفية اللعب",
+        hintDialogDescription = "Equatix هي لعبة ألغاز رياضية. هدفك هو ملء الأرقام المفقودة بحيث تكون جميع المعادلات الأفقية والعمودية صحيحة. املأ الدوائر لمطابقة قيم النتائج الخضراء!",
+        hintDialogButton = "فهمت"
     )
 
     fun getStrings(language: AppLanguage): AppStrings {

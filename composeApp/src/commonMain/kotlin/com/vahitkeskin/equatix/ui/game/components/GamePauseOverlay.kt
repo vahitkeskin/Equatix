@@ -28,6 +28,8 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.vahitkeskin.equatix.ui.utils.PreviewContainer
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,7 +37,6 @@ import com.vahitkeskin.equatix.domain.model.AppDictionary
 import com.vahitkeskin.equatix.domain.model.AppStrings
 import com.vahitkeskin.equatix.ui.common.GlassBox
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
-import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -224,29 +225,41 @@ fun MiniMenuButton(icon: ImageVector, text: String, color: Color, textColor: Col
 
 @Preview
 @Composable
-fun PreviewGamePauseOverlayDark() {
-    val isDark = true
-    val colors = EquatixDesignSystem.getColors(isDark)
-    val mockStrings = AppDictionary.en
-
-    Box(
+fun PreviewGamePauseOverlay() {
+    Column(
         modifier = Modifier
-            .fillMaxSize()
-            .background(colors.background),
-        contentAlignment = Alignment.Center
+            .fillMaxWidth()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Oyun Arka Planı (Dark)", color = colors.textSecondary)
+        // Dark Mode
+        com.vahitkeskin.equatix.ui.utils.PreviewContainer(isDark = true, language = com.vahitkeskin.equatix.domain.model.AppLanguage.ENGLISH) { colors, strings ->
+            Box(modifier = Modifier.height(400.dp)) {
+                GamePauseOverlay(
+                    isVisible = true,
+                    colors = colors,
+                    isDark = true,
+                    appStrings = strings,
+                    onResume = {},
+                    onRestart = {},
+                    onQuit = {}
+                )
+            }
         }
-
-        GamePauseOverlay(
-            isVisible = true,
-            colors = colors,
-            isDark = isDark,
-            appStrings = mockStrings,
-            onResume = {},
-            onRestart = {},
-            onQuit = {}
-        )
+        
+        // Light Mode
+        com.vahitkeskin.equatix.ui.utils.PreviewContainer(isDark = false, language = com.vahitkeskin.equatix.domain.model.AppLanguage.TURKISH) { colors, strings ->
+            Box(modifier = Modifier.height(400.dp)) {
+                GamePauseOverlay(
+                    isVisible = true,
+                    colors = colors,
+                    isDark = false,
+                    appStrings = strings,
+                    onResume = {},
+                    onRestart = {},
+                    onQuit = {}
+                )
+            }
+        }
     }
 }

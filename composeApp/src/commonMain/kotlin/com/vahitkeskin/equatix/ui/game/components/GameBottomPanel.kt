@@ -23,19 +23,20 @@ import com.vahitkeskin.equatix.ui.components.TransparentNumpad
 import com.vahitkeskin.equatix.ui.game.GameViewModel
 import com.vahitkeskin.equatix.ui.home.HomeViewModel
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
+import com.vahitkeskin.equatix.ui.utils.PreviewContainer
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 fun GameBottomPanel(
-    viewModel: GameViewModel,
+    isSolved: Boolean,
+    isSurrendered: Boolean,
     isTimerRunning: Boolean,
     elapsedTime: Long,
     colors: EquatixDesignSystem.ThemeColors,
+    appStrings: com.vahitkeskin.equatix.domain.model.AppStrings,
     onInput: (String) -> Unit,
-    homeViewModel: HomeViewModel,
     onRestart: () -> Unit
 ) {
-    val strings by homeViewModel.strings.collectAsState()
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -46,21 +47,19 @@ fun GameBottomPanel(
 
             // OYUN KLAVYESİ (Numpad)
             AnimatedVisibility(
-                visible = !viewModel.isSolved && isTimerRunning,
+                visible = !isSolved && isTimerRunning,
                 enter = slideInVertically { it } + fadeIn(),
                 exit = fadeOut()
             ) {
-                // DÜZELTME: Scale 0.9f -> 0.85f
-                Box(modifier = Modifier.scale(0.85f)) {
+                Box {
                     MaterialTheme(
                         colorScheme = MaterialTheme.colorScheme.copy(
                             onSurface = colors.numpadText,
                             primary = colors.numpadText
                         )
                     ) {
-                        // --- DÜZELTME BURADA YAPILDI ---
                         TransparentNumpad(
-                            colors = colors, // colors parametresi buraya eklendi
+                            colors = colors,
                             onInput = onInput
                         )
                     }
@@ -69,14 +68,14 @@ fun GameBottomPanel(
 
             // SONUÇ EKRANI
             AnimatedVisibility(
-                visible = viewModel.isSolved,
+                visible = isSolved,
                 enter = slideInVertically { it } + fadeIn()
             ) {
                 ResultPanel(
-                    isSurrendered = viewModel.isSurrendered,
+                    isSurrendered = isSurrendered,
                     elapsedTime = elapsedTime,
                     colors = colors,
-                    appStrings = strings, // Buradan gönderiyoruz
+                    appStrings = appStrings,
                     onRestart = onRestart
                 )
             }
@@ -86,24 +85,33 @@ fun GameBottomPanel(
 
 @Preview
 @Composable
-fun PreviewGameBottomPanel() {
-    val viewModel = androidx.compose.runtime.remember { GameViewModel() }
-    val darkColors = EquatixDesignSystem.getColors(true)
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(darkColors.background)
-            .padding(16.dp),
-        contentAlignment = Alignment.BottomCenter
-    ) {
+fun PreviewGameBottomPanelLight() {
+    com.vahitkeskin.equatix.ui.utils.PreviewContainer(isDark = false) { colors, strings ->
         GameBottomPanel(
-            viewModel = viewModel,
+            isSolved = false,
+            isSurrendered = false,
             isTimerRunning = true,
             elapsedTime = 125L,
-            colors = darkColors,
+            colors = colors,
+            appStrings = strings,
             onInput = {},
-            homeViewModel = HomeViewModel(),
+            onRestart = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+fun PreviewGameBottomPanelDark() {
+    com.vahitkeskin.equatix.ui.utils.PreviewContainer(isDark = true) { colors, strings ->
+        GameBottomPanel(
+            isSolved = true,
+            isSurrendered = false,
+            isTimerRunning = false,
+            elapsedTime = 42L,
+            colors = colors,
+            appStrings = strings,
+            onInput = {},
             onRestart = {}
         )
     }

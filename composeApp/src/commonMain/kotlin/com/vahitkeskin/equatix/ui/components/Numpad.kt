@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
+import com.vahitkeskin.equatix.ui.utils.PreviewContainer
 
 @Composable
 fun TransparentNumpad(
@@ -27,7 +28,7 @@ fun TransparentNumpad(
         listOf("", "0", "DEL")
     )
     Box(modifier = Modifier.fillMaxWidth().padding(bottom = 0.dp)) {
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             rows.forEach { row ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -35,7 +36,7 @@ fun TransparentNumpad(
                 ) {
                     row.forEach { key ->
                         if (key.isEmpty()) {
-                            Spacer(modifier = Modifier.size(68.dp))
+                            Spacer(modifier = Modifier.size(50.dp))
                         } else {
                             GlassKeyButton(
                                 key = key,
@@ -68,7 +69,7 @@ fun GlassKeyButton(
 
     Box(
         modifier = Modifier
-            .size(73.dp)
+            .size(54.dp)
             .clip(CircleShape)
             .background(bgColor)
             .clickable { onClick(key) },
@@ -76,9 +77,26 @@ fun GlassKeyButton(
     ) {
         Text(
             text = if (isDel) "⌫" else key,
-            fontSize = 32.sp,
+            fontSize = 22.sp,
             color = baseColor, // İkon/Yazı rengi
             fontWeight = FontWeight.Thin
         )
+    }
+}
+
+@org.jetbrains.compose.ui.tooling.preview.Preview
+@Composable
+fun PreviewTransparentNumpad() {
+    androidx.compose.foundation.layout.Column(
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        com.vahitkeskin.equatix.ui.utils.PreviewContainer(isDark = true) { colors, _ ->
+            TransparentNumpad(colors = colors, onInput = {})
+        }
+        
+        com.vahitkeskin.equatix.ui.utils.PreviewContainer(isDark = false) { colors, _ ->
+            TransparentNumpad(colors = colors, onInput = {})
+        }
     }
 }

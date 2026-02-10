@@ -2,9 +2,15 @@ package com.vahitkeskin.equatix.ui.home.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.padding
+import com.vahitkeskin.equatix.ui.utils.PreviewContainer
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.EmojiEvents
@@ -57,6 +63,27 @@ private fun HeaderButton(icon: ImageVector, iconColor: Color, containerColor: Co
     ) {
         Box(contentAlignment = Alignment.Center) {
             Icon(icon, null, tint = iconColor)
+        }
+    }
+}
+
+@org.jetbrains.compose.ui.tooling.preview.Preview
+@Composable
+fun PreviewHomeHeader() {
+    androidx.compose.foundation.layout.Column(
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        com.vahitkeskin.equatix.ui.utils.PreviewContainer(isDark = true) { colors, _ ->
+            Box(modifier = Modifier.padding(16.dp)) {
+                HomeHeader(isDark = true, colors = colors, onHistoryClick = {}, onSettingsClick = {})
+            }
+        }
+        
+        com.vahitkeskin.equatix.ui.utils.PreviewContainer(isDark = false) { colors, _ ->
+            Box(modifier = Modifier.padding(16.dp)) {
+                HomeHeader(isDark = false, colors = colors, onHistoryClick = {}, onSettingsClick = {})
+            }
         }
     }
 }
