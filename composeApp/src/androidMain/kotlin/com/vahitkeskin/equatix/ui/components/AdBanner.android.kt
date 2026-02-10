@@ -5,6 +5,6 @@ import androidx.compose.ui.Modifier
 import com.vahitkeskin.equatix.platform.AdBannerView
 
 @Composable
-actual fun AdBanner(modifier: Modifier) {
+actual fun InternalAdBanner(modifier: Modifier) {
     AdBannerView(modifier = modifier)
 }

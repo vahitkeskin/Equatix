@@ -71,7 +71,8 @@ data class AppStrings(
     // DNS / Adblock (NEW)
     val dnsBlockTitle: String,
     val dnsBlockDescription: String,
-    val dnsBlockButton: String
+    val dnsBlockButton: String,
+    val dnsBannerMessage: String
 ) {
     // YARDIMCI FONKSİYON: Enum'ı alıp doğru metni döndürür
     fun getDifficultyLabel(difficulty: Difficulty): String {
@@ -129,7 +130,8 @@ object AppDictionary {
         rewardAdCancelButton = "CANCEL",
         dnsBlockTitle = "AD BLOCKER DETECTED",
         dnsBlockDescription = "Ads are our primary way to keep the game free and continue development. You also need to disable Private DNS or Ad Blocker to see the solution.",
-        dnsBlockButton = "OPEN DNS SETTINGS"
+        dnsBlockButton = "OPEN DNS SETTINGS",
+        dnsBannerMessage = "Ads support us. Please disable DNS / AdBlocker."
     )
 
     val tr = AppStrings(
@@ -175,7 +177,8 @@ object AppDictionary {
         rewardAdCancelButton = "İPTAL",
         dnsBlockTitle = "REKLAM ENGELLEYİCİ TESPİT EDİLDİ",
         dnsBlockDescription = "Oyunu ücretsiz tutabilmemiz ve geliştirmeye devam edebilmemiz için reklamlar temel gelir kaynağımızdır. Çözümü görebilmek için de reklam engelleyiciyi veya özel DNS'yi devre dışı bırakmanız gerekmektedir.",
-        dnsBlockButton = "DNS AYARLARINI AÇ"
+        dnsBlockButton = "DNS AYARLARINI AÇ",
+        dnsBannerMessage = "Reklamlar bizi destekler. Lütfen DNS veya Engelleyiciyi kapatın."
     )
 
     val de = AppStrings(
@@ -221,7 +224,8 @@ object AppDictionary {
         rewardAdCancelButton = "ABBRECHEN",
         dnsBlockTitle = "WERBEBLOCKER ERKANNT",
         dnsBlockDescription = "Werbung ist unsere Haupteinnahmequelle, um das Spiel kostenlos zu halten. Sie müssen auch den Werbeblocker oder das private DNS deaktivieren, um die Lösung zu sehen.",
-        dnsBlockButton = "DNS-EINSTELLUNGEN ÖFFNEN"
+        dnsBlockButton = "DNS-EINSTELLUNGEN ÖFFNEN",
+        dnsBannerMessage = "Werbung unterstützt uns. Bitte deaktivieren Sie den DNS / Blocker."
     )
 
     val ar = AppStrings(
@@ -267,7 +271,8 @@ object AppDictionary {
         rewardAdCancelButton = "إلغاء",
         dnsBlockTitle = "تم اكتشاف مانع الإعلانات",
         dnsBlockDescription = "الإعلانات هي وسيلتنا الأساسية للحفاظ على اللعبة مجانية ومواصلة التطوير. تحتاج أيضًا إلى تعطيل نظام DNS الخاص أو مانع الإعلانات لرؤية الحل.",
-        dnsBlockButton = "فتح إعدادات DNS"
+        dnsBlockButton = "فتح إعدادات DNS",
+        dnsBannerMessage = "الإعلانات تدعمنا. يرجى إيقاف تشغيل نظام DNS أو مانع الإعلانات."
     )
 
     fun getStrings(language: AppLanguage): AppStrings {
