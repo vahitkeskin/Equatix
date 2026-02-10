@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -51,7 +52,7 @@ import com.vahitkeskin.equatix.ui.game.visuals.FireworkOverlay
 import com.vahitkeskin.equatix.ui.game.visuals.ProgressPath
 import com.vahitkeskin.equatix.ui.home.HomeViewModel
 import com.vahitkeskin.equatix.ui.components.AdBanner
-import com.vahitkeskin.equatix.ui.utils.bannerSystemPadding
+import com.vahitkeskin.equatix.ui.utils.systemNavBarPadding
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -107,6 +108,21 @@ private fun GameContent(
     var isGamePaused by remember { mutableStateOf(false) }
     var tutorialState by remember { mutableStateOf(TutorialState.IDLE) }
     var showRewardedAdDialog by remember { mutableStateOf(false) }
+    var isDnsActive by remember { mutableStateOf(com.vahitkeskin.equatix.platform.AdBlockerManager.isPrivateDnsActive()) }
+
+    // Lifecycle observer to re-check DNS status when user returns to app
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                isDnsActive = com.vahitkeskin.equatix.platform.AdBlockerManager.isPrivateDnsActive()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     val colors = remember(isDarkTheme) { EquatixDesignSystem.getColors(isDarkTheme) }
 
@@ -207,7 +223,7 @@ private fun GameContent(
                         isTimerRunning = true
                     },
                     onHint = {
-                        viewModel.onHintClick()
+                        showHintDialog = true
                     }
                 )
             }
@@ -236,28 +252,33 @@ private fun GameContent(
             )
 
             // GRID
-            GamePlayArea(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                viewModel = viewModel,
-                n = gridN,
-                tutorialState = tutorialState,
-                colors = colors,
-                isDark = isDarkTheme
-            )
+            val currentGameState = viewModel.gameState
+            if (currentGameState != null) {
+                GamePlayArea(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    gameState = currentGameState,
+                    selectedCellIndex = viewModel.selectedCellIndex,
+                    isSolved = viewModel.isSolved,
+                    onCellClick = { viewModel.onCellSelected(it) },
+                    tutorialState = tutorialState,
+                    colors = colors,
+                    isDark = isDarkTheme
+                )
+            }
 
             // NUMPAD
             GameBottomPanel(
-                viewModel = viewModel,
+                isSolved = viewModel.isSolved,
+                isSurrendered = viewModel.isSurrendered,
                 isTimerRunning = isTimerRunning,
                 elapsedTime = elapsedTime,
                 colors = colors,
+                appStrings = appSettings,
                 onInput = { key ->
-                    // Input mantığı artık tamamen ViewModel içinde yönetiliyor
                     viewModel.onInput(key)
                 },
-                homeViewModel = homeViewModel,
                 onRestart = {
                     viewModel.startGame(difficulty, gridSize)
                     elapsedTime = 0
@@ -265,7 +286,7 @@ private fun GameContent(
                 }
             )
 
-            Spacer(modifier = Modifier.height(50.dp))
+            Spacer(modifier = Modifier.height(100.dp))
         }
 
         // --- OVERLAYS ---
@@ -289,11 +310,16 @@ private fun GameContent(
         )
 
         if (showHintDialog) {
-            HintDialog(onDismiss = { showHintDialog = false })
+            HintDialog(
+                appStrings = appSettings,
+                colors = colors,
+                onDismiss = { showHintDialog = false }
+            )
         }
 
         if (showRewardedAdDialog) {
             RewardedAdOfferDialog(
+                isDnsActive = isDnsActive,
                 appStrings = appSettings,
                 colors = colors,
                 onDismiss = { showRewardedAdDialog = false },
@@ -303,6 +329,9 @@ private fun GameContent(
                         isTimerRunning = false
                         viewModel.giveUpAndSolve()
                     }
+                },
+                onOpenDnsSettings = {
+                    com.vahitkeskin.equatix.platform.AdBlockerManager.openDnsSettings()
                 }
             )
         }
@@ -317,8 +346,7 @@ private fun GameContent(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .bannerSystemPadding()
-                .padding(bottom = 8.dp)
+                .systemNavBarPadding()
         )
     }
 

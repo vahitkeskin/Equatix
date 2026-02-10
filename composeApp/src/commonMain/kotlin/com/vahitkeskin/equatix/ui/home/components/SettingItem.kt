@@ -25,7 +25,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vahitkeskin.equatix.ui.utils.PreviewContainer
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.Vibration
 
 @Composable
 fun SettingItem(
@@ -84,5 +88,37 @@ fun SettingItem(
                 uncheckedTrackColor = colors.cardBackground
             )
         )
+    }
+}
+
+@org.jetbrains.compose.ui.tooling.preview.Preview
+@Composable
+fun PreviewSettingItem() {
+    androidx.compose.foundation.layout.Column(
+        modifier = Modifier.background(Color.Gray).padding(16.dp),
+        verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp)
+    ) {
+        com.vahitkeskin.equatix.ui.utils.PreviewContainer(isDark = true) { colors, _ ->
+            SettingItem(
+                title = "Background Music",
+                subtitle = "Relaxing lo-fi melodies",
+                icon = Icons.Rounded.MusicNote,
+                isOn = true,
+                isDark = true,
+                colors = colors,
+                onToggle = {}
+            )
+        }
+        
+        com.vahitkeskin.equatix.ui.utils.PreviewContainer(isDark = false) { colors, _ ->
+            SettingItem(
+                title = "Vibration",
+                icon = Icons.Rounded.Vibration,
+                isOn = false,
+                isDark = false,
+                colors = colors,
+                onToggle = {}
+            )
+        }
     }
 }

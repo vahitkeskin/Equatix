@@ -37,17 +37,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vahitkeskin.equatix.domain.model.AppStrings
 import com.vahitkeskin.equatix.ui.home.HomeViewModel
+import com.vahitkeskin.equatix.ui.home.ScoreRecord
+import com.vahitkeskin.equatix.domain.model.Difficulty
+import com.vahitkeskin.equatix.domain.model.GridSize
 import com.vahitkeskin.equatix.ui.theme.EquatixDesignSystem
+import com.vahitkeskin.equatix.ui.utils.PreviewContainer
 
 @Composable
 fun HistoryList(
-    viewModel: HomeViewModel,
+    scores: List<ScoreRecord>,
+    onDelete: (Long) -> Unit,
     colors: EquatixDesignSystem.ThemeColors,
     isDark: Boolean,
     strings: AppStrings
 ) {
-    val scores by viewModel.scores.collectAsState()
-
     if (scores.isEmpty()) {
         Box(
             modifier = Modifier
@@ -72,7 +75,7 @@ fun HistoryList(
                 val dismissState = rememberSwipeToDismissBoxState(
                     confirmValueChange = {
                         if (it == SwipeToDismissBoxValue.EndToStart) {
-                            viewModel.deleteScore(score.id)
+                            onDelete(score.id)
                             true
                         } else {
                             false
@@ -159,6 +162,28 @@ fun HistoryList(
                     }
                 )
             }
+        }
+    }
+}
+
+@org.jetbrains.compose.ui.tooling.preview.Preview
+@Composable
+fun PreviewHistoryList() {
+    val mockScores = listOf(
+        ScoreRecord(1L, "12 Oct 2023", 850, "00:45", Difficulty.MEDIUM, GridSize.SIZE_4x4),
+        ScoreRecord(2L, "11 Oct 2023", 920, "01:12", Difficulty.HARD, GridSize.SIZE_5x5)
+    )
+
+    Column(
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        PreviewContainer(isDark = true) { colors, strings ->
+            HistoryList(scores = mockScores, onDelete = {}, colors = colors, isDark = true, strings = strings)
+        }
+        
+        PreviewContainer(isDark = false) { colors, strings ->
+            HistoryList(scores = emptyList(), onDelete = {}, colors = colors, isDark = false, strings = strings)
         }
     }
 }
