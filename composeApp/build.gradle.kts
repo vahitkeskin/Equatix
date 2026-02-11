@@ -155,8 +155,9 @@ android {
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
 
-        versionCode = 5
-        versionName = "1.0.5"
+        // Sürümü yükselttim ki Play Console yeni AAB olarak kabul etsin
+        versionCode = 7
+        versionName = "1.0.7"
 
         val localProperties = Properties()
         val localPropertiesFile = rootProject.file("local.properties")
@@ -188,7 +189,19 @@ android {
     // Release build configuration
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
+            // 1. Kod Karıştırma (Mapping Dosyası Uyarısı İçin):
+            // "Kod gösterme dosyası mevcut değil" uyarısını çözer.
+            isMinifyEnabled = true
+            isShrinkResources = true // Gereksiz kaynakları temizler
+
+            // Proguard Kuralları
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+
+            // 2. Debug Sembolleri (Sembol Uyarısı İçin):
+            // "Hata ayıklama sembolleri yüklemediniz" uyarısını %100 çözer.
+            ndk {
+                debugSymbolLevel = "FULL"
+            }
         }
     }
 
