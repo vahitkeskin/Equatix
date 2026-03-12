@@ -6,7 +6,9 @@
   </a>
 </div>
 
-![Equatix Featured](https://raw.githubusercontent.com/vahitkeskin/Equatix/refs/heads/main/screenshots/fullbackground.png)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/vahitkeskin/Equatix/refs/heads/main/screenshots/fullbackground.png" alt="Equatix Featured">
+</p>
 
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0.20-7F52FF.svg?style=flat&logo=kotlin)](https://kotlinlang.org)
 [![Compose Multiplatform](https://img.shields.io/badge/Compose%20Multiplatform-1.7.0-4285F4.svg?style=flat&logo=jetpack-compose)](https://www.jetbrains.com/lp/compose-multiplatform/)
