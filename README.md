@@ -1,6 +1,12 @@
 # Equatix: Matrix Math Puzzle 🧩
 
-![Equatix Banner](docs/images/banner.png)
+<div align="center">
+  <a href="https://play.google.com/store/apps/details?id=com.vahitkeskin.equatix" target="_blank">
+    <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="80">
+  </a>
+</div>
+
+![Equatix Featured](https://raw.githubusercontent.com/vahitkeskin/Equatix/refs/heads/main/screenshots/fullbackground.png)
 
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0.20-7F52FF.svg?style=flat&logo=kotlin)](https://kotlinlang.org)
 [![Compose Multiplatform](https://img.shields.io/badge/Compose%20Multiplatform-1.7.0-4285F4.svg?style=flat&logo=jetpack-compose)](https://www.jetbrains.com/lp/compose-multiplatform/)
@@ -115,13 +121,9 @@ Equatix/
 
 ## 📸 Screenshots
 
-| Home Screen | Gameplay (Dark) | Gameplay (Light) |
+| <img src="https://raw.githubusercontent.com/vahitkeskin/Equatix/refs/heads/main/screenshots/image1.png" width="250"> | <img src="https://raw.githubusercontent.com/vahitkeskin/Equatix/refs/heads/main/screenshots/image2.png" width="250"> | <img src="https://raw.githubusercontent.com/vahitkeskin/Equatix/refs/heads/main/screenshots/image3.png" width="250"> |
 | :---: | :---: | :---: |
-| ![Home](docs/images/home.png) | ![Game Dark](docs/images/game_dark.png) | ![Game Light](docs/images/game_light.png) |
-
-| Settings | History | Win Dialog |
-| :---: | :---: | :---: |
-| ![Settings](docs/images/settings.png) | ![History](docs/images/history.png) | ![Win](docs/images/win.png) |
+| <img src="https://raw.githubusercontent.com/vahitkeskin/Equatix/refs/heads/main/screenshots/image4.png" width="250"> | <img src="https://raw.githubusercontent.com/vahitkeskin/Equatix/refs/heads/main/screenshots/image5.png" width="250"> | <img src="https://raw.githubusercontent.com/vahitkeskin/Equatix/refs/heads/main/screenshots/image6.png" width="250"> |
 
 ---
 
