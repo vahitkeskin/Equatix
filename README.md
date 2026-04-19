@@ -235,8 +235,12 @@ Bu proje **MIT Lisansı** altında lisanslanmıştır.
 
 **Vahit Keskin** tarafından ❤️ ile geliştirildi
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/vahit-keskin/)
-[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/vahitkeskin)
+<a href="https://www.linkedin.com/in/vahit-keskin/" target="_blank" rel="noopener noreferrer">
+  <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn">
+</a>
+<a href="https://github.com/vahitkeskin" target="_blank" rel="noopener noreferrer">
+  <img src="https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white" alt="GitHub">
+</a>
 
 ---
 
