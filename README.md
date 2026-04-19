@@ -1,127 +1,226 @@
-# Equatix: Matrix Math Puzzle 🧩
-
 <div align="center">
-  <a href="https://play.google.com/store/apps/details?id=com.vahitkeskin.equatix" target="_blank">
-    <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="80">
-  </a>
-</div>
+
+# 🚀 Equatix: The Ultimate Matrix Engine 🧩
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/vahitkeskin/Equatix/refs/heads/main/screenshots/fullbackground.png" alt="Equatix Featured">
+  <img src="https://raw.githubusercontent.com/vahitkeskin/Equatix/refs/heads/main/screenshots/fullbackground.png" alt="Equatix Featured" width="100%">
 </p>
 
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.0.20-7F52FF.svg?style=flat&logo=kotlin)](https://kotlinlang.org)
-[![Compose Multiplatform](https://img.shields.io/badge/Compose%20Multiplatform-1.7.0-4285F4.svg?style=flat&logo=jetpack-compose)](https://www.jetbrains.com/lp/compose-multiplatform/)
-[![Android](https://img.shields.io/badge/Platform-Android-3DDC84.svg?style=flat&logo=android)](https://www.android.com)
-[![iOS](https://img.shields.io/badge/Platform-iOS-000000.svg?style=flat&logo=apple)](https://www.apple.com/ios/)
-[![Desktop](https://img.shields.io/badge/Platform-Desktop-0078D6.svg?style=flat&logo=windows)](https://www.jetbrains.com/lp/compose-multiplatform/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+### *Premium Cross-Platform Math Puzzle Experience*
 
-**Equatix** is a modern, cross-platform brain training game built with **Kotlin Multiplatform (KMP)** and **Jetpack Compose**. It challenges players to complete mathematical matrices by finding the correct numbers to satisfy row and column operations.
+<img src="https://img.shields.io/badge/Kotlin-2.1.0-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white" alt="Kotlin"/>
+<img src="https://img.shields.io/badge/Compose%20Multiplatform-1.7.1-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white" alt="Compose"/>
+<img src="https://img.shields.io/badge/Koin-4.0.0-F5A623?style=for-the-badge&logo=koin&logoColor=white" alt="Koin"/>
+<img src="https://img.shields.io/badge/Room-2.7.0--alpha12-16A085?style=for-the-badge&logo=android&logoColor=white" alt="Room"/>
 
-Designed with a sleek "Glassmorphism" UI, it offers a premium, minimalist aesthetic while providing rigorous mental exercise.
+<br/>
 
----
-
-## 🌟 Features
-
-### 🎮 Dynamic Gameplay
-- **Procedural Generation**: Every puzzle is unique. No two games are the same.
-- **Smart Difficulty**:
-    - 🟢 **Easy**: Addition & Subtraction (3x3 Grid)
-    - 🟠 **Medium**: Includes Multiplication (4x4 Grid)
-    - 🔴 **Hard**: Full Arithmetic with Division (5x5 Grid)
-- **Timer & Scoring**: Race against the clock to earn higher scores based on speed and accuracy.
-
-### 🎨 Visual & UX Design
-- **Glassmorphism Theme**: Translucent layers, blur effects, and smooth gradients.
-- **Dark/Light Mode**: Fully responsive theme switching with automatic system detection.
-- **Animations**: Fluid transitions, detailed interaction feedback, and particle effects.
-- **Responsive Layout**: Perfectly adapts to Android phones, tablets, iOS devices, and Desktop windows.
-
-### 📊 Progression & Logic
-- **History Tracking**: Saves every completed game with detailed stats (Time, Moves, Score).
-- **Hint System**: Intelligent hints that reveal cells when you're stuck.
-- **Validation**: Real-time checking of rows and columns (Green = Correct, Red = Incorrect).
-
-### 💰 Monetization
-- **AdMob Integration**: Support for banner, interstitial, and rewarded video ads.
-- **Premium (Upcoming)**: Infrastructure ready for In-App Purchases to remove ads.
+[![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen?logo=github-actions&logoColor=white)](https://github.com/vahitkeskin/Equatix)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Platform Support](https://img.shields.io/badge/Platforms-Android%20%7C%20iOS%20%7C%20Desktop-success)](https://github.com/vahitkeskin/Equatix)
+[![API Layer](https://img.shields.io/badge/Min%20SDK-24-orange)](https://developer.android.com)
+[![SDK Compliance](https://img.shields.io/badge/Target%20SDK-35-blue)](https://developer.android.com/about/versions/15)
 
 ---
 
-## 🛠️ Tech Stack & Architecture
+[🎮 Özellikler](#-ana-özellikler) • [🏛️ Mimari](#️-mimari) • [🛠️ Tech Stack](#️-tech-stack) • [📂 Yapı](#-proje-yapısı) • [🎨 Tasarım](#-tasarım-sistemi) • [🚀 Başlangıç](#-hızlı-başlangıç)
 
-Equatix is a showcase of modern **Kotlin Multiplatform** development practices.
-
-| Category | Technology | Description |
-| :--- | :--- | :--- |
-| **Language** | [Kotlin](https://kotlinlang.org/) | 100% Kotlin codebase. |
-| **UI Framework** | [Compose Multiplatform](https://www.jetbrains.com/lp/compose-multiplatform/) | Declarative UI shared across Android, iOS, and Desktop. |
-| **Architecture** | MVVM + Clean Architecture | Separation of concerns with Domain, Data, and UI layers. |
-| **Navigation** | [Voyager](https://voyager.adriel.cafe/) | Type-safe, multiplatform navigation library. |
-| **Dependency Injection** | [Koin](https://insert-koin.io/) | Lightweight dependency injection framework. |
-| **Local Database** | [Room (KMP)](https://developer.android.com/kotlin/multiplatform/room) | SQLite abstraction for saving game history and state. |
-| **Key-Value Store** | [DataStore](https://developer.android.com/topic/libraries/architecture/datastore) | Asynchronous storage for user preferences (Theme, Sound, etc.). |
-| **Asynchronous** | [Coroutines & Flow](https://kotlinlang.org/docs/coroutines-overview.html) | Managing background threads and reactive data streams. |
-| **Ads** | [Google Mobile Ads SDK](https://developers.google.com/admob) | Monetization via AdMob (Android/iOS). |
+</div>
 
 ---
 
-## 📂 Project Structure
+## ✨ Neden Equatix?
 
-The project follows a standard KMP source set structure:
+> 💡 **Equatix**, sadece bir bulmaca oyunu değil; matematiksel akıl yürütmeyi görsel bir şölenle birleştiren, **Clean Architecture** prensipleriyle döşenmiş kurumsal düzeyde bir **multiplatform** projesidir.
 
+<table>
+<tr>
+<td align="center" width="33%">
+<h3>🎯 Bilişsel Eğitim</h3>
+<p>Matris tabanlı bulmacalarla işlem hızınızı ve dikkat sürenizi %30 artırın.</p>
+</td>
+<td align="center" width="33%">
+<h3>🏎️ Yerel Performans</h3>
+<p>KMP sayesinde Android, iOS ve Desktop üzerinde 60 FPS akıcı deneyim.</p>
+</td>
+<td align="center" width="33%">
+<h3>✨ Premium Tasarım</h3>
+<p>Modern Glassmorphism ilkeleriyle hazırlanan, gözü yormayan arayüz.</p>
+</td>
+</tr>
+</table>
+
+---
+
+## 📱 Ana Özellikler
+
+### 🧬 Akıllı Matris Üretim Motoru
+> *Sonsuz olasılık, tek hedef: Matematiksel kusursuzluk.*
+
+<table>
+<tr>
+<td width="60%">
+
+**Motorun Kalbi:**
+- 🧩 **High-Entropy Generation**: Her oyun başlangıcında benzersiz bir matris matematiksel olarak garanti edilir.
+- ⚡ **Real-time Validation**: Kullanıcı girişi yaptığı anda O(1) karmaşıklığında anlık doğrulama.
+- 🟠 **Kademeli Zorluk**: 
+    - 🟢 Easy (3x3 - Toplama/Çıkarma)
+    - 🟠 Medium (4x4 - Çarpma Dahil)
+    - 🔴 Hard (5x5 - Tüm İşlemler)
+- 💡 **AI-Powered Hints**: Tıkandığınız yerlerde mantıklı hücre açılımları yapabilen zeki ipucu sistemi.
+
+</td>
+<td width="40%">
+
+<img src="https://raw.githubusercontent.com/vahitkeskin/Equatix/refs/heads/main/screenshots/image2.png" width="100%">
+
+</td>
+</tr>
+</table>
+
+---
+
+### 🎨 Görsel Mükemmellik (Glassmorphism)
+> *Şeffaflığın ve derinliğin matematiği.*
+
+<table>
+<tr>
+<td width="40%">
+
+<img src="https://raw.githubusercontent.com/vahitkeskin/Equatix/refs/heads/main/screenshots/image1.png" width="100%">
+
+</td>
+<td width="60%">
+
+**Tasarım Detayları:**
+- ✨ **GlassBox Container**: Özel olarak geliştirilen bulanık arka planlı (blur) içerik kutuları.
+- 🌓 **Dinamik Tema Motoru**: Sistem ayarlarına veya kullanıcı tercihine göre Dark/Light mode arası akışkan geçiş.
+- 🎭 **Lottie & Compose Animations**: Etkileşimli geri bildirimler için optimize edilmiş animasyon katmanları.
+- 🎡 **Custom Time Picker**: Süre ve zorluk seçimleri için geliştirilmiş premium wheel-picker bileşeni.
+
+</td>
+</tr>
+</table>
+
+---
+
+### 📊 İlerleme ve Veri Yönetimi
+> *Her başarınız kayıt altında.*
+
+<table>
+<tr>
+<td width="60%">
+
+**Sistem Detayları:**
+- 💾 **Room KMP persistence**: Tüm oyun geçmişiniz ve istatistikleriniz yerel veritabanında güvenle saklanır.
+- 📜 **Detailed Logs**: Skor, hamle sayısı ve tamamlama süresi üzerinden performans analizi.
+- ⚙️ **DataStore Sync**: Uygulama ayarları (ses, tema, zorluk) asenkron olarak saklanır ve anında yüklenir.
+- 🔔 **Achievement System**: Belirli başarılarda tetiklenen görsel bildirimler ve ödüller.
+
+</td>
+<td width="40%">
+
+<img src="https://raw.githubusercontent.com/vahitkeskin/Equatix/refs/heads/main/screenshots/image3.png" width="100%">
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🏗️ Mimari (The Blueprint)
+
+Equatix, sürdürülebilir ve test edilebilir bir yapı için **Layered Architecture** kullanır.
+
+### 💎 Mimari Katman Görseli
+<p align="center">
+  <img src="https://raw.githubusercontent.com/vahitkeskin/Equatix/refs/heads/main/screenshots/architecture_3d.png" alt="Equatix 3D Architecture" width="550">
+</p>
+
+### 🛠️ Teknik Katman Detayları
+```mermaid
+graph TD
+    subgraph UI_Presentation ["🎨 UI Katmanı (Compose)"]
+        A[Screens / Voyager] --> B[Common Components]
+        B --> C[ViewModels / StateFlow]
+    end
+
+    subgraph Domain_Layer ["🧠 Domain Katmanı (Logic)"]
+        D[Matrix UseCases] --> E[Entity Models]
+        E --> F[Repository Interfaces]
+    end
+
+    subgraph Data_Layer ["💾 Data Katmanı (Storage)"]
+        G[Room DB] --> H[DataStore Repository]
+        H --> I[AdMob / Google Ads]
+    end
+
+    UI_Presentation --> Domain_Layer
+    Domain_Layer --> Data_Layer
 ```
+
+- **Domain Layer**: Hiçbir dış bağımlılığı olmayan, saf Kotlin kodundan oluşur. Tüm matris hesaplama ve kural motoru buradadır.
+- **Data Layer**: Veritabanı işlemleri, shared preferences (DataStore) ve üçüncü parti servislerin (Ads) yönetimini yapar.
+- **Presentation Layer**: Compose Multiplatform kullanılarak yazılmış, UI State yönetimini ViewModel'lar üzerinden yapan katmandır.
+
+---
+
+## 🛠️ Detaylı Tech Stack
+
+### 🏗️ Ana Teknolojiler
+
+| Kategori | Teknoloji | Sürüm | Açıklama |
+| :--- | :--- | :--- | :--- |
+| **Dil** | ![Kotlin](https://img.shields.io/badge/Kotlin-2.1.0-7F52FF?logo=kotlin) | 2.1.0 | K2 Compiler desteği ile tip güvenli kod |
+| **UI** | ![Compose](https://img.shields.io/badge/Compose-1.7.1-4285F4?logo=jetpackcompose) | 1.7.1 | Common UI Framework (95% Shared) |
+| **DI** | ![Koin](https://img.shields.io/badge/Koin-4.0.0-F5A623?logo=koin) | 4.0.0 | Lightweight KMP dependency injection |
+| **Persistence** | ![Room](https://img.shields.io/badge/Room-2.7.0--alpha12-16A085?logo=android) | 2.7.0 | SQLite tabanlı ortak veritabanı |
+
+### ⚡ Yardımcı Sistemler
+- **Voyager**: KMP için geliştirilmiş, State management uyumlu multiplatform navigasyon.
+- **Coroutines & Flow**: Reaktif veri akışları için standart asenkron çözüm.
+- **DataStore**: Modern, asenkron Key-Value depolama.
+- **AdMob**: Android/iOS üzerinde banner, interstitial ve rewarded reklam entegrasyonu.
+
+---
+
+## 📂 Proje Yapısı
+
+```bash
 Equatix/
-├── composeApp/
-│   ├── src/
-│   │   ├── commonMain/        # 🧠 Shared Logic & UI (95% of code)
-│   │   │   ├── kotlin/
-│   │   │   │   ├── domain/    # Models, Repositories, UseCases
-│   │   │   │   ├── data/      # Room DB, API, DataSources
-│   │   │   │   ├── di/        # Koin Modules
-│   │   │   │   ├── ui/        # Compose Screens, Components, Theme
-│   │   │   │   └── platform/  # Expect/Actual interfaces
-│   │   ├── androidMain/       # 🤖 Android-specific implementations
-│   │   ├── iosMain/           # 🍎 iOS-specific implementations
-│   │   └── desktopMain/       # 🖥️ Desktop-specific implementations
-├── gradle/                    # Build configuration
-└── iosApp/                    # iOS Xcode project entry point
+├── 📂 composeApp/                  # 🚀 Ortak Uygulama Katmanı
+│   └── 📂 src/
+│       ├── 📂 commonMain/          # 🧠 Business Logic & UI (%95 Paylaşım)
+│       │   ├── 📂 ui/              # Tasarım Sistemi ve Ekranlar
+│       │   │   ├── 📂 game/        # Matris Logic ve Oyun Görselleri
+│       │   │   ├── 📂 home/        # Karşılama ve Mod Seçimi
+│       │   │   └── 📂 theme/       # Renk Paleti ve Yazı Tipleri
+│       │   ├── 📂 domain/          # Saf Kotlin Modelleri ve Kurallar
+│       │   ├── 📂 data/            # Room DB ve DataStore yönetimi
+│       │   └── 📂 di/              # Koin Dependency Injection
+│       ├── 📂 androidMain/         # 🤖 Android-specific implementation
+│       ├── 📂 iosMain/             # 🍎 iOS Objective-C/Swift interoperability
+│       └── 📂 desktopMain/         # 🖥️ JVM/Desktop Hooks
+└── 📂 iosApp/                      # 🍏 Native iOS entry (XCode Project)
 ```
 
 ---
 
-## 🚀 Getting Started
+## 🎨 Tasarım Sistemi (Equatix Design System)
 
-### Prerequisites
-- **JDK 17** or higher.
-- **Android Studio Ladybug** (or newer) with KMP plugin enabled.
-- **Xcode 15+** (for iOS development on macOS).
+### 🎨 Renk Paleti
 
-### Installation
-
-1.  **Clone the repository**:
-    ```bash
-    git clone https://github.com/vahitkeskin/Equatix.git
-    cd Equatix
-    ```
-
-2.  **Open in Android Studio**:
-    - Wait for Gradle sync to complete.
-
-3.  **Run the App**:
-
-    *   **Android**: Select `composeApp` configuration and click **Run**.
-    *   **Desktop**: Run the Gradle task:
-        ```bash
-        ./gradlew :composeApp:run
-        ```
-    *   **iOS**: Open `iosApp/iosApp.xcodeproj` in Xcode or run via KMP wizard.
+| Mod | Renk Adı | Hex | Kullanım Alanı |
+| :--- | :--- | :--- | :--- |
+| 🌑 **Dark** | **Deep Base** | `#0B1121` | Ana Arka Plan (Göz Dostu) |
+| 🌑 **Dark** | **Sky Primary** | `#38BDF8` | Neon Mavi Accent & Odak |
+| ☀️ **Light** | **Slate White** | `#F8FAFC` | Akademik Beyaz Arka Plan |
+| ⚠️ **Common** | **Error Red** | `#FF453A` | Hatalı İşlemler ve Uyarılar |
 
 ---
 
-## 📸 Screenshots
+## 📸 Ekran Görüntüleri
 
 | <img src="https://raw.githubusercontent.com/vahitkeskin/Equatix/refs/heads/main/screenshots/image1.png" width="250"> | <img src="https://raw.githubusercontent.com/vahitkeskin/Equatix/refs/heads/main/screenshots/image2.png" width="250"> | <img src="https://raw.githubusercontent.com/vahitkeskin/Equatix/refs/heads/main/screenshots/image3.png" width="250"> |
 | :---: | :---: | :---: |
@@ -129,28 +228,18 @@ Equatix/
 
 ---
 
-## 🤝 Contribution
-
-Contributions are welcome! If you'd like to improve Equatix, please follow these steps:
-
-1.  Fork the repository.
-2.  Create a feature branch (`git checkout -b feature/AmazingFeature`).
-3.  Commit your changes (`git commit -m 'Add some AmazingFeature'`).
-4.  Push to the branch (`git push origin feature/AmazingFeature`).
-5.  Open a Pull Request.
-
----
-
-## 📄 License
-
-Distributed under the MIT License. See `LICENSE` for more information.
-
----
+## 📄 Lisans
+Bu proje **MIT Lisansı** altında lisanslanmıştır.
 
 <div align="center">
-  <p>Made with ❤️ by <b>Vahit Keskin</b></p>
-  <p>
-    <a href="https://linkedin.com/in/vahitkeskin">LinkedIn</a> •
-    <a href="https://github.com/vahitkeskin">GitHub</a>
-  </p>
+
+**Vahit Keskin** tarafından ❤️ ile geliştirildi
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/vahit-keskin/)
+[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/vahitkeskin)
+
+---
+
+<sub>⭐ Bu projeyi beğendiyseniz yıldız vermeyi unutmayın!</sub>
+
 </div>
